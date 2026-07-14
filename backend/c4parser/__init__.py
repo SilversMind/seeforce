@@ -1,3 +1,11 @@
+"""
+@c2:container
+name: c4parser
+system: C4 Tool
+technology: Python
+description: Scans source files for C4 annotations and generates workspace.json
+"""
+
 from .scanner import scan
 from .builder import build
 from .exporter import export_workspace

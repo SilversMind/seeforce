@@ -96,3 +96,17 @@ def test_scan_parse_error_includes_line_number(tmp_path):
     with pytest.raises(C4ParseError) as exc_info:
         scan(str(tmp_path))
     assert exc_info.value.line == 3
+
+
+def test_scan_ignores_marker_mentioned_mid_block(tmp_path):
+    # A docstring or code that MENTIONS @c1: without starting with it is not
+    # an annotation — the scanner must not trip on its own error messages.
+    src = tmp_path / "meta.py"
+    src.write_text(
+        '"""\n'
+        "Helper module.\n"
+        "Raises an error like '@c1:system missing required field' sometimes.\n"
+        '"""\n'
+    )
+    elements = scan(str(tmp_path))
+    assert elements == []

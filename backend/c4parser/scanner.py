@@ -30,7 +30,14 @@ def _strip_comment_stars(block: str) -> str:
 
 
 def _parse_block(content: str, file_path: str, line: int) -> C4Element | None:
-    match = _PREFIX_RE.search(content)
+    # An annotation block must START with the @cN: marker (after dedent).
+    # Anything else is code that merely mentions "@cN:" in a string literal —
+    # skipping it prevents the scanner from tripping on its own source.
+    stripped = textwrap.dedent(content).strip()
+    if not stripped.startswith("@c"):
+        return None
+
+    match = _PREFIX_RE.match(stripped)
     if not match:
         return None
 
@@ -43,9 +50,8 @@ def _parse_block(content: str, file_path: str, line: int) -> C4Element | None:
             line=line,
         )
 
-    # Remove the @cN:kind line before parsing YAML, then dedent
-    yaml_text = _PREFIX_RE.sub("", content, count=1)
-    yaml_text = textwrap.dedent(yaml_text).strip()
+    # Remove the @cN:kind marker line; the rest is the YAML payload
+    yaml_text = stripped[match.end():].strip()
 
     try:
         data = yaml.safe_load(yaml_text) or {}
