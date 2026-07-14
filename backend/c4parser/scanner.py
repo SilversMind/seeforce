@@ -30,13 +30,15 @@ def _strip_comment_stars(block: str) -> str:
 
 
 def _parse_block(content: str, file_path: str, line: int) -> C4Element | None:
-    # An annotation block must START with the @cN: marker (after dedent).
-    # Anything else is code that merely mentions "@cN:" in a string literal —
-    # skipping it prevents the scanner from tripping on its own source.
+    # The @cN: marker must START a line (after dedent) — summary lines before
+    # it are allowed, but mid-line mentions in string literals are not, so the
+    # scanner never trips on its own error messages.
     stripped = textwrap.dedent(content).strip()
-    if not stripped.startswith("@c"):
+    marker = re.search(r"(?m)^@c[123]:", stripped)
+    if not marker:
         return None
 
+    stripped = stripped[marker.start():]
     match = _PREFIX_RE.match(stripped)
     if not match:
         return None

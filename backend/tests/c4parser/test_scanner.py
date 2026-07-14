@@ -98,6 +98,25 @@ def test_scan_parse_error_includes_line_number(tmp_path):
     assert exc_info.value.line == 3
 
 
+def test_scan_summary_line_before_marker(tmp_path):
+    # Common Javadoc/docstring idiom: a summary sentence precedes the marker.
+    java = tmp_path / "OrderService.java"
+    java.write_text(
+        "/** Order service.\n"
+        " * @c3:component\n"
+        " * name: Order Service\n"
+        " * container: API Backend\n"
+        " */\n"
+        "public class OrderService {}\n"
+    )
+    elements = scan(str(tmp_path))
+    assert len(elements) == 1
+    comp = elements[0]
+    assert isinstance(comp, C4Component)
+    assert comp.name == "Order Service"
+    assert comp.container == "API Backend"
+
+
 def test_scan_ignores_marker_mentioned_mid_block(tmp_path):
     # A docstring or code that MENTIONS @c1: without starting with it is not
     # an annotation — the scanner must not trip on its own error messages.
