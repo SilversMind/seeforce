@@ -14,7 +14,7 @@
 - [x] Task 11: Frontend — Node and Edge Components
 - [x] Task 12: Frontend — C4Graph Component
 - [x] Task 13: Frontend — GraphView Page
-- [ ] Task 14: Self-Annotation (Dog-fooding)
+- [x] Task 14: Self-Annotation (Dog-fooding)
 
 ## Log
 Task 1: complete (commits 523dc53..5bdf88b, review clean — Python 3.12 used, 3.13 not on system)
@@ -33,3 +33,6 @@ Task 10: complete (commits b3eaa84..459af58, reviewed inline by controller — T
 Task 11: complete (commits 459af58..b2b68e3, reviewed inline by controller — TS strict casts justified)
 Task 12: complete (commits b2b68e3..1212366, reviewed inline by controller)
 Task 13: complete (commits 1212366..2804517, reviewed inline by controller — e2e smoke passed via curl)
+Task 14: complete (commits 2804517..7ecaed0, done inline by controller after session restart killed subagent)
+  Dog-fooding found + fixed real scanner bug: marker-mention false positives. Known limitation: annotation strings in test files still detected (needs --exclude/.c4ignore, deferred).
+All 14 tasks complete. Final whole-branch review pending.
