@@ -58,3 +58,41 @@ def test_scan_invalid_yaml_raises(tmp_path):
     bad.write_text('"""\n@c1:system\nname: [bad yaml\n"""\n')
     with pytest.raises(C4ParseError):
         scan(str(tmp_path))
+
+
+def test_scan_java_block_comment(tmp_path):
+    java = tmp_path / "OrderService.java"
+    java.write_text(
+        "/**\n"
+        " * @c3:component\n"
+        " * name: Order Service\n"
+        " * container: API Backend\n"
+        " * technology: Java/Spring\n"
+        " * uses:\n"
+        " *   - Payment Service\n"
+        " */\n"
+        "public class OrderService {}\n"
+    )
+    elements = scan(str(tmp_path))
+    assert len(elements) == 1
+    comp = elements[0]
+    assert isinstance(comp, C4Component)
+    assert comp.name == "Order Service"
+    assert comp.technology == "Java/Spring"
+    assert comp.uses == ["Payment Service"]
+
+
+def test_scan_wrong_kind_for_level_raises(tmp_path):
+    bad = tmp_path / "bad.py"
+    bad.write_text('"""\n@c1:container\nname: Wrong\nsystem: X\n"""\n')
+    with pytest.raises(C4ParseError) as exc_info:
+        scan(str(tmp_path))
+    assert "must be @c1:system" in str(exc_info.value)
+
+
+def test_scan_parse_error_includes_line_number(tmp_path):
+    bad = tmp_path / "bad.py"
+    bad.write_text('# padding\n# padding\n"""\n@c1:system\nname: [bad yaml\n"""\n')
+    with pytest.raises(C4ParseError) as exc_info:
+        scan(str(tmp_path))
+    assert exc_info.value.line == 3
