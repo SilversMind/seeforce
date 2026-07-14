@@ -14,3 +14,6 @@ frontend/.env.local
 
 # OS
 .DS_Store
+
+# Generated scan output
+backend/workspace.json
