@@ -1,3 +1,8 @@
+_GRID_COLS = 4
+_GRID_X = 300
+_GRID_Y = 180
+
+
 def _node(id: str, node_type: str, label: str, technology: str = "", description: str = "") -> dict:
     return {
         "id": id,
@@ -5,6 +10,16 @@ def _node(id: str, node_type: str, label: str, technology: str = "", description
         "position": {"x": 0, "y": 0},
         "data": {"label": label, "technology": technology, "description": description},
     }
+
+
+def _layout(nodes: list[dict]) -> list[dict]:
+    # Deterministic grid: fill rows left-to-right, wrap every _GRID_COLS nodes.
+    for index, node in enumerate(nodes):
+        node["position"] = {
+            "x": (index % _GRID_COLS) * _GRID_X,
+            "y": (index // _GRID_COLS) * _GRID_Y,
+        }
+    return nodes
 
 
 def _edge(rel: dict, source_id: str) -> dict:
@@ -19,6 +34,34 @@ def _edge(rel: dict, source_id: str) -> dict:
 
 def _is_external(element: dict) -> bool:
     return "External" in element.get("tags", "")
+
+
+def _element_index(model: dict) -> dict[str, dict]:
+    """Map every element id in the model to its name and kind."""
+    index: dict[str, dict] = {}
+    for person in model.get("people", []):
+        index[person["id"]] = {"name": person["name"], "kind": "person"}
+    for system in model.get("softwareSystems", []):
+        kind = "external" if _is_external(system) else "system"
+        index[system["id"]] = {"name": system["name"], "kind": kind}
+        for container in system.get("containers", []):
+            index[container["id"]] = {"name": container["name"], "kind": "container"}
+            for comp in container.get("components", []):
+                index[comp["id"]] = {"name": comp["name"], "kind": "component"}
+    return index
+
+
+def _add_placeholders(nodes: list[dict], edges: list[dict], model: dict) -> None:
+    """Emit placeholder nodes for edge endpoints outside the current node set."""
+    known = {n["id"] for n in nodes}
+    index = _element_index(model)
+    for edge in edges:
+        for endpoint in (edge["source"], edge["target"]):
+            if endpoint in known:
+                continue
+            info = index.get(endpoint)
+            nodes.append(_node(endpoint, "external", info["name"] if info else endpoint))
+            known.add(endpoint)
 
 
 def to_react_flow(
@@ -55,7 +98,7 @@ def _c1_view(model: dict) -> dict:
         for rel in system.get("relationships", []):
             edges.append(_edge(rel, system["id"]))
 
-    return {"nodes": nodes, "edges": edges}
+    return {"nodes": _layout(nodes), "edges": edges}
 
 
 def _c2_view(model: dict, system_id: str | None) -> dict:
@@ -81,7 +124,8 @@ def _c2_view(model: dict, system_id: str | None) -> dict:
         for rel in container.get("relationships", []):
             edges.append(_edge(rel, container["id"]))
 
-    return {"nodes": nodes, "edges": edges}
+    _add_placeholders(nodes, edges, model)
+    return {"nodes": _layout(nodes), "edges": edges}
 
 
 def _c3_view(model: dict, container_id: str | None) -> dict:
@@ -102,6 +146,7 @@ def _c3_view(model: dict, container_id: str | None) -> dict:
                 ))
                 for rel in comp.get("relationships", []):
                     edges.append(_edge(rel, comp["id"]))
-            return {"nodes": nodes, "edges": edges}
+            _add_placeholders(nodes, edges, model)
+            return {"nodes": _layout(nodes), "edges": edges}
 
     return {"nodes": [], "edges": []}

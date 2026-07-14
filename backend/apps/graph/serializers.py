@@ -12,3 +12,8 @@ class WorkspaceSerializer(serializers.ModelSerializer):
 class WorkspaceUploadSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     workspace = serializers.JSONField()
+
+    def validate_workspace(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("workspace must be a JSON object")
+        return value

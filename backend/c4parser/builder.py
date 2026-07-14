@@ -59,8 +59,8 @@ def build(elements: list[C4Element]) -> dict:
     # --- Phase 4: Detect broker/external uses ---
     external_systems: dict[str, dict] = {}
     external_ids: dict[str, str] = {}
-    for comp in components.values():
-        for use in comp.uses:
+    for el in list(containers.values()) + list(components.values()):
+        for use in el.uses:
             if ":" in use and not use.startswith("http") and "/" not in use:
                 ext_id = _slug(use)
                 if use not in external_systems:
@@ -171,6 +171,39 @@ def build(elements: list[C4Element]) -> dict:
             })
         return rels
 
+    # --- Phase 5.5: Map every element id to its owning system id ---
+    element_system: dict[str, str] = {}
+    for name, sid in system_ids.items():
+        element_system[sid] = sid
+    for name, cid in container_ids.items():
+        element_system[cid] = system_ids[containers[name].system]
+    for (cont_name, _), comp_id in component_ids.items():
+        element_system[comp_id] = system_ids[containers[cont_name].system]
+    for ext_id in external_ids.values():
+        element_system[ext_id] = ext_id
+
+    def _rollup_system_relationships(sys_node: dict) -> list[dict]:
+        """Derive system-level relationships from container/component uses that
+        cross system boundaries (including external broker systems)."""
+        sys_id = sys_node["id"]
+        rels = []
+        seen: set[str] = set()
+        for cont in sys_node["containers"]:
+            child_rels = cont["relationships"] + [
+                r for comp in cont["components"] for r in comp["relationships"]
+            ]
+            for rel in child_rels:
+                dest_sys = element_system.get(rel["destinationId"])
+                if dest_sys and dest_sys != sys_id and dest_sys not in seen:
+                    seen.add(dest_sys)
+                    rels.append({
+                        "id": f"rel-{sys_id}-{dest_sys}",
+                        "destinationId": dest_sys,
+                        "description": "",
+                        "tags": "Relationship",
+                    })
+        return rels
+
     # --- Phase 6: Assemble workspace ---
     system_nodes = []
     container_views = []
@@ -215,14 +248,16 @@ def build(elements: list[C4Element]) -> dict:
                     "containerId": cont_id,
                 })
 
-        system_nodes.append({
+        sys_node = {
             "id": sys_id,
             "name": sys.name,
             "description": sys.description,
             "tags": "Element,Software System" + (",External" if sys.external else ""),
             "relationships": [],
             "containers": sys_containers,
-        })
+        }
+        sys_node["relationships"] = _rollup_system_relationships(sys_node)
+        system_nodes.append(sys_node)
 
         if sys_containers:
             container_views.append({

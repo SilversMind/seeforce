@@ -142,6 +142,49 @@ def test_build_ambiguous_unqualified_cross_container_reference_raises():
         build(elements)
 
 
+def test_build_container_broker_uses_creates_external_system():
+    elements = [
+        C4System(name="Shop"),
+        C4Container(name="API Backend", system="Shop", uses=["kafka:order-events"]),
+    ]
+    workspace = build(elements)
+    systems = workspace["model"]["softwareSystems"]
+    external = next((s for s in systems if "External" in s.get("tags", "")), None)
+    assert external is not None
+    assert external["id"] == "kafka-order-events"
+    container = systems[0]["containers"][0]
+    assert container["relationships"][0]["destinationId"] == "kafka-order-events"
+
+
+def test_build_rolls_up_cross_system_relationships_to_c1():
+    elements = [
+        C4System(name="Shop"),
+        C4System(name="Warehouse"),
+        C4Container(name="API Backend", system="Shop", uses=["Warehouse"]),
+        C4Component(name="Order Service", container="API Backend",
+                    uses=["kafka:order-events"]),
+    ]
+    workspace = build(elements)
+    shop = next(s for s in workspace["model"]["softwareSystems"] if s["id"] == "shop")
+    destinations = {r["destinationId"] for r in shop["relationships"]}
+    assert destinations == {"warehouse", "kafka-order-events"}
+
+
+def test_build_rollup_deduplicates_and_skips_intra_system_uses():
+    elements = [
+        C4System(name="Shop"),
+        C4Container(name="API Backend", system="Shop"),
+        C4Component(name="Order Service", container="API Backend",
+                    uses=["Payment Service", "kafka:order-events"]),
+        C4Component(name="Payment Service", container="API Backend",
+                    uses=["kafka:order-events"]),
+    ]
+    workspace = build(elements)
+    shop = next(s for s in workspace["model"]["softwareSystems"] if s["id"] == "shop")
+    destinations = [r["destinationId"] for r in shop["relationships"]]
+    assert destinations == ["kafka-order-events"]
+
+
 def test_build_qualified_reference_missing_raises():
     """Qualified ContainerName/ComponentName where component doesn't exist raises C4ValidationError."""
     elements = [

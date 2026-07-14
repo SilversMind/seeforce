@@ -38,6 +38,16 @@ class UploadWorkspaceTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    def test_upload_non_dict_workspace_returns_400(self):
+        for payload in ([1, 2, 3], 42, "workspace"):
+            response = self.client.post(
+                "/api/graph/upload/",
+                data=json.dumps({"name": "Bad", "workspace": payload}),
+                content_type="application/json",
+            )
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("workspace", response.json())
+
 
 class FetchWorkspaceTest(TestCase):
     def setUp(self):
