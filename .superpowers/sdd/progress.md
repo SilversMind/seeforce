@@ -2,10 +2,10 @@
 
 ## Tasks
 - [x] Task 1: Project Scaffolding
-- [ ] Task 2: c4parser — Types and Exceptions
-- [ ] Task 3: c4parser — Scanner
-- [ ] Task 4: c4parser — Builder
-- [ ] Task 5: c4parser — Exporter + Public API
+- [x] Task 2: c4parser — Types and Exceptions
+- [x] Task 3: c4parser — Scanner
+- [x] Task 4: c4parser — Builder
+- [x] Task 5: c4parser — Exporter + Public API
 - [x] Task 6: Django — graph app (Model + Migration)
 - [x] Task 7: Django — Upload and Fetch Endpoints
 - [x] Task 8: Django — Transformers
@@ -35,4 +35,10 @@ Task 12: complete (commits b2b68e3..1212366, reviewed inline by controller)
 Task 13: complete (commits 1212366..2804517, reviewed inline by controller — e2e smoke passed via curl)
 Task 14: complete (commits 2804517..7ecaed0, done inline by controller after session restart killed subagent)
   Dog-fooding found + fixed real scanner bug: marker-mention false positives. Known limitation: annotation strings in test files still detected (needs --exclude/.c4ignore, deferred).
-All 14 tasks complete. Final whole-branch review pending.
+All 14 tasks complete.
+
+Final whole-branch review (fable): verdict "needs fixes" — 2 blockers (no graph layout: all nodes at origin; dangling edges: broker/external/cross-scope uses invisible, no C1 roll-up) + 3 fix-now items (container broker uses registration, non-dict upload 500, scanner drops Javadoc summary-line-before-marker pattern).
+Fix round (fable subagent, commits 0a222b5 + 44e2bd9): deterministic grid layout in transformers, placeholder external nodes for dangling edge endpoints in C2/C3, C1 system-relationship roll-up in builder, container colon-protocol uses registration, validate_workspace non-dict -> 400, scanner line-anchored `(?m)^@c[123]:` marker match. 45/45 backend tests, frontend build clean.
+Remaining acceptable-as-logged minors for V1.1: unreachable builder branch, http:// uses error message, unused test imports, invalid level -> 200, empty 404 bodies, `id` shadows builtin, _is_external substring match, .c4ignore + SHA cache, Refresh button, breadcrumb C2 label, `.rb` extension has no supported comment syntax, slug collision validation, SECRET_KEY to env before deploy.
+
+Docker compose stack added (commit 1d8a910): backend python:3.12-slim (migrate + runserver :8000), frontend node:20-slim (vite dev :3000), env-driven proxy/ALLOWED_HOSTS/sqlite path, named volume. Live E2E through the stack verified: upload 201 via Vite proxy, C1 view with grid positions + rolled-up shop->kafka edge, C3 with external placeholder + uses edges, non-dict upload 400, self-scan dogfood still clean.
