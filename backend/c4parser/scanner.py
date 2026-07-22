@@ -37,8 +37,16 @@ def _load_c4ignore(root_path: str) -> list[str]:
     return patterns
 
 
-def _is_ignored(name: str, patterns: list[str]) -> bool:
-    return any(fnmatch.fnmatch(name, p) for p in patterns)
+def _is_ignored(name: str, patterns: list[str], rel_path: str = "") -> bool:
+    for p in patterns:
+        if "/" in p:
+            # Path pattern: match against relative path from root (forward slashes).
+            if rel_path and fnmatch.fnmatch(rel_path, p):
+                return True
+        else:
+            if fnmatch.fnmatch(name, p):
+                return True
+    return False
 
 
 def _strip_comment_stars(block: str) -> str:
@@ -124,16 +132,23 @@ def scan(
     elements: list[C4Element] = []
 
     for dirpath, dirnames, filenames in os.walk(root_path):
-        # Prune excluded dirs in-place so os.walk skips them
-        dirnames[:] = [
-            d for d in dirnames
-            if d not in excl and not _is_ignored(d, ignore)
-        ]
+        # Prune excluded dirs in-place so os.walk skips them.
+        # rel_path uses forward slashes for cross-platform pattern matching.
+        pruned = []
+        for d in dirnames:
+            if d in excl:
+                continue
+            rel_d = os.path.relpath(os.path.join(dirpath, d), root_path).replace(os.sep, "/")
+            if _is_ignored(d, ignore, rel_path=rel_d):
+                continue
+            pruned.append(d)
+        dirnames[:] = pruned
 
         for filename in filenames:
             if Path(filename).suffix not in exts:
                 continue
-            if _is_ignored(filename, ignore):
+            rel_f = os.path.relpath(os.path.join(dirpath, filename), root_path).replace(os.sep, "/")
+            if _is_ignored(filename, ignore, rel_path=rel_f):
                 continue
             file_path = os.path.join(dirpath, filename)
             try:
