@@ -144,6 +144,16 @@ def test_c4ignore_glob_pattern_excludes_file(tmp_path):
     assert scan(str(tmp_path)) == []
 
 
+def test_c4ignore_name_only_does_not_match_nested_dir(tmp_path):
+    # "examples" only excludes root-level examples/, NOT sub/examples/.
+    nested = tmp_path / "sub" / "examples"
+    nested.mkdir(parents=True)
+    (nested / "mod.py").write_text('"""\n@c1:system\nname: Visible\ndescription: ok\n"""\n')
+    (tmp_path / ".c4ignore").write_text("examples\n")
+    elements = scan(str(tmp_path))
+    assert any(getattr(e, "name", None) == "Visible" for e in elements)
+
+
 def test_c4ignore_comments_and_blank_lines_ignored(tmp_path):
     (tmp_path / "real.py").write_text('"""\n@c1:system\nname: Shop\ndescription: ok\n"""\n')
     (tmp_path / ".c4ignore").write_text("# this is a comment\n\n# another comment\n")

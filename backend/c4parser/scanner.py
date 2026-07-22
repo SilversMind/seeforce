@@ -38,15 +38,10 @@ def _load_c4ignore(root_path: str) -> list[str]:
 
 
 def _is_ignored(name: str, patterns: list[str], rel_path: str = "") -> bool:
-    for p in patterns:
-        if "/" in p:
-            # Path pattern: match against relative path from root (forward slashes).
-            if rel_path and fnmatch.fnmatch(rel_path, p):
-                return True
-        else:
-            if fnmatch.fnmatch(name, p):
-                return True
-    return False
+    # Always match against the relative path from root — no "anywhere in tree"
+    # magic. `examples` only excludes the root-level examples/, not sub/examples/.
+    target = rel_path if rel_path else name
+    return any(fnmatch.fnmatch(target, p) for p in patterns)
 
 
 def _strip_comment_stars(block: str) -> str:
