@@ -1,5 +1,13 @@
-import { useCallback } from "react";
-import { ReactFlow, Background, Controls, MiniMap, type NodeMouseHandler } from "@xyflow/react";
+import { useCallback, useEffect } from "react";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  type NodeMouseHandler,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { useViewStore } from "../../store/viewStore";
@@ -27,7 +35,19 @@ const edgeTypes = {
 export function C4Graph() {
   const viewState = useViewStore();
   const { drillToC2, drillToC3, level } = viewState;
-  const { nodes, edges, isLoading } = useWorkspace(viewState);
+  const { nodes: fetchedNodes, edges: fetchedEdges, isLoading } = useWorkspace(viewState);
+
+  // Local state so React Flow can apply drag changes; re-synced on each fetch.
+  const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
+
+  useEffect(() => {
+    setNodes(fetchedNodes);
+  }, [fetchedNodes, setNodes]);
+
+  useEffect(() => {
+    setEdges(fetchedEdges);
+  }, [fetchedEdges, setEdges]);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -50,6 +70,8 @@ export function C4Graph() {
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeDoubleClick={onNodeDoubleClick}
