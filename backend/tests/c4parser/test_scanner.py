@@ -117,35 +117,26 @@ def test_scan_summary_line_before_marker(tmp_path):
     assert comp.container == "API Backend"
 
 
-def test_c4ignore_excludes_directory(tmp_path):
-    secret = tmp_path / "generated"
-    secret.mkdir()
-    (secret / "auto.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
-    (tmp_path / ".c4ignore").write_text("generated\n")
-    assert scan(str(tmp_path)) == []
-
-
-def test_c4ignore_glob_pattern_excludes_directory(tmp_path):
+def test_c4ignore_excludes_directories(tmp_path):
+    # Exact name and glob both work; patterns match relative path from root.
+    (tmp_path / "generated").mkdir()
+    ((tmp_path / "generated") / "auto.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
     (tmp_path / "migrations_v2").mkdir()
     ((tmp_path / "migrations_v2") / "mod.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
-    (tmp_path / ".c4ignore").write_text("migrations_*\n")
+    (tmp_path / ".c4ignore").write_text("generated\nmigrations_*\n")
     assert scan(str(tmp_path)) == []
 
 
-def test_c4ignore_excludes_file(tmp_path):
+def test_c4ignore_excludes_files(tmp_path):
+    # Exact filename and glob both work.
     (tmp_path / "conftest.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
-    (tmp_path / ".c4ignore").write_text("conftest.py\n")
-    assert scan(str(tmp_path)) == []
-
-
-def test_c4ignore_glob_pattern_excludes_file(tmp_path):
     (tmp_path / "test_views.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
-    (tmp_path / ".c4ignore").write_text("test_*.py\n")
+    (tmp_path / ".c4ignore").write_text("conftest.py\ntest_*.py\n")
     assert scan(str(tmp_path)) == []
 
 
-def test_c4ignore_name_only_does_not_match_nested_dir(tmp_path):
-    # "examples" only excludes root-level examples/, NOT sub/examples/.
+def test_c4ignore_pattern_anchored_to_root(tmp_path):
+    # Pattern without path only excludes the root-level match, not a nested dir with the same name.
     nested = tmp_path / "sub" / "examples"
     nested.mkdir(parents=True)
     (nested / "mod.py").write_text('"""\n@c1:system\nname: Visible\ndescription: ok\n"""\n')
@@ -157,13 +148,6 @@ def test_c4ignore_name_only_does_not_match_nested_dir(tmp_path):
 def test_c4ignore_comments_and_blank_lines_ignored(tmp_path):
     (tmp_path / "real.py").write_text('"""\n@c1:system\nname: Shop\ndescription: ok\n"""\n')
     (tmp_path / ".c4ignore").write_text("# this is a comment\n\n# another comment\n")
-    elements = scan(str(tmp_path))
-    assert len(elements) == 1
-
-
-def test_c4ignore_missing_file_is_fine(tmp_path):
-    (tmp_path / "real.py").write_text('"""\n@c1:system\nname: Shop\ndescription: ok\n"""\n')
-    assert not (tmp_path / ".c4ignore").exists()
     elements = scan(str(tmp_path))
     assert len(elements) == 1
 
