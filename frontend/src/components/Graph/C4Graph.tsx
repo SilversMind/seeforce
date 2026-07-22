@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   ReactFlow,
   Background,
@@ -7,10 +7,11 @@ import {
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
+  type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { useViewStore } from "../../store/viewStore";
+import { useViewStore, buildViewKey } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { SystemNode } from "./nodes/SystemNode";
 import { ContainerNode } from "./nodes/ContainerNode";
@@ -34,20 +35,39 @@ const edgeTypes = {
 
 export function C4Graph() {
   const viewState = useViewStore();
-  const { drillToC2, drillToC3, level } = viewState;
+  const { drillToC2, drillToC3, level, systemId, containerId, layoutCache, saveLayout } = viewState;
   const { nodes: fetchedNodes, edges: fetchedEdges, isLoading } = useWorkspace(viewState);
 
-  // Local state so React Flow can apply drag changes; re-synced on each fetch.
+  const viewKey = buildViewKey(level, systemId, containerId);
+
   const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
 
+  // Ref so the fetchedNodes effect reads latest cache without re-running on every drag save.
+  const layoutCacheRef = useRef(layoutCache);
+  useEffect(() => { layoutCacheRef.current = layoutCache; }, [layoutCache]);
+
   useEffect(() => {
-    setNodes(fetchedNodes);
-  }, [fetchedNodes, setNodes]);
+    const saved = layoutCacheRef.current[viewKey];
+    if (saved && fetchedNodes.length > 0) {
+      setNodes(fetchedNodes.map((n) => saved[n.id] ? { ...n, position: saved[n.id] } : n));
+    } else {
+      setNodes(fetchedNodes);
+    }
+  }, [fetchedNodes, viewKey, setNodes]);
 
   useEffect(() => {
     setEdges(fetchedEdges);
   }, [fetchedEdges, setEdges]);
+
+  const onNodeDragStop = useCallback(
+    (_event: unknown, _node: Node, allNodes: Node[]) => {
+      const positions: Record<string, { x: number; y: number }> = {};
+      for (const n of allNodes) positions[n.id] = n.position;
+      saveLayout(viewKey, positions);
+    },
+    [viewKey, saveLayout],
+  );
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -72,6 +92,7 @@ export function C4Graph() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeDoubleClick={onNodeDoubleClick}
