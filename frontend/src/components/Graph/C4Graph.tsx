@@ -1,4 +1,13 @@
-import { useCallback, useEffect } from "react";
+/*
+@c3:component
+name: Architecture visualiser
+container: Frontend
+technology: ReactFlow
+description: Display architecture and manage user interaction such as drilling down on specific component
+uses:
+- Node manager
+*/
+import { useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -12,6 +21,7 @@ import "@xyflow/react/dist/style.css";
 
 import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
+import { applyElkLayout } from "../../lib/elkLayout";
 import { SystemNode } from "./nodes/SystemNode";
 import { ContainerNode } from "./nodes/ContainerNode";
 import { ComponentNode } from "./nodes/ComponentNode";
@@ -35,19 +45,30 @@ const edgeTypes = {
 export function C4Graph() {
   const viewState = useViewStore();
   const { drillToC2, drillToC3, level } = viewState;
-  const { nodes: fetchedNodes, edges: fetchedEdges, isLoading } = useWorkspace(viewState);
+  const {
+    nodes: fetchedNodes,
+    edges: fetchedEdges,
+    isLoading,
+  } = useWorkspace(viewState);
 
-  // Local state so React Flow can apply drag changes; re-synced on each fetch.
   const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
+  const [isLayouting, setIsLayouting] = useState(false);
 
   useEffect(() => {
-    setNodes(fetchedNodes);
-  }, [fetchedNodes, setNodes]);
-
-  useEffect(() => {
-    setEdges(fetchedEdges);
-  }, [fetchedEdges, setEdges]);
+    if (fetchedNodes.length === 0) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+    setIsLayouting(true);
+    applyElkLayout(fetchedNodes, fetchedEdges)
+      .then((laidOut) => {
+        setNodes(laidOut);
+        setEdges(fetchedEdges);
+      })
+      .finally(() => setIsLayouting(false));
+  }, [fetchedNodes, fetchedEdges, setNodes, setEdges]);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -60,8 +81,19 @@ export function C4Graph() {
     [level, drillToC2, drillToC3],
   );
 
-  if (isLoading) {
-    return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>Loading...</div>;
+  if (isLoading || isLayouting) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+        }}
+      >
+        {isLayouting ? "Computing layout…" : "Loading…"}
+      </div>
+    );
   }
 
   return (
