@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import {
   ReactFlow,
   Background,
@@ -35,7 +35,7 @@ const edgeTypes = {
 
 export function C4Graph() {
   const viewState = useViewStore();
-  const { drillToC2, drillToC3, level, systemId, containerId, layoutCache, saveLayout } = viewState;
+  const { drillToC2, drillToC3, level, systemId, containerId, saveLayout } = viewState;
   const { nodes: fetchedNodes, edges: fetchedEdges, isLoading } = useWorkspace(viewState);
 
   const viewKey = buildViewKey(level, systemId, containerId);
@@ -43,13 +43,11 @@ export function C4Graph() {
   const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
 
-  // Ref so the fetchedNodes effect reads latest cache without re-running on every drag save.
-  const layoutCacheRef = useRef(layoutCache);
-  useEffect(() => { layoutCacheRef.current = layoutCache; }, [layoutCache]);
-
   useEffect(() => {
-    const saved = layoutCacheRef.current[viewKey];
-    if (saved && fetchedNodes.length > 0) {
+    if (fetchedNodes.length === 0) return;
+    // Read latest layoutCache directly from store — no stale closure risk.
+    const saved = useViewStore.getState().layoutCache[viewKey];
+    if (saved) {
       setNodes(fetchedNodes.map((n) => saved[n.id] ? { ...n, position: saved[n.id] } : n));
     } else {
       setNodes(fetchedNodes);
@@ -84,6 +82,8 @@ export function C4Graph() {
     return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>Loading...</div>;
   }
 
+  const hasSavedLayout = !!useViewStore.getState().layoutCache[viewKey];
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <Breadcrumb />
@@ -96,7 +96,7 @@ export function C4Graph() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeDoubleClick={onNodeDoubleClick}
-        fitView
+        fitView={!hasSavedLayout}
       >
         <Background />
         <Controls />
