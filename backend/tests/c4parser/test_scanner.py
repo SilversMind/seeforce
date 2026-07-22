@@ -117,6 +117,47 @@ def test_scan_summary_line_before_marker(tmp_path):
     assert comp.container == "API Backend"
 
 
+def test_c4ignore_excludes_directory(tmp_path):
+    secret = tmp_path / "generated"
+    secret.mkdir()
+    (secret / "auto.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
+    (tmp_path / ".c4ignore").write_text("generated\n")
+    assert scan(str(tmp_path)) == []
+
+
+def test_c4ignore_glob_pattern_excludes_directory(tmp_path):
+    (tmp_path / "migrations_v2").mkdir()
+    ((tmp_path / "migrations_v2") / "mod.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
+    (tmp_path / ".c4ignore").write_text("migrations_*\n")
+    assert scan(str(tmp_path)) == []
+
+
+def test_c4ignore_excludes_file(tmp_path):
+    (tmp_path / "conftest.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
+    (tmp_path / ".c4ignore").write_text("conftest.py\n")
+    assert scan(str(tmp_path)) == []
+
+
+def test_c4ignore_glob_pattern_excludes_file(tmp_path):
+    (tmp_path / "test_views.py").write_text('"""\n@c1:system\nname: Ghost\n"""\n')
+    (tmp_path / ".c4ignore").write_text("test_*.py\n")
+    assert scan(str(tmp_path)) == []
+
+
+def test_c4ignore_comments_and_blank_lines_ignored(tmp_path):
+    (tmp_path / "real.py").write_text('"""\n@c1:system\nname: Shop\ndescription: ok\n"""\n')
+    (tmp_path / ".c4ignore").write_text("# this is a comment\n\n# another comment\n")
+    elements = scan(str(tmp_path))
+    assert len(elements) == 1
+
+
+def test_c4ignore_missing_file_is_fine(tmp_path):
+    (tmp_path / "real.py").write_text('"""\n@c1:system\nname: Shop\ndescription: ok\n"""\n')
+    assert not (tmp_path / ".c4ignore").exists()
+    elements = scan(str(tmp_path))
+    assert len(elements) == 1
+
+
 def test_scan_ignores_marker_mentioned_mid_block(tmp_path):
     # A docstring or code that MENTIONS @c1: without starting with it is not
     # an annotation — the scanner must not trip on its own error messages.

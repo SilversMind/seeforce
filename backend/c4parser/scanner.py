@@ -1,3 +1,4 @@
+import fnmatch
 import os
 import re
 import textwrap
@@ -21,6 +22,23 @@ _DEFAULT_EXCLUDES = {
     "node_modules", "__pycache__", ".git", "dist", "build", "vendor",
     ".venv", "venv", ".env",
 }
+
+
+def _load_c4ignore(root_path: str) -> list[str]:
+    """Return patterns from .c4ignore at root_path (fnmatch, # = comment)."""
+    ignore_file = Path(root_path) / ".c4ignore"
+    if not ignore_file.exists():
+        return []
+    patterns = []
+    for line in ignore_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip().rstrip("/")
+        if line and not line.startswith("#"):
+            patterns.append(line)
+    return patterns
+
+
+def _is_ignored(name: str, patterns: list[str]) -> bool:
+    return any(fnmatch.fnmatch(name, p) for p in patterns)
 
 
 def _strip_comment_stars(block: str) -> str:
@@ -102,14 +120,20 @@ def scan(
 ) -> list[C4Element]:
     exts = set(extensions) if extensions else _DEFAULT_EXTENSIONS
     excl = excludes if excludes is not None else _DEFAULT_EXCLUDES
+    ignore = _load_c4ignore(root_path)
     elements: list[C4Element] = []
 
     for dirpath, dirnames, filenames in os.walk(root_path):
         # Prune excluded dirs in-place so os.walk skips them
-        dirnames[:] = [d for d in dirnames if d not in excl]
+        dirnames[:] = [
+            d for d in dirnames
+            if d not in excl and not _is_ignored(d, ignore)
+        ]
 
         for filename in filenames:
             if Path(filename).suffix not in exts:
+                continue
+            if _is_ignored(filename, ignore):
                 continue
             file_path = os.path.join(dirpath, filename)
             try:
