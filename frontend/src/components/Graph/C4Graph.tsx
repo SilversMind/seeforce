@@ -157,12 +157,22 @@ export function C4Graph() {
   );
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
-    setSidebarTarget({ kind: "node", node: node as unknown as RFNode });
+    setSidebarTarget((prev) =>
+      prev?.kind === "node" && prev.node.id === node.id
+        ? prev
+        : { kind: "node", node: node as unknown as RFNode },
+    );
   }, []);
 
   const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
-    setSidebarTarget({ kind: "edge", edge: edge as unknown as RFEdge });
+    setSidebarTarget((prev) =>
+      prev?.kind === "edge" && prev.edge.id === edge.id
+        ? prev
+        : { kind: "edge", edge: edge as unknown as RFEdge },
+    );
   }, []);
+
+  const onPaneClick = useCallback(() => setSidebarTarget(null), []);
 
   return (
     <GraphModeContext.Provider value={mode}>
@@ -230,6 +240,7 @@ export function C4Graph() {
           onNodeDoubleClick={onNodeDoubleClick}
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
+          onPaneClick={onPaneClick}
           onNodeDragStop={onNodeDragStop}
           onInit={(instance) => {
             flowInstance.current = instance;
