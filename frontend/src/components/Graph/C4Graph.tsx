@@ -86,6 +86,10 @@ export function C4Graph() {
   }, []);
 
   useEffect(() => {
+    setSidebarTarget(null);
+  }, [level, systemId, containerId]);
+
+  useEffect(() => {
     if (fetchedNodes.length === 0) {
       setNodes([]);
       setEdges([]);
