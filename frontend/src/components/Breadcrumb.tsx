@@ -1,25 +1,67 @@
 import { useViewStore } from "../store/viewStore";
 
 export function Breadcrumb() {
-  const { level, systemId, containerId, back } = useViewStore();
-
-  const crumbs: string[] = ["C1"];
-  if (level === "C2" && systemId) crumbs.push(`C2: ${systemId}`);
-  if (level === "C3" && containerId) crumbs.push(`C2`, `C3: ${containerId}`);
+  const { level, systemName, containerName, goToC1, goToC2 } = useViewStore();
 
   if (level === "C1") return null;
 
+  const crumbs: { label: string; onClick: (() => void) | null }[] = [
+    { label: "Systems", onClick: goToC1 },
+  ];
+
+  if (level === "C2" && systemName) {
+    crumbs.push({ label: systemName, onClick: null });
+  }
+
+  if (level === "C3") {
+    crumbs.push({ label: systemName ?? "System", onClick: goToC2 });
+    if (containerName) crumbs.push({ label: containerName, onClick: null });
+  }
+
   return (
-    <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10, display: "flex", gap: 8, alignItems: "center", background: "white", padding: "6px 12px", borderRadius: 6, boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
-      {crumbs.map((c, i) => (
-        <span key={i} style={{ color: i < crumbs.length - 1 ? "#94a3b8" : "#0f172a", fontSize: 13 }}>
-          {i > 0 && <span style={{ margin: "0 4px", color: "#cbd5e1" }}>›</span>}
-          {c}
+    <div
+      style={{
+        position: "absolute",
+        top: 12,
+        left: 12,
+        zIndex: 10,
+        display: "flex",
+        alignItems: "center",
+        background: "var(--c4-sidebar-bg)",
+        border: "1px solid var(--c4-sidebar-border)",
+        padding: "5px 12px",
+        borderRadius: 6,
+        gap: 4,
+      }}
+    >
+      {crumbs.map((crumb, i) => (
+        <span key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {i > 0 && (
+            <span style={{ color: "var(--c4-sidebar-muted)", fontSize: 12, margin: "0 2px" }}>›</span>
+          )}
+          {crumb.onClick ? (
+            <button
+              onClick={crumb.onClick}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--c4-system-border)",
+                fontSize: 13,
+                cursor: "pointer",
+                padding: 0,
+                fontFamily: "inherit",
+                fontWeight: 500,
+              }}
+            >
+              {crumb.label}
+            </button>
+          ) : (
+            <span style={{ fontSize: 13, color: "var(--c4-sidebar-text)", fontWeight: 600 }}>
+              {crumb.label}
+            </span>
+          )}
         </span>
       ))}
-      <button onClick={back} style={{ marginLeft: 8, fontSize: 12, cursor: "pointer", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 4, padding: "2px 8px" }}>
-        ← Back
-      </button>
     </div>
   );
 }

@@ -144,9 +144,9 @@ export function C4Graph() {
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
       if (level === "C1" && node.type === "system") {
-        drillToC2(node.id);
+        drillToC2(node.id, (node.data as { label: string }).label);
       } else if (level === "C2" && node.type === "container") {
-        drillToC3(node.id);
+        drillToC3(node.id, (node.data as { label: string }).label);
       }
     },
     [level, drillToC2, drillToC3],
