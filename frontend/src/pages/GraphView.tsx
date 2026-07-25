@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { mutate } from "swr";
 import { useViewStore } from "../store/viewStore";
 import { fetchLatestProjectMap } from "../services/api";
 import { C4Graph } from "../components/Graph/C4Graph";
@@ -19,6 +20,7 @@ export function GraphView() {
       if (data.type === "scan_complete") {
         sessionStorage.removeItem(CLEARED_KEY);
         setProjectMap(data.id);
+        mutate((key) => typeof key === "string" && key.includes("/api/graph/"));
       }
     };
 
