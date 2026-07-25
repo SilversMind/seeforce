@@ -1,6 +1,7 @@
 import json
 import time
 
+from django.db import close_old_connections
 from django.http import StreamingHttpResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -137,6 +138,7 @@ def scan_events(request):
         )
         while True:
             time.sleep(2)
+            close_old_connections()  # force fresh DB read — SQLite caches stale reads otherwise
             latest = (
                 ProjectMap.objects.order_by("-updated_at")
                 .values("id", "updated_at")
