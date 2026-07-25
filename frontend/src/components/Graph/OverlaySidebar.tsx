@@ -44,7 +44,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
     }
   }, [target]);
 
-  if (!target) return null;
+  const open = target !== null;
 
   async function handleSave() {
     setSaving(true);
@@ -65,8 +65,8 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
     }
   }
 
-  const isNode = target.kind === "node";
-  const nodeType = isNode ? target.node.type : "";
+  const isNode = open && target!.kind === "node";
+  const nodeType = isNode ? target!.node.type : "";
   const typeColor = TYPE_COLORS[nodeType] ?? "var(--c4-external-border)";
   const typeLabel = TYPE_LABELS[nodeType] ?? "Relationship";
 
@@ -77,6 +77,8 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
         top: 0,
         right: 0,
         width: 300,
+        transform: open ? "translateX(0)" : "translateX(100%)",
+        transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         height: "100%",
         background: "var(--c4-sidebar-bg, #1e293b)",
         borderLeft: "1px solid var(--c4-sidebar-border, #334155)",
@@ -129,14 +131,14 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
-        {isNode ? (
+        {open && isNode ? (
           <>
             <Section label="Code name">
-              <ReadValue>{target.node.data.label}</ReadValue>
+              <ReadValue>{target!.node.data.label}</ReadValue>
             </Section>
-            {target.node.data.description && (
+            {target!.node.data.description && (
               <Section label="Code description">
-                <ReadValue muted>{target.node.data.description}</ReadValue>
+                <ReadValue muted>{target!.node.data.description}</ReadValue>
               </Section>
             )}
             <div style={{ borderTop: "1px solid var(--c4-sidebar-border, #334155)", paddingTop: 16 }}>
@@ -147,7 +149,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
                 <input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder={target.node.data.label}
+                  placeholder={target!.node.data.label}
                   style={inputStyle}
                 />
               </Section>
@@ -155,17 +157,17 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={target.node.data.description || "Add a description…"}
+                  placeholder={target!.node.data.description || "Add a description…"}
                   rows={4}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                 />
               </Section>
             </div>
           </>
-        ) : (
+        ) : open ? (
           <>
             <Section label="Code label">
-              <ReadValue>{(target.edge.label as string) || "—"}</ReadValue>
+              <ReadValue>{(target!.edge.label as string) || "—"}</ReadValue>
             </Section>
             <div style={{ borderTop: "1px solid var(--c4-sidebar-border, #334155)", paddingTop: 16 }}>
               <p style={{ fontSize: 11, color: "var(--c4-sidebar-muted, #64748b)", marginBottom: 12 }}>
@@ -175,13 +177,13 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
                 <input
                   value={edgeLabel}
                   onChange={(e) => setEdgeLabel(e.target.value)}
-                  placeholder={(target.edge.label as string) || "Override label…"}
+                  placeholder={(target!.edge.label as string) || "Override label…"}
                   style={inputStyle}
                 />
               </Section>
             </div>
           </>
-        )}
+        ) : null}
       </div>
 
       {/* Footer */}

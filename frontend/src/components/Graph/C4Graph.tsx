@@ -164,8 +164,6 @@ export function C4Graph() {
     setSidebarTarget({ kind: "edge", edge: edge as unknown as RFEdge });
   }, []);
 
-  const sidebarOpen = sidebarTarget !== null;
-
   return (
     <GraphModeContext.Provider value={mode}>
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -238,14 +236,13 @@ export function C4Graph() {
           }}
           colorMode="system"
           defaultEdgeOptions={{ markerEnd: { type: MarkerType.ArrowClosed } }}
-          style={{ width: sidebarOpen ? "calc(100% - 300px)" : "100%" }}
         >
           <Background />
           <Controls />
           <MiniMap />
         </ReactFlow>
 
-        {sidebarTarget && rawProjectMapId != null && (
+        {rawProjectMapId != null && (
           <OverlaySidebar
             target={sidebarTarget}
             projectMapId={rawProjectMapId}
