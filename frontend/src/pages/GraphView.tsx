@@ -1,9 +1,37 @@
+import { useEffect } from "react";
 import { useViewStore } from "../store/viewStore";
+import { fetchLatestProjectMap } from "../services/api";
 import { C4Graph } from "../components/Graph/C4Graph";
 import { UploadPanel } from "../components/UploadPanel";
 
 export function GraphView() {
-  const workspaceId = useViewStore((s) => s.workspaceId);
+  const projectMapId = useViewStore((s) => s.projectMapId);
+  const setProjectMap = useViewStore((s) => s.setProjectMap);
+
+  useEffect(() => {
+    const es = new EventSource("/api/graph/events/");
+
+    es.onmessage = async (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === "scan_complete") {
+        setProjectMap(data.id);
+      }
+    };
+
+    es.onerror = () => {
+      es.close();
+    };
+
+    // Auto-load latest ProjectMap on first mount
+    fetchLatestProjectMap().then((meta) => {
+      if (meta && projectMapId == null) {
+        setProjectMap(meta.id);
+      }
+    });
+
+    return () => es.close();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -26,9 +54,9 @@ export function GraphView() {
         }}
       >
         <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>
-          C4 Viewer
+          SeeForce
         </span>
-        {workspaceId && (
+        {projectMapId && (
           <button
             onClick={() => window.location.reload()}
             style={{
@@ -42,12 +70,12 @@ export function GraphView() {
               cursor: "pointer",
             }}
           >
-            ↺ New workspace
+            ↺ New project
           </button>
         )}
       </header>
       <div style={{ flex: 1 }}>
-        {workspaceId == null ? <UploadPanel /> : <C4Graph />}
+        {projectMapId == null ? <UploadPanel /> : <C4Graph />}
       </div>
     </div>
   );

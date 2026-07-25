@@ -1,7 +1,8 @@
 from django.db import models
 
 
-class Workspace(models.Model):
+class ProjectMap(models.Model):
+    project_id = models.CharField(max_length=100, null=True, blank=True, unique=True, db_index=True)
     name = models.CharField(max_length=255)
     source_json = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -22,7 +23,7 @@ class NodeOverlay(models.Model):
         ("person", "Person"),
         ("external", "External"),
     ]
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="node_overlays")
+    project_map = models.ForeignKey(ProjectMap, on_delete=models.CASCADE, related_name="node_overlays")
     node_type = models.CharField(max_length=20, choices=NODE_TYPES)
     system_name = models.CharField(max_length=255, blank=True, default="")
     container_name = models.CharField(max_length=255, blank=True, default="")
@@ -32,20 +33,20 @@ class NodeOverlay(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [("workspace", "node_type", "system_name", "container_name", "node_name")]
+        unique_together = [("project_map", "node_type", "system_name", "container_name", "node_name")]
 
     def __str__(self) -> str:
-        return f"{self.node_type}:{self.node_name} ({self.workspace})"
+        return f"{self.node_type}:{self.node_name} ({self.project_map})"
 
 
 class EdgeOverlay(models.Model):
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="edge_overlays")
+    project_map = models.ForeignKey(ProjectMap, on_delete=models.CASCADE, related_name="edge_overlays")
     edge_id = models.CharField(max_length=500)
     label = models.CharField(max_length=500, blank=True, default="")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [("workspace", "edge_id")]
+        unique_together = [("project_map", "edge_id")]
 
     def __str__(self) -> str:
-        return f"edge:{self.edge_id} ({self.workspace})"
+        return f"edge:{self.edge_id} ({self.project_map})"

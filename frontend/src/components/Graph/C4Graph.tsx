@@ -61,11 +61,11 @@ export function C4Graph() {
     drillToC2,
     drillToC3,
     level,
-    workspaceId: rawWorkspaceId,
+    projectMapId: rawProjectMapId,
     systemId,
     containerId,
   } = viewState;
-  const workspaceId = rawWorkspaceId != null ? String(rawWorkspaceId) : null;
+  const projectMapId = rawProjectMapId != null ? String(rawProjectMapId) : null;
   const {
     nodes: fetchedNodes,
     edges: fetchedEdges,
@@ -92,8 +92,8 @@ export function C4Graph() {
       return;
     }
 
-    const saved = workspaceId
-      ? loadPositions(workspaceId, level, systemId, containerId)
+    const saved = projectMapId
+      ? loadPositions(projectMapId, level, systemId, containerId)
       : null;
     if (saved) {
       const positioned = fetchedNodes.map((n) =>
@@ -111,12 +111,12 @@ export function C4Graph() {
         setNodes(laidOut);
         setEdges(routedEdges);
         fitAll();
-        if (workspaceId) {
+        if (projectMapId) {
           const positions: Record<string, { x: number; y: number }> = {};
           laidOut.forEach((n) => {
             positions[n.id] = n.position;
           });
-          savePositions(workspaceId, level, positions, systemId, containerId);
+          savePositions(projectMapId, level, positions, systemId, containerId);
         }
       })
       .finally(() => setIsLayouting(false));
@@ -125,7 +125,7 @@ export function C4Graph() {
     fetchedEdges,
     setNodes,
     setEdges,
-    workspaceId,
+    projectMapId,
     level,
     systemId,
     containerId,
@@ -133,13 +133,13 @@ export function C4Graph() {
   ]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
-    if (!workspaceId) return;
+    if (!projectMapId) return;
     const positions: Record<string, { x: number; y: number }> = {};
     nodes.forEach((n) => {
       positions[n.id] = n.position;
     });
-    savePositions(workspaceId, level, positions, systemId, containerId);
-  }, [nodes, workspaceId, level, systemId, containerId]);
+    savePositions(projectMapId, level, positions, systemId, containerId);
+  }, [nodes, projectMapId, level, systemId, containerId]);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -241,10 +241,10 @@ export function C4Graph() {
           <MiniMap />
         </ReactFlow>
 
-        {sidebarTarget && rawWorkspaceId != null && (
+        {sidebarTarget && rawProjectMapId != null && (
           <OverlaySidebar
             target={sidebarTarget}
-            workspaceId={rawWorkspaceId}
+            projectMapId={rawProjectMapId}
             onClose={() => setSidebarTarget(null)}
             onSaved={() => refetch?.()}
           />

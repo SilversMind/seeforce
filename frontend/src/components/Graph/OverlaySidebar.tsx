@@ -7,7 +7,7 @@ type SidebarTarget =
 
 interface Props {
   target: SidebarTarget | null;
-  workspaceId: number;
+  projectMapId: number;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -28,7 +28,7 @@ const TYPE_COLORS: Record<string, string> = {
   external: "var(--c4-external-border)",
 };
 
-export function OverlaySidebar({ target, workspaceId, onClose, onSaved }: Props) {
+export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props) {
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
   const [edgeLabel, setEdgeLabel] = useState("");
@@ -51,13 +51,13 @@ export function OverlaySidebar({ target, workspaceId, onClose, onSaved }: Props)
     try {
       if (target!.kind === "node") {
         await upsertNodeOverlay(
-          workspaceId,
+          projectMapId,
           target!.node.data.overlay_key,
           displayName,
           description,
         );
       } else {
-        await upsertEdgeOverlay(workspaceId, target!.edge.id, edgeLabel);
+        await upsertEdgeOverlay(projectMapId, target!.edge.id, edgeLabel);
       }
       onSaved();
     } finally {

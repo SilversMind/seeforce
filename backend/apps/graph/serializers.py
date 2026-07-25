@@ -1,15 +1,15 @@
 from rest_framework import serializers
-from .models import Workspace
+from .models import ProjectMap
 
 
-class WorkspaceSerializer(serializers.ModelSerializer):
+class ProjectMapSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Workspace
-        fields = ["id", "name", "source_json", "created_at", "updated_at"]
+        model = ProjectMap
+        fields = ["id", "project_id", "name", "source_json", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
-class WorkspaceUploadSerializer(serializers.Serializer):
+class ProjectMapUploadSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     workspace = serializers.JSONField()
 

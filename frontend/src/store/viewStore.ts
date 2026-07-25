@@ -3,26 +3,26 @@ import { create } from "zustand";
 export type Level = "C1" | "C2" | "C3";
 
 export interface ViewState {
-  workspaceId: number | null;
+  projectMapId: number | null;
   level: Level;
   systemId: string | null;
   containerId: string | null;
 }
 
 interface ViewStore extends ViewState {
-  setWorkspace: (id: number) => void;
+  setProjectMap: (id: number) => void;
   drillToC2: (systemId: string) => void;
   drillToC3: (containerId: string) => void;
   back: () => void;
 }
 
 export const useViewStore = create<ViewStore>((set, get) => ({
-  workspaceId: null,
+  projectMapId: null,
   level: "C1",
   systemId: null,
   containerId: null,
 
-  setWorkspace: (id) => set({ workspaceId: id, level: "C1", systemId: null, containerId: null }),
+  setProjectMap: (id) => set({ projectMapId: id, level: "C1", systemId: null, containerId: null }),
 
   drillToC2: (systemId) => set({ level: "C2", systemId, containerId: null }),
 

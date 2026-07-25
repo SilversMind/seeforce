@@ -19,8 +19,8 @@ export function useWorkspace(view: ViewState): {
   refetch: () => void;
 } {
   const url =
-    view.workspaceId != null
-      ? buildViewUrl(view.workspaceId, view.level, view.systemId, view.containerId)
+    view.projectMapId != null
+      ? buildViewUrl(view.projectMapId, view.level, view.systemId, view.containerId)
       : null;
 
   const { data, error, isLoading, mutate } = useSWR<ReactFlowData>(url, fetcher);

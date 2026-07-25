@@ -1,6 +1,7 @@
-export interface WorkspaceMeta {
+export interface ProjectMapMeta {
   id: number;
   name: string;
+  project_id: string | null;
   created_at: string;
 }
 
@@ -47,7 +48,7 @@ export interface ReactFlowData {
   edges: RFEdge[];
 }
 
-export async function uploadWorkspace(name: string, workspace: unknown): Promise<WorkspaceMeta> {
+export async function uploadProjectMap(name: string, workspace: unknown): Promise<ProjectMapMeta> {
   const res = await fetch("/api/graph/upload/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,13 +58,20 @@ export async function uploadWorkspace(name: string, workspace: unknown): Promise
   return res.json();
 }
 
+export async function fetchLatestProjectMap(): Promise<ProjectMapMeta | null> {
+  const res = await fetch("/api/graph/latest/");
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return res.json();
+}
+
 export function buildViewUrl(
-  workspaceId: number,
+  projectMapId: number,
   level: string,
   systemId: string | null,
   containerId: string | null,
 ): string {
-  const base = `/api/graph/${workspaceId}/view/${level}/`;
+  const base = `/api/graph/${projectMapId}/view/${level}/`;
   const params = new URLSearchParams();
   if (systemId) params.set("system", systemId);
   if (containerId) params.set("container", containerId);
@@ -72,12 +80,12 @@ export function buildViewUrl(
 }
 
 export async function upsertNodeOverlay(
-  workspaceId: number,
+  projectMapId: number,
   key: NodeOverlayKey,
   display_name: string,
   description: string,
 ): Promise<void> {
-  const res = await fetch(`/api/graph/${workspaceId}/overlay/node/`, {
+  const res = await fetch(`/api/graph/${projectMapId}/overlay/node/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...key, display_name, description }),
@@ -86,11 +94,11 @@ export async function upsertNodeOverlay(
 }
 
 export async function upsertEdgeOverlay(
-  workspaceId: number,
+  projectMapId: number,
   edge_id: string,
   label: string,
 ): Promise<void> {
-  const res = await fetch(`/api/graph/${workspaceId}/overlay/edge/`, {
+  const res = await fetch(`/api/graph/${projectMapId}/overlay/edge/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ edge_id, label }),

@@ -1,10 +1,15 @@
+import json
+import time
+
+from django.http import StreamingHttpResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Workspace, NodeOverlay, EdgeOverlay
+
+from .models import ProjectMap, NodeOverlay, EdgeOverlay
 from .serializers import (
-    WorkspaceSerializer,
-    WorkspaceUploadSerializer,
+    ProjectMapSerializer,
+    ProjectMapUploadSerializer,
     NodeOverlaySerializer,
     EdgeOverlaySerializer,
 )
@@ -12,34 +17,42 @@ from .transformers import to_react_flow
 
 
 @api_view(["POST"])
-def upload_workspace(request):
-    ser = WorkspaceUploadSerializer(data=request.data)
+def upload_project_map(request):
+    ser = ProjectMapUploadSerializer(data=request.data)
     if not ser.is_valid():
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
-    ws = Workspace.objects.create(
+    pm = ProjectMap.objects.create(
         name=ser.validated_data["name"],
         source_json=ser.validated_data["workspace"],
     )
     return Response(
-        {"id": ws.id, "name": ws.name, "created_at": ws.created_at},
+        {"id": pm.id, "name": pm.name, "created_at": pm.created_at},
         status=status.HTTP_201_CREATED,
     )
 
 
 @api_view(["GET"])
-def fetch_workspace(request, workspace_id):
+def fetch_project_map(request, project_map_id):
     try:
-        ws = Workspace.objects.get(id=workspace_id)
-    except Workspace.DoesNotExist:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    return Response(WorkspaceSerializer(ws).data)
+    return Response(ProjectMapSerializer(pm).data)
 
 
 @api_view(["GET"])
-def workspace_view(request, workspace_id, level):
+def latest_project_map(request):
+    pm = ProjectMap.objects.order_by("-updated_at").first()
+    if not pm:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    return Response({"id": pm.id, "name": pm.name, "project_id": pm.project_id})
+
+
+@api_view(["GET"])
+def project_map_view(request, project_map_id, level):
     try:
-        ws = Workspace.objects.get(id=workspace_id)
-    except Workspace.DoesNotExist:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     system = request.query_params.get("system")
@@ -50,15 +63,15 @@ def workspace_view(request, workspace_id, level):
             "display_name": ov.display_name,
             "description": ov.description,
         }
-        for ov in NodeOverlay.objects.filter(workspace=ws)
+        for ov in NodeOverlay.objects.filter(project_map=pm)
     }
     edge_overlay = {
         ov.edge_id: {"label": ov.label}
-        for ov in EdgeOverlay.objects.filter(workspace=ws)
+        for ov in EdgeOverlay.objects.filter(project_map=pm)
     }
 
     result = to_react_flow(
-        ws.source_json,
+        pm.source_json,
         level=level,
         system=system,
         container=container,
@@ -69,10 +82,10 @@ def workspace_view(request, workspace_id, level):
 
 
 @api_view(["POST"])
-def upsert_node_overlay(request, workspace_id):
+def upsert_node_overlay(request, project_map_id):
     try:
-        ws = Workspace.objects.get(id=workspace_id)
-    except Workspace.DoesNotExist:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     ser = NodeOverlaySerializer(data=request.data)
@@ -81,7 +94,7 @@ def upsert_node_overlay(request, workspace_id):
 
     d = ser.validated_data
     obj, _ = NodeOverlay.objects.get_or_create(
-        workspace=ws,
+        project_map=pm,
         node_type=d["node_type"],
         system_name=d["system_name"],
         container_name=d["container_name"],
@@ -95,10 +108,10 @@ def upsert_node_overlay(request, workspace_id):
 
 
 @api_view(["POST"])
-def upsert_edge_overlay(request, workspace_id):
+def upsert_edge_overlay(request, project_map_id):
     try:
-        ws = Workspace.objects.get(id=workspace_id)
-    except Workspace.DoesNotExist:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     ser = EdgeOverlaySerializer(data=request.data)
@@ -106,8 +119,37 @@ def upsert_edge_overlay(request, workspace_id):
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     d = ser.validated_data
-    obj, _ = EdgeOverlay.objects.get_or_create(workspace=ws, edge_id=d["edge_id"])
+    obj, _ = EdgeOverlay.objects.get_or_create(project_map=pm, edge_id=d["edge_id"])
     obj.label = d["label"]
     obj.save()
 
     return Response({"ok": True})
+
+
+def scan_events(request):
+    """SSE endpoint — polls DB every 2s, emits scan_complete when updated_at changes."""
+    def event_stream():
+        yield "data: " + json.dumps({"type": "connected"}) + "\n\n"
+        last_updated = (
+            ProjectMap.objects.order_by("-updated_at")
+            .values_list("updated_at", flat=True)
+            .first()
+        )
+        while True:
+            time.sleep(2)
+            latest = (
+                ProjectMap.objects.order_by("-updated_at")
+                .values("id", "updated_at")
+                .first()
+            )
+            if latest and latest["updated_at"] != last_updated:
+                last_updated = latest["updated_at"]
+                yield "data: " + json.dumps({"type": "scan_complete", "id": latest["id"]}) + "\n\n"
+
+    response = StreamingHttpResponse(
+        streaming_content=event_stream(),
+        content_type="text/event-stream",
+    )
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
