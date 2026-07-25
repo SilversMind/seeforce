@@ -1,14 +1,51 @@
+"""
+@c3:component
+name: Graph transformer
+container: Backend
+description: Convert architecture scan data into graph data usable by ReactFlow
+uses:
+  - Architecture Scanner: "Calls scan() to extract C4 elements from annotated source files"
+
+"""
+
 _GRID_COLS = 4
 _GRID_X = 300
 _GRID_Y = 180
 
+# overlay_key tuple: (node_type, system_name, container_name, node_name)
+OverlayKey = tuple[str, str, str, str]
 
-def _node(id: str, node_type: str, label: str, technology: str = "", description: str = "") -> dict:
+
+def _node(
+    id: str,
+    node_type: str,
+    label: str,
+    technology: str = "",
+    description: str = "",
+    *,
+    overlay_key: OverlayKey | None = None,
+    node_overlay: dict[OverlayKey, dict] | None = None,
+) -> dict:
+    ov = node_overlay.get(overlay_key) if (node_overlay and overlay_key) else None
+    ctx = overlay_key or (node_type, "", "", label)
     return {
         "id": id,
         "type": node_type,
         "position": {"x": 0, "y": 0},
-        "data": {"label": label, "technology": technology, "description": description},
+        "data": {
+            "label": label,
+            "technology": technology,
+            "description": description,
+            "overlay_label": ov.get("display_name", "") if ov else "",
+            "overlay_description": ov.get("description", "") if ov else "",
+            "has_overlay": bool(ov and (ov.get("display_name") or ov.get("description"))),
+            "overlay_key": {
+                "node_type": ctx[0],
+                "system_name": ctx[1],
+                "container_name": ctx[2],
+                "node_name": ctx[3],
+            },
+        },
     }
 
 
@@ -22,13 +59,25 @@ def _layout(nodes: list[dict]) -> list[dict]:
     return nodes
 
 
-def _edge(rel: dict, source_id: str) -> dict:
+def _edge(
+    rel: dict,
+    source_id: str,
+    edge_overlay: dict[str, dict] | None = None,
+) -> dict | None:
+    if rel["destinationId"] == source_id:
+        return None
+    eid = rel["id"]
+    ov = edge_overlay.get(eid) if edge_overlay else None
     return {
-        "id": rel["id"],
+        "id": eid,
         "source": source_id,
         "target": rel["destinationId"],
         "label": rel.get("description", ""),
         "type": "relation",
+        "data": {
+            "overlay_label": ov.get("label", "") if ov else "",
+            "has_overlay": bool(ov and ov.get("label")),
+        },
     }
 
 
@@ -51,7 +100,12 @@ def _element_index(model: dict) -> dict[str, dict]:
     return index
 
 
-def _add_placeholders(nodes: list[dict], edges: list[dict], model: dict) -> None:
+def _add_placeholders(
+    nodes: list[dict],
+    edges: list[dict],
+    model: dict,
+    node_overlay: dict[OverlayKey, dict] | None = None,
+) -> None:
     """Emit placeholder nodes for edge endpoints outside the current node set."""
     known = {n["id"] for n in nodes}
     index = _element_index(model)
@@ -60,7 +114,10 @@ def _add_placeholders(nodes: list[dict], edges: list[dict], model: dict) -> None
             if endpoint in known:
                 continue
             info = index.get(endpoint)
-            nodes.append(_node(endpoint, "external", info["name"] if info else endpoint))
+            kind = info["kind"] if info else "external"
+            name = info["name"] if info else endpoint
+            okey: OverlayKey = (kind, "", "", name)
+            nodes.append(_node(endpoint, "external", name, overlay_key=okey, node_overlay=node_overlay))
             known.add(endpoint)
 
 
@@ -69,39 +126,72 @@ def to_react_flow(
     level: str,
     system: str | None,
     container: str | None,
+    node_overlay: dict[OverlayKey, dict] | None = None,
+    edge_overlay: dict[str, dict] | None = None,
 ) -> dict:
     model = workspace_json.get("model", {})
 
     match level:
         case "C1":
-            return _c1_view(model)
+            return _c1_view(model, node_overlay, edge_overlay)
         case "C2":
-            return _c2_view(model, system)
+            return _c2_view(model, system, node_overlay, edge_overlay)
         case "C3":
-            return _c3_view(model, container)
+            return _c3_view(model, container, node_overlay, edge_overlay)
         case _:
             return {"nodes": [], "edges": []}
 
 
-def _c1_view(model: dict) -> dict:
+def _c1_view(
+    model: dict,
+    node_overlay: dict[OverlayKey, dict] | None,
+    edge_overlay: dict[str, dict] | None,
+) -> dict:
     nodes = []
     edges = []
 
     for person in model.get("people", []):
-        nodes.append(_node(person["id"], "person", person["name"], description=person.get("description", "")))
+        okey: OverlayKey = ("person", "", "", person["name"])
+        nodes.append(
+            _node(
+                person["id"],
+                "person",
+                person["name"],
+                description=person.get("description", ""),
+                overlay_key=okey,
+                node_overlay=node_overlay,
+            )
+        )
         for rel in person.get("relationships", []):
-            edges.append(_edge(rel, person["id"]))
+            if (e := _edge(rel, person["id"], edge_overlay)) is not None:
+                edges.append(e)
 
     for system in model.get("softwareSystems", []):
         node_type = "external" if _is_external(system) else "system"
-        nodes.append(_node(system["id"], node_type, system["name"], description=system.get("description", "")))
+        okey = (node_type, "", "", system["name"])
+        nodes.append(
+            _node(
+                system["id"],
+                node_type,
+                system["name"],
+                description=system.get("description", ""),
+                overlay_key=okey,
+                node_overlay=node_overlay,
+            )
+        )
         for rel in system.get("relationships", []):
-            edges.append(_edge(rel, system["id"]))
+            if (e := _edge(rel, system["id"], edge_overlay)) is not None:
+                edges.append(e)
 
     return {"nodes": _layout(nodes), "edges": edges}
 
 
-def _c2_view(model: dict, system_id: str | None) -> dict:
+def _c2_view(
+    model: dict,
+    system_id: str | None,
+    node_overlay: dict[OverlayKey, dict] | None,
+    edge_overlay: dict[str, dict] | None,
+) -> dict:
     if not system_id:
         return {"nodes": [], "edges": []}
 
@@ -112,23 +202,37 @@ def _c2_view(model: dict, system_id: str | None) -> dict:
     if not target:
         return {"nodes": [], "edges": []}
 
+    system_name = target["name"]
     nodes = []
     edges = []
 
     for container in target.get("containers", []):
-        nodes.append(_node(
-            container["id"], "container", container["name"],
-            technology=container.get("technology", ""),
-            description=container.get("description", ""),
-        ))
+        okey: OverlayKey = ("container", system_name, "", container["name"])
+        nodes.append(
+            _node(
+                container["id"],
+                "container",
+                container["name"],
+                technology=container.get("technology", ""),
+                description=container.get("description", ""),
+                overlay_key=okey,
+                node_overlay=node_overlay,
+            )
+        )
         for rel in container.get("relationships", []):
-            edges.append(_edge(rel, container["id"]))
+            if (e := _edge(rel, container["id"], edge_overlay)) is not None:
+                edges.append(e)
 
-    _add_placeholders(nodes, edges, model)
+    _add_placeholders(nodes, edges, model, node_overlay)
     return {"nodes": _layout(nodes), "edges": edges}
 
 
-def _c3_view(model: dict, container_id: str | None) -> dict:
+def _c3_view(
+    model: dict,
+    container_id: str | None,
+    node_overlay: dict[OverlayKey, dict] | None,
+    edge_overlay: dict[str, dict] | None,
+) -> dict:
     if not container_id:
         return {"nodes": [], "edges": []}
 
@@ -136,17 +240,27 @@ def _c3_view(model: dict, container_id: str | None) -> dict:
         for container in system.get("containers", []):
             if container["id"] != container_id:
                 continue
+            system_name = system["name"]
+            container_name = container["name"]
             nodes = []
             edges = []
             for comp in container.get("components", []):
-                nodes.append(_node(
-                    comp["id"], "component", comp["name"],
-                    technology=comp.get("technology", ""),
-                    description=comp.get("description", ""),
-                ))
+                okey: OverlayKey = ("component", system_name, container_name, comp["name"])
+                nodes.append(
+                    _node(
+                        comp["id"],
+                        "component",
+                        comp["name"],
+                        technology=comp.get("technology", ""),
+                        description=comp.get("description", ""),
+                        overlay_key=okey,
+                        node_overlay=node_overlay,
+                    )
+                )
                 for rel in comp.get("relationships", []):
-                    edges.append(_edge(rel, comp["id"]))
-            _add_placeholders(nodes, edges, model)
+                    if (e := _edge(rel, comp["id"], edge_overlay)) is not None:
+                        edges.append(e)
+            _add_placeholders(nodes, edges, model, node_overlay)
             return {"nodes": _layout(nodes), "edges": edges}
 
     return {"nodes": [], "edges": []}

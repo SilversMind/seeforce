@@ -1,0 +1,6 @@
+# C4 scanner ignore patterns (fnmatch, one per line)
+
+# Example projects — not part of the real architecture
+examples/
+backend/tests/c4parser/fixtures/sample_project/
+.superpowers

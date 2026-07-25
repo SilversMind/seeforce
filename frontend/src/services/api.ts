@@ -4,24 +4,47 @@ export interface WorkspaceMeta {
   created_at: string;
 }
 
-export interface ReactFlowData {
-  nodes: RFNode[];
-  edges: RFEdge[];
+export interface NodeOverlayKey {
+  node_type: string;
+  system_name: string;
+  container_name: string;
+  node_name: string;
 }
 
-interface RFNode {
+export interface RFNodeData extends Record<string, unknown> {
+  label: string;
+  technology: string;
+  description: string;
+  overlay_label: string;
+  overlay_description: string;
+  has_overlay: boolean;
+  overlay_key: NodeOverlayKey;
+}
+
+export interface RFEdgeData extends Record<string, unknown> {
+  overlay_label: string;
+  has_overlay: boolean;
+}
+
+export interface RFNode {
   id: string;
   type: string;
   position: { x: number; y: number };
-  data: { label: string; technology: string; description: string };
+  data: RFNodeData;
 }
 
-interface RFEdge {
+export interface RFEdge {
   id: string;
   source: string;
   target: string;
   label: string;
   type: string;
+  data: RFEdgeData;
+}
+
+export interface ReactFlowData {
+  nodes: RFNode[];
+  edges: RFEdge[];
 }
 
 export async function uploadWorkspace(name: string, workspace: unknown): Promise<WorkspaceMeta> {
@@ -46,4 +69,31 @@ export function buildViewUrl(
   if (containerId) params.set("container", containerId);
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
+}
+
+export async function upsertNodeOverlay(
+  workspaceId: number,
+  key: NodeOverlayKey,
+  display_name: string,
+  description: string,
+): Promise<void> {
+  const res = await fetch(`/api/graph/${workspaceId}/overlay/node/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...key, display_name, description }),
+  });
+  if (!res.ok) throw new Error(`Overlay save failed: ${res.status}`);
+}
+
+export async function upsertEdgeOverlay(
+  workspaceId: number,
+  edge_id: string,
+  label: string,
+): Promise<void> {
+  const res = await fetch(`/api/graph/${workspaceId}/overlay/edge/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ edge_id, label }),
+  });
+  if (!res.ok) throw new Error(`Overlay save failed: ${res.status}`);
 }

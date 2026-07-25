@@ -8,23 +8,28 @@ const fetcher = (url: string) =>
     return r.json();
   });
 
+const EMPTY_NODES: ReactFlowData["nodes"] = [];
+const EMPTY_EDGES: ReactFlowData["edges"] = [];
+
 export function useWorkspace(view: ViewState): {
   nodes: ReactFlowData["nodes"];
   edges: ReactFlowData["edges"];
   isLoading: boolean;
   error: Error | undefined;
+  refetch: () => void;
 } {
   const url =
     view.workspaceId != null
       ? buildViewUrl(view.workspaceId, view.level, view.systemId, view.containerId)
       : null;
 
-  const { data, error, isLoading } = useSWR<ReactFlowData>(url, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<ReactFlowData>(url, fetcher);
 
   return {
-    nodes: data?.nodes ?? [],
-    edges: data?.edges ?? [],
+    nodes: data?.nodes ?? EMPTY_NODES,
+    edges: data?.edges ?? EMPTY_EDGES,
     isLoading,
     error,
+    refetch: () => mutate(),
   };
 }

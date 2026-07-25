@@ -7,6 +7,16 @@ def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+def _use_name(entry: str | dict[str, str]) -> str:
+    return next(iter(entry)) if isinstance(entry, dict) else entry
+
+
+def _use_description(entry: str | dict[str, str]) -> str:
+    if isinstance(entry, dict):
+        return next(iter(entry.values()), "")
+    return ""
+
+
 def build(elements: list[C4Element]) -> dict:
     # --- Phase 1: Collect elements ---
     # Systems keyed by name
@@ -61,18 +71,19 @@ def build(elements: list[C4Element]) -> dict:
     external_ids: dict[str, str] = {}
     for el in list(containers.values()) + list(components.values()):
         for use in el.uses:
-            if ":" in use and not use.startswith("http") and "/" not in use:
-                ext_id = _slug(use)
-                if use not in external_systems:
-                    external_systems[use] = {
+            use_name = _use_name(use)
+            if ":" in use_name and not use_name.startswith("http") and "/" not in use_name:
+                ext_id = _slug(use_name)
+                if use_name not in external_systems:
+                    external_systems[use_name] = {
                         "id": ext_id,
-                        "name": use,
+                        "name": use_name,
                         "description": "",
                         "tags": "Element,Software System,External",
                         "relationships": [],
                         "containers": [],
                     }
-                external_ids[use] = ext_id
+                external_ids[use_name] = ext_id
 
     # --- Phase 5: Resolve uses references ---
     def _resolve_use(use: str, source_comp: C4Component) -> str:
@@ -139,11 +150,12 @@ def build(elements: list[C4Element]) -> dict:
         rels = []
         source_id = component_ids[(comp.container, comp.name)]
         for use in comp.uses:
-            dest_id = _resolve_use(use, comp)
+            use_name = _use_name(use)
+            dest_id = _resolve_use(use_name, comp)
             rels.append({
                 "id": f"rel-{source_id}-{dest_id}",
                 "destinationId": dest_id,
-                "description": "",
+                "description": _use_description(use),
                 "tags": "Relationship",
             })
         return rels
@@ -152,21 +164,22 @@ def build(elements: list[C4Element]) -> dict:
         rels = []
         source_id = container_ids[cont.name]
         for use in cont.uses:
-            if use in system_ids:
-                dest_id = system_ids[use]
-            elif use in container_ids:
-                dest_id = container_ids[use]
-            elif use in external_ids:
-                dest_id = external_ids[use]
+            use_name = _use_name(use)
+            if use_name in system_ids:
+                dest_id = system_ids[use_name]
+            elif use_name in container_ids:
+                dest_id = container_ids[use_name]
+            elif use_name in external_ids:
+                dest_id = external_ids[use_name]
             else:
                 raise C4ValidationError(
-                    f"container '{cont.name}' uses unknown element '{use}'",
+                    f"container '{cont.name}' uses unknown element '{use_name}'",
                     element_name=cont.name,
                 )
             rels.append({
                 "id": f"rel-{source_id}-{dest_id}",
                 "destinationId": dest_id,
-                "description": "",
+                "description": _use_description(use),
                 "tags": "Relationship",
             })
         return rels

@@ -1,27 +1,35 @@
 /*
 @c3:component
-name: Architecture visualiser
+name: Architecture Visualizer
 container: Frontend
 technology: ReactFlow
 description: Display architecture and manage user interaction such as drilling down on specific component
 uses:
-- Node manager
+- Node manager: "Renders C4 element nodes in the ReactFlow canvas"
+- Edge manager: "Renders directional relationship edges between nodes"
 */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
+  MarkerType,
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
+  type EdgeMouseHandler,
+  type OnNodeDrag,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { applyElkLayout } from "../../lib/elkLayout";
+import { applyElkLayout, computeEdgeHandles } from "../../lib/elkLayout";
+import { loadPositions, savePositions } from "../../lib/layoutStorage";
+import { type RFNode, type RFEdge } from "../../services/api";
+import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
 import { SystemNode } from "./nodes/SystemNode";
 import { ContainerNode } from "./nodes/ContainerNode";
 import { ComponentNode } from "./nodes/ComponentNode";
@@ -29,6 +37,7 @@ import { PersonNode } from "./nodes/PersonNode";
 import { ExternalNode } from "./nodes/ExternalNode";
 import { RelationEdge } from "./edges/RelationEdge";
 import { Breadcrumb } from "../Breadcrumb";
+import { OverlaySidebar } from "./OverlaySidebar";
 
 const nodeTypes = {
   system: SystemNode,
@@ -42,18 +51,39 @@ const edgeTypes = {
   relation: RelationEdge,
 };
 
+type SidebarTarget =
+  | { kind: "node"; node: RFNode }
+  | { kind: "edge"; edge: RFEdge };
+
 export function C4Graph() {
   const viewState = useViewStore();
-  const { drillToC2, drillToC3, level } = viewState;
+  const {
+    drillToC2,
+    drillToC3,
+    level,
+    workspaceId: rawWorkspaceId,
+    systemId,
+    containerId,
+  } = viewState;
+  const workspaceId = rawWorkspaceId != null ? String(rawWorkspaceId) : null;
   const {
     nodes: fetchedNodes,
     edges: fetchedEdges,
     isLoading,
+    refetch,
   } = useWorkspace(viewState);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
   const [isLayouting, setIsLayouting] = useState(false);
+  const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
+  const [mode, setMode] = useState<GraphMode>("enriched");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const flowInstance = useRef<ReactFlowInstance<any, any> | null>(null);
+
+  const fitAll = useCallback(() => {
+    setTimeout(() => flowInstance.current?.fitView({ padding: 0.12 }), 0);
+  }, []);
 
   useEffect(() => {
     if (fetchedNodes.length === 0) {
@@ -61,14 +91,55 @@ export function C4Graph() {
       setEdges([]);
       return;
     }
+
+    const saved = workspaceId
+      ? loadPositions(workspaceId, level, systemId, containerId)
+      : null;
+    if (saved) {
+      const positioned = fetchedNodes.map((n) =>
+        saved[n.id] ? { ...n, position: saved[n.id] } : n,
+      );
+      setNodes(positioned);
+      setEdges(computeEdgeHandles(positioned, fetchedEdges));
+      fitAll();
+      return;
+    }
+
     setIsLayouting(true);
     applyElkLayout(fetchedNodes, fetchedEdges)
-      .then((laidOut) => {
+      .then(({ nodes: laidOut, edges: routedEdges }) => {
         setNodes(laidOut);
-        setEdges(fetchedEdges);
+        setEdges(routedEdges);
+        fitAll();
+        if (workspaceId) {
+          const positions: Record<string, { x: number; y: number }> = {};
+          laidOut.forEach((n) => {
+            positions[n.id] = n.position;
+          });
+          savePositions(workspaceId, level, positions, systemId, containerId);
+        }
       })
       .finally(() => setIsLayouting(false));
-  }, [fetchedNodes, fetchedEdges, setNodes, setEdges]);
+  }, [
+    fetchedNodes,
+    fetchedEdges,
+    setNodes,
+    setEdges,
+    workspaceId,
+    level,
+    systemId,
+    containerId,
+    fitAll,
+  ]);
+
+  const onNodeDragStop: OnNodeDrag = useCallback(() => {
+    if (!workspaceId) return;
+    const positions: Record<string, { x: number; y: number }> = {};
+    nodes.forEach((n) => {
+      positions[n.id] = n.position;
+    });
+    savePositions(workspaceId, level, positions, systemId, containerId);
+  }, [nodes, workspaceId, level, systemId, containerId]);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -81,38 +152,104 @@ export function C4Graph() {
     [level, drillToC2, drillToC3],
   );
 
-  if (isLoading || isLayouting) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100%",
-        }}
-      >
-        {isLayouting ? "Computing layout…" : "Loading…"}
-      </div>
-    );
-  }
+  const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+    setSidebarTarget({ kind: "node", node: node as unknown as RFNode });
+  }, []);
+
+  const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
+    setSidebarTarget({ kind: "edge", edge: edge as unknown as RFEdge });
+  }, []);
+
+  const sidebarOpen = sidebarTarget !== null;
 
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      <Breadcrumb />
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodeDoubleClick={onNodeDoubleClick}
-        fitView
-      >
-        <Background />
-        <Controls />
-        <MiniMap />
-      </ReactFlow>
-    </div>
+    <GraphModeContext.Provider value={mode}>
+      <div style={{ width: "100%", height: "100%", position: "relative" }}>
+        <Breadcrumb />
+
+        {/* Mode toggle */}
+        <div
+          style={{
+            position: "absolute",
+            top: 40,
+            left: 12,
+            zIndex: 15,
+            display: "flex",
+            background: "var(--c4-sidebar-bg)",
+            border: "1px solid var(--c4-sidebar-border)",
+            borderRadius: 6,
+            overflow: "hidden",
+          }}
+        >
+          {(["enriched", "original"] as GraphMode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              style={{
+                padding: "4px 12px",
+                fontSize: 11,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                background: mode === m ? "var(--c4-system-border)" : "transparent",
+                color: mode === m ? "#fff" : "var(--c4-sidebar-muted)",
+                textTransform: "capitalize",
+              }}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+
+        {(isLoading || isLayouting) && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(255,255,255,0.75)",
+              pointerEvents: "none",
+            }}
+          >
+            {isLayouting ? "Computing layout…" : "Loading…"}
+          </div>
+        )}
+
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodeDoubleClick={onNodeDoubleClick}
+          onNodeClick={onNodeClick}
+          onEdgeClick={onEdgeClick}
+          onNodeDragStop={onNodeDragStop}
+          onInit={(instance) => {
+            flowInstance.current = instance;
+          }}
+          colorMode="system"
+          defaultEdgeOptions={{ markerEnd: { type: MarkerType.ArrowClosed } }}
+          style={{ width: sidebarOpen ? "calc(100% - 300px)" : "100%" }}
+        >
+          <Background />
+          <Controls />
+          <MiniMap />
+        </ReactFlow>
+
+        {sidebarTarget && rawWorkspaceId != null && (
+          <OverlaySidebar
+            target={sidebarTarget}
+            workspaceId={rawWorkspaceId}
+            onClose={() => setSidebarTarget(null)}
+            onSaved={() => refetch?.()}
+          />
+        )}
+      </div>
+    </GraphModeContext.Provider>
   );
 }

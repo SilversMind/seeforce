@@ -15,7 +15,7 @@ class C4Container:
     system: str
     technology: str = ""
     description: str = ""
-    uses: list[str] = field(default_factory=list)
+    uses: list[str | dict[str, str]] = field(default_factory=list)
     source_file: str = ""
 
 
@@ -25,7 +25,7 @@ class C4Component:
     container: str
     technology: str = ""
     description: str = ""
-    uses: list[str] = field(default_factory=list)
+    uses: list[str | dict[str, str]] = field(default_factory=list)
     source_file: str = ""
 
 
