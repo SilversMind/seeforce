@@ -4,34 +4,43 @@ import { fetchLatestProjectMap } from "../services/api";
 import { C4Graph } from "../components/Graph/C4Graph";
 import { UploadPanel } from "../components/UploadPanel";
 
+const CLEARED_KEY = "c4:user_cleared";
+
 export function GraphView() {
   const projectMapId = useViewStore((s) => s.projectMapId);
   const setProjectMap = useViewStore((s) => s.setProjectMap);
+  const clearProjectMap = useViewStore((s) => s.clearProjectMap);
 
   useEffect(() => {
     const es = new EventSource("/api/graph/events/");
 
-    es.onmessage = async (e) => {
+    es.onmessage = (e) => {
       const data = JSON.parse(e.data);
       if (data.type === "scan_complete") {
+        sessionStorage.removeItem(CLEARED_KEY);
         setProjectMap(data.id);
       }
     };
 
-    es.onerror = () => {
-      es.close();
-    };
+    es.onerror = () => es.close();
 
-    // Auto-load latest ProjectMap on first mount
-    fetchLatestProjectMap().then((meta) => {
-      if (meta && projectMapId == null) {
-        setProjectMap(meta.id);
-      }
-    });
+    // Auto-load latest ProjectMap unless user explicitly cleared
+    if (!sessionStorage.getItem(CLEARED_KEY)) {
+      fetchLatestProjectMap().then((meta) => {
+        if (meta && projectMapId == null) {
+          setProjectMap(meta.id);
+        }
+      });
+    }
 
     return () => es.close();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function handleNewProject() {
+    sessionStorage.setItem(CLEARED_KEY, "1");
+    clearProjectMap();
+  }
 
   return (
     <div
@@ -58,7 +67,7 @@ export function GraphView() {
         </span>
         {projectMapId && (
           <button
-            onClick={() => window.location.reload()}
+            onClick={handleNewProject}
             style={{
               marginLeft: "auto",
               background: "#1e293b",
