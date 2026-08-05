@@ -17,6 +17,15 @@ from .serializers import (
 from .transformers import to_react_flow
 
 
+@api_view(["GET"])
+def list_project_maps(request):
+    pms = ProjectMap.objects.all()
+    return Response([
+        {"id": pm.id, "name": pm.name, "project_id": pm.project_id, "updated_at": pm.updated_at}
+        for pm in pms
+    ])
+
+
 @api_view(["POST"])
 def upload_project_map(request):
     ser = ProjectMapUploadSerializer(data=request.data)
