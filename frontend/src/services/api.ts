@@ -3,6 +3,7 @@ export interface ProjectMapMeta {
   name: string;
   project_id: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface NodeOverlayKey {
@@ -25,6 +26,7 @@ export interface RFNodeData extends Record<string, unknown> {
 export interface RFEdgeData extends Record<string, unknown> {
   overlay_label: string;
   has_overlay: boolean;
+  technology: string;
 }
 
 export interface RFNode {
@@ -61,6 +63,12 @@ export async function uploadProjectMap(name: string, workspace: unknown): Promis
 export async function fetchLatestProjectMap(): Promise<ProjectMapMeta | null> {
   const res = await fetch("/api/graph/latest/");
   if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchProjectMaps(): Promise<ProjectMapMeta[]> {
+  const res = await fetch("/api/graph/");
   if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
   return res.json();
 }
