@@ -67,6 +67,16 @@ export async function fetchLatestProjectMap(): Promise<ProjectMapMeta | null> {
   return res.json();
 }
 
+export async function renameProjectMap(id: number, name: string): Promise<ProjectMapMeta> {
+  const res = await fetch(`/api/graph/${id}/rename/`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error(`Rename failed: ${res.status}`);
+  return res.json();
+}
+
 export async function fetchProjectMaps(): Promise<ProjectMapMeta[]> {
   const res = await fetch("/api/graph/");
   if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);

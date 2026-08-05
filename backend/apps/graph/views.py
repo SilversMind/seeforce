@@ -26,6 +26,20 @@ def list_project_maps(request):
     ])
 
 
+@api_view(["PATCH"])
+def rename_project_map(request, project_map_id):
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    name = request.data.get("name", "").strip()
+    if not name:
+        return Response({"name": "This field is required."}, status=status.HTTP_400_BAD_REQUEST)
+    pm.name = name
+    pm.save(update_fields=["name", "updated_at"])
+    return Response({"id": pm.id, "name": pm.name, "updated_at": pm.updated_at})
+
+
 @api_view(["DELETE"])
 def delete_project_map(request, project_map_id):
     try:

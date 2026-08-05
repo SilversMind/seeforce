@@ -8,6 +8,7 @@ urlpatterns = [
     path("events/", views.scan_events),
     path("<int:project_map_id>/", views.fetch_project_map),
     path("<int:project_map_id>/delete/", views.delete_project_map),
+    path("<int:project_map_id>/rename/", views.rename_project_map),
     path("<int:project_map_id>/view/<str:level>/", views.project_map_view),
     path("<int:project_map_id>/overlay/node/", views.upsert_node_overlay),
     path("<int:project_map_id>/overlay/edge/", views.upsert_edge_overlay),
