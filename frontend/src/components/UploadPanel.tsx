@@ -27,7 +27,7 @@ export function UploadPanel() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, color: "#0f172a" }}>SeeForce</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 700, color: "var(--c4-sidebar-text)" }}>SeeForce</h2>
       <p style={{ color: "#64748b", fontSize: 14, textAlign: "center", maxWidth: 360 }}>
         Run <code style={{ background: "#f1f5f9", padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>python manage.py scan --path /your/project</code> to auto-load, or upload a workspace.json manually.
       </p>

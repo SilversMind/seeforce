@@ -19,7 +19,7 @@ from .transformers import to_react_flow
 
 @api_view(["GET"])
 def list_project_maps(request):
-    pms = ProjectMap.objects.all()
+    pms = ProjectMap.objects.order_by("-updated_at")
     return Response([
         {"id": pm.id, "name": pm.name, "project_id": pm.project_id, "updated_at": pm.updated_at}
         for pm in pms

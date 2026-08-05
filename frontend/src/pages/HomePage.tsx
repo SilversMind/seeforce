@@ -83,7 +83,7 @@ export function HomePage() {
           </div>
         )}
         {projects && projects.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16, maxWidth: 1200 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16, maxWidth: 1200, margin: "0 auto" }}>
             {projects.map((p) => (
               <ProjectCard key={p.id} project={p} onClick={() => navigate(`/project/${p.id}`)} />
             ))}

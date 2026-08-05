@@ -1,5 +1,4 @@
 import json
-import pytest
 from django.test import TestCase
 from django.urls import reverse
 from apps.graph.models import ProjectMap

@@ -8,12 +8,15 @@ export function GraphView() {
   const { id } = useParams<{ id: string }>();
   const projectMapId = parseInt(id!, 10);
   const navigate = useNavigate();
-
   const setProjectMap = useViewStore((s) => s.setProjectMap);
 
   useEffect(() => {
+    if (isNaN(projectMapId)) {
+      navigate("/");
+      return;
+    }
     setProjectMap(projectMapId);
-  }, [projectMapId, setProjectMap]);
+  }, [projectMapId, setProjectMap, navigate]);
 
   useEffect(() => {
     const es = new EventSource("/api/graph/events/");
@@ -29,6 +32,10 @@ export function GraphView() {
     es.onerror = () => es.close();
     return () => es.close();
   }, [navigate]);
+
+  if (isNaN(projectMapId)) {
+    return null;
+  }
 
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
