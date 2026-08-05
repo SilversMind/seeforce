@@ -26,6 +26,16 @@ def list_project_maps(request):
     ])
 
 
+@api_view(["DELETE"])
+def delete_project_map(request, project_map_id):
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    pm.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(["POST"])
 def upload_project_map(request):
     ser = ProjectMapUploadSerializer(data=request.data)

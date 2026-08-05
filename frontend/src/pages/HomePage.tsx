@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { useNavigate } from "react-router-dom";
 import { fetchProjectMaps, type ProjectMapMeta } from "../services/api";
 
@@ -14,7 +14,13 @@ function relativeDate(iso: string): string {
   return `${Math.floor(months / 12)} years ago`;
 }
 
-function ProjectCard({ project, onClick }: { project: ProjectMapMeta; onClick: () => void }) {
+function ProjectCard({ project, onClick, onDelete }: { project: ProjectMapMeta; onClick: () => void; onDelete: () => void }) {
+  function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${project.name}"?`)) return;
+    onDelete();
+  }
+
   return (
     <div
       onClick={onClick}
@@ -28,11 +34,30 @@ function ProjectCard({ project, onClick }: { project: ProjectMapMeta; onClick: (
         flexDirection: "column",
         gap: 8,
         transition: "border-color 0.15s",
+        position: "relative",
       }}
       onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.borderColor = "var(--c4-system-border)")}
       onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.borderColor = "var(--c4-sidebar-border)")}
     >
-      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--c4-sidebar-text)" }}>
+      <button
+        onClick={handleDelete}
+        title="Delete project"
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "none",
+          border: "none",
+          color: "var(--c4-sidebar-muted)",
+          cursor: "pointer",
+          fontSize: 16,
+          lineHeight: 1,
+          padding: 2,
+        }}
+      >
+        ×
+      </button>
+      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--c4-sidebar-text)", paddingRight: 20 }}>
         {project.name}
       </div>
       <div style={{ fontSize: 12, color: "var(--c4-sidebar-muted)" }}>
@@ -40,6 +65,11 @@ function ProjectCard({ project, onClick }: { project: ProjectMapMeta; onClick: (
       </div>
     </div>
   );
+}
+
+async function deleteProject(id: number) {
+  await fetch(`/api/graph/${id}/delete/`, { method: "DELETE" });
+  await mutate("/api/graph/");
 }
 
 export function HomePage() {
@@ -85,7 +115,7 @@ export function HomePage() {
         {projects && projects.length > 0 && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16, maxWidth: 1200, margin: "0 auto" }}>
             {projects.map((p) => (
-              <ProjectCard key={p.id} project={p} onClick={() => navigate(`/project/${p.id}`)} />
+              <ProjectCard key={p.id} project={p} onClick={() => navigate(`/project/${p.id}`)} onDelete={() => deleteProject(p.id)} />
             ))}
           </div>
         )}
