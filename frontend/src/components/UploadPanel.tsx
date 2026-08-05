@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { uploadProjectMap } from "../services/api";
-import { useViewStore } from "../store/viewStore";
 
 export function UploadPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const setProjectMap = useViewStore((s) => s.setProjectMap);
+  const navigate = useNavigate();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -17,7 +17,7 @@ export function UploadPanel() {
       const workspace = JSON.parse(text);
       const name = workspace.name || file.name.replace(".json", "");
       const meta = await uploadProjectMap(name, workspace);
-      setProjectMap(meta.id);
+      navigate(`/project/${meta.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
