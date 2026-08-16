@@ -9,6 +9,7 @@ uses:
 - Edge manager: "Renders directional relationship edges between nodes"
 */
 import { useCallback, useEffect, useRef, useState } from "react";
+import useSWR from "swr";
 import {
   ReactFlow,
   Background,
@@ -28,8 +29,10 @@ import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { applyElkLayout, computeEdgeHandles } from "../../lib/elkLayout";
 import { loadPositions, savePositions } from "../../lib/layoutStorage";
-import { type RFNode, type RFEdge } from "../../services/api";
+import { type RFNode, type RFEdge, fetchLexicon } from "../../services/api";
 import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
+import { LexiconContext } from "../../contexts/LexiconContext";
+import type { LexiconEntry } from "../../lib/lexicon";
 import { SystemNode } from "./nodes/SystemNode";
 import { ContainerNode } from "./nodes/ContainerNode";
 import { ComponentNode } from "./nodes/ComponentNode";
@@ -38,6 +41,7 @@ import { ExternalNode } from "./nodes/ExternalNode";
 import { RelationEdge } from "./edges/RelationEdge";
 import { Breadcrumb } from "../Breadcrumb";
 import { OverlaySidebar } from "./OverlaySidebar";
+import { LexiconBottomPanel } from "./LexiconBottomPanel";
 
 const nodeTypes = {
   system: SystemNode,
@@ -78,6 +82,11 @@ export function C4Graph() {
   const [isLayouting, setIsLayouting] = useState(false);
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
   const [mode, setMode] = useState<GraphMode>("enriched");
+  const [activeTerm, setActiveTerm] = useState<LexiconEntry | null>(null);
+  const { data: lexicon = [] } = useSWR(
+    rawProjectMapId != null ? `/api/graph/${rawProjectMapId}/lexicon/` : null,
+    () => fetchLexicon(rawProjectMapId!),
+  );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flowInstance = useRef<ReactFlowInstance<any, any> | null>(null);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -88,6 +97,7 @@ export function C4Graph() {
 
   useEffect(() => {
     setSidebarTarget(null);
+    setActiveTerm(null);
   }, [level, systemId, containerId]);
 
   useEffect(() => {
@@ -194,6 +204,7 @@ export function C4Graph() {
   }, []);
 
   return (
+    <LexiconContext.Provider value={{ lexicon, setActiveTerm }}>
     <GraphModeContext.Provider value={mode}>
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
         <Breadcrumb />
@@ -282,5 +293,7 @@ export function C4Graph() {
         )}
       </div>
     </GraphModeContext.Provider>
+    <LexiconBottomPanel entry={activeTerm} onClose={() => setActiveTerm(null)} />
+    </LexiconContext.Provider>
   );
 }
