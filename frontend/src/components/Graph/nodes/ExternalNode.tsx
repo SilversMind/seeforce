@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
+import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 
 export function ExternalNode({ data }: NodeProps) {
   const mode = useGraphMode();
@@ -22,9 +23,7 @@ export function ExternalNode({ data }: NodeProps) {
         {hasOverlay && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c4-external-border)", flexShrink: 0 }} />}
       </div>
       <div style={{ fontSize: 10, color: "var(--c4-external-desc)", marginTop: 2 }}>External</div>
-      {desc && (
-        <div style={{ fontSize: 10, color: "var(--c4-external-desc)", marginTop: 4 }}>{desc}</div>
-      )}
+      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 10, color: "var(--c4-external-desc)", marginTop: 4 }} />}
     </div>
   );
 }
