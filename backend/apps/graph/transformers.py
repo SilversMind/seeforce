@@ -77,8 +77,32 @@ def _edge(
         "data": {
             "overlay_label": ov.get("label", "") if ov else "",
             "has_overlay": bool(ov and ov.get("label")),
+            "technology": rel.get("technology", ""),
         },
     }
+
+
+def _merge_parallel_edges(edges: list[dict]) -> list[dict]:
+    """Merge edges sharing the same source+target into one, combining labels and technologies."""
+    from copy import deepcopy
+    seen: dict[tuple[str, str], dict] = {}
+    result: list[dict] = []
+    for edge in edges:
+        key = (edge["source"], edge["target"])
+        if key not in seen:
+            seen[key] = deepcopy(edge)
+            result.append(seen[key])
+        else:
+            existing = seen[key]
+            new_label = edge.get("label", "")
+            existing_label = existing.get("label", "")
+            if new_label and new_label not in existing_label:
+                existing["label"] = f"{existing_label}, {new_label}" if existing_label else new_label
+            new_tech = edge.get("data", {}).get("technology", "")
+            existing_tech = existing.get("data", {}).get("technology", "")
+            if new_tech and new_tech not in existing_tech:
+                existing["data"]["technology"] = f"{existing_tech}, {new_tech}" if existing_tech else new_tech
+    return result
 
 
 def _is_external(element: dict) -> bool:
@@ -183,7 +207,7 @@ def _c1_view(
             if (e := _edge(rel, system["id"], edge_overlay)) is not None:
                 edges.append(e)
 
-    return {"nodes": _layout(nodes), "edges": edges}
+    return {"nodes": _layout(nodes), "edges": _merge_parallel_edges(edges)}
 
 
 def _c2_view(
@@ -224,7 +248,7 @@ def _c2_view(
                 edges.append(e)
 
     _add_placeholders(nodes, edges, model, node_overlay)
-    return {"nodes": _layout(nodes), "edges": edges}
+    return {"nodes": _layout(nodes), "edges": _merge_parallel_edges(edges)}
 
 
 def _c3_view(
@@ -261,6 +285,6 @@ def _c3_view(
                     if (e := _edge(rel, comp["id"], edge_overlay)) is not None:
                         edges.append(e)
             _add_placeholders(nodes, edges, model, node_overlay)
-            return {"nodes": _layout(nodes), "edges": edges}
+            return {"nodes": _layout(nodes), "edges": _merge_parallel_edges(edges)}
 
     return {"nodes": [], "edges": []}
