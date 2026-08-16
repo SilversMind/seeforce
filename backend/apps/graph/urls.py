@@ -12,4 +12,6 @@ urlpatterns = [
     path("<int:project_map_id>/view/<str:level>/", views.project_map_view),
     path("<int:project_map_id>/overlay/node/", views.upsert_node_overlay),
     path("<int:project_map_id>/overlay/edge/", views.upsert_edge_overlay),
+    path("<int:project_map_id>/lexicon/", views.lexicon_collection),
+    path("<int:project_map_id>/lexicon/<str:term>/", views.delete_lexicon_entry),
 ]
