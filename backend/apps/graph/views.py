@@ -1,3 +1,12 @@
+"""
+@c3:component
+name: Edit API
+container: Backend
+description: Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete).
+uses:
+- Database: "reads and writes NodeOverlay, EdgeOverlay, and LexiconEntry rows"
+"""
+
 import json
 import time
 
