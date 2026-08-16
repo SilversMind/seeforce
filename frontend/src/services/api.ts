@@ -6,6 +6,11 @@ export interface ProjectMapMeta {
   updated_at: string;
 }
 
+export interface LexiconEntry {
+  term: string;
+  definition: string;
+}
+
 export interface NodeOverlayKey {
   node_type: string;
   system_name: string;
@@ -81,6 +86,28 @@ export async function fetchProjectMaps(): Promise<ProjectMapMeta[]> {
   const res = await fetch("/api/graph/");
   if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
   return res.json();
+}
+
+export async function fetchLexicon(projectMapId: number): Promise<LexiconEntry[]> {
+  const res = await fetch(`/api/graph/${projectMapId}/lexicon/`);
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function upsertLexiconEntry(projectMapId: number, term: string, definition: string): Promise<void> {
+  const res = await fetch(`/api/graph/${projectMapId}/lexicon/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ term, definition }),
+  });
+  if (!res.ok) throw new Error(`Upsert failed: ${res.status}`);
+}
+
+export async function deleteLexiconEntry(projectMapId: number, term: string): Promise<void> {
+  const res = await fetch(`/api/graph/${projectMapId}/lexicon/${encodeURIComponent(term)}/`, {
+    method: "DELETE",
+  });
+  if (!res.ok && res.status !== 204) throw new Error(`Delete failed: ${res.status}`);
 }
 
 export function buildViewUrl(
