@@ -7,13 +7,22 @@ def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
-def _use_name(entry: str | dict[str, str]) -> str:
-    return next(iter(entry)) if isinstance(entry, dict) else entry
-
-
-def _use_description(entry: str | dict[str, str]) -> str:
+def _use_name(entry: str | dict) -> str:
     if isinstance(entry, dict):
-        return next(iter(entry.values()), "")
+        return next((k for k in entry if k != "technology"), "")
+    return entry
+
+
+def _use_description(entry: str | dict) -> str:
+    if isinstance(entry, dict):
+        name_key = next((k for k in entry if k != "technology"), None)
+        return str(entry[name_key]) if name_key is not None else ""
+    return ""
+
+
+def _use_technology(entry: str | dict) -> str:
+    if isinstance(entry, dict):
+        return entry.get("technology", "")
     return ""
 
 
@@ -156,6 +165,7 @@ def build(elements: list[C4Element]) -> dict:
                 "id": f"rel-{source_id}-{dest_id}",
                 "destinationId": dest_id,
                 "description": _use_description(use),
+                "technology": _use_technology(use),
                 "tags": "Relationship",
             })
         return rels
@@ -180,6 +190,7 @@ def build(elements: list[C4Element]) -> dict:
                 "id": f"rel-{source_id}-{dest_id}",
                 "destinationId": dest_id,
                 "description": _use_description(use),
+                "technology": _use_technology(use),
                 "tags": "Relationship",
             })
         return rels

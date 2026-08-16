@@ -17,3 +17,4 @@ frontend/.env.local
 
 # Generated scan output
 backend/workspace.json
+.c4project
