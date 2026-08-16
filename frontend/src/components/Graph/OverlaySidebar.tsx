@@ -217,8 +217,8 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                 </ReadValue>
               )}
             </Section>
-            {/* Lexicon section — only in read mode for nodes */}
-            {!editing && (
+            {/* Lexicon section — only in edit mode for nodes */}
+            {editing && (
               <Section label="Lexique">
                 {(() => {
                   const desc = target!.node.data.overlay_description || target!.node.data.description || "";
