@@ -29,42 +29,47 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props) {
-  const [displayName, setDisplayName] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [edgeLabel, setEdgeLabel] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    setEditing(false);
+  }, [target]);
+
+  function startEdit() {
     if (!target) return;
     if (target.kind === "node") {
-      setDisplayName(target.node.data.overlay_label ?? "");
+      setName(target.node.data.overlay_label ?? "");
       setDescription(target.node.data.overlay_description ?? "");
     } else {
       setEdgeLabel(target.edge.data?.overlay_label ?? "");
     }
-  }, [target]);
+    setEditing(true);
+  }
 
-  const open = target !== null;
+  function cancelEdit() {
+    setEditing(false);
+  }
 
   async function handleSave() {
     setSaving(true);
     try {
       if (target!.kind === "node") {
-        await upsertNodeOverlay(
-          projectMapId,
-          target!.node.data.overlay_key,
-          displayName,
-          description,
-        );
+        await upsertNodeOverlay(projectMapId, target!.node.data.overlay_key, name, description);
       } else {
         await upsertEdgeOverlay(projectMapId, target!.edge.id, edgeLabel);
       }
+      setEditing(false);
       onSaved();
     } finally {
       setSaving(false);
     }
   }
 
+  const open = target !== null;
   const isNode = open && target!.kind === "node";
   const nodeType = isNode ? target!.node.type : "";
   const typeColor = TYPE_COLORS[nodeType] ?? "var(--c4-external-border)";
@@ -76,7 +81,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
         position: "absolute",
         top: 0,
         right: 0,
-        width: 300,
+        width: "clamp(300px, 30vw, 560px)",
         transform: open ? "translateX(0)" : "translateX(100%)",
         transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         height: "100%",
@@ -113,10 +118,27 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
         >
           {isNode ? typeLabel : "Relationship"}
         </span>
+        {!editing && (
+          <button
+            onClick={startEdit}
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "1px solid var(--c4-sidebar-border, #334155)",
+              color: "var(--c4-sidebar-muted, #64748b)",
+              borderRadius: 5,
+              padding: "3px 10px",
+              fontSize: 12,
+              cursor: "pointer",
+            }}
+          >
+            Edit
+          </button>
+        )}
         <button
           onClick={onClose}
           style={{
-            marginLeft: "auto",
+            marginLeft: editing ? "auto" : 0,
             background: "none",
             border: "none",
             color: "var(--c4-sidebar-muted, #64748b)",
@@ -133,27 +155,21 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
       <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
         {open && isNode ? (
           <>
-            <Section label="Code name">
-              <ReadValue>{target!.node.data.label}</ReadValue>
-            </Section>
-            {target!.node.data.description && (
-              <Section label="Code description">
-                <ReadValue muted>{target!.node.data.description}</ReadValue>
-              </Section>
-            )}
-            <div style={{ borderTop: "1px solid var(--c4-sidebar-border, #334155)", paddingTop: 16 }}>
-              <p style={{ fontSize: 11, color: "var(--c4-sidebar-muted, #64748b)", marginBottom: 12 }}>
-                OVERLAY — overrides displayed values
-              </p>
-              <Section label="Display name">
+            <Section label="Name">
+              {editing ? (
                 <input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder={target!.node.data.label}
                   style={inputStyle}
+                  autoFocus
                 />
-              </Section>
-              <Section label="Description" style={{ marginTop: 12 }}>
+              ) : (
+                <ReadValue>{target!.node.data.overlay_label || target!.node.data.label}</ReadValue>
+              )}
+            </Section>
+            <Section label="Description">
+              {editing ? (
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -161,76 +177,83 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
                   rows={4}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                 />
-              </Section>
-            </div>
+              ) : (
+                <ReadValue muted>
+                  {target!.node.data.overlay_description || target!.node.data.description || "—"}
+                </ReadValue>
+              )}
+            </Section>
           </>
         ) : open ? (
           <>
-            <Section label="Code label">
-              <ReadValue>{(target!.edge.label as string) || "—"}</ReadValue>
-            </Section>
-            <div style={{ borderTop: "1px solid var(--c4-sidebar-border, #334155)", paddingTop: 16 }}>
-              <p style={{ fontSize: 11, color: "var(--c4-sidebar-muted, #64748b)", marginBottom: 12 }}>
-                OVERLAY — overrides displayed label
-              </p>
-              <Section label="Label">
+            <Section label="Label">
+              {editing ? (
                 <input
                   value={edgeLabel}
                   onChange={(e) => setEdgeLabel(e.target.value)}
                   placeholder={(target!.edge.label as string) || "Override label…"}
                   style={inputStyle}
+                  autoFocus
                 />
+              ) : (
+                <ReadValue>
+                  {(target!.edge.data?.overlay_label as string) || (target!.edge.label as string) || "—"}
+                </ReadValue>
+              )}
+            </Section>
+            {target!.edge.data?.technology && (
+              <Section label="Technology">
+                <ReadValue>{target!.edge.data.technology}</ReadValue>
               </Section>
-            </div>
+            )}
           </>
         ) : null}
       </div>
 
-      {/* Footer */}
-      <div
-        style={{
-          padding: "12px 16px",
-          borderTop: "1px solid var(--c4-sidebar-border, #334155)",
-          display: "flex",
-          gap: 8,
-        }}
-      >
-        <button
-          onClick={handleSave}
-          disabled={saving}
+      {/* Footer — only in edit mode */}
+      {editing && (
+        <div
           style={{
-            flex: 1,
-            background: "#3b82f6",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "8px 0",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: saving ? "not-allowed" : "pointer",
-            opacity: saving ? 0.7 : 1,
+            padding: "12px 16px",
+            borderTop: "1px solid var(--c4-sidebar-border, #334155)",
+            display: "flex",
+            gap: 8,
           }}
         >
-          {saving ? "Saving…" : "Save overlay"}
-        </button>
-        <button
-          onClick={() => {
-            if (isNode) { setDisplayName(""); setDescription(""); }
-            else setEdgeLabel("");
-          }}
-          style={{
-            background: "none",
-            color: "var(--c4-sidebar-muted, #64748b)",
-            border: "1px solid var(--c4-sidebar-border, #334155)",
-            borderRadius: 6,
-            padding: "8px 12px",
-            fontSize: 13,
-            cursor: "pointer",
-          }}
-        >
-          Reset
-        </button>
-      </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              flex: 1,
+              background: "#3b82f6",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              padding: "8px 0",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: saving ? "not-allowed" : "pointer",
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+          <button
+            onClick={cancelEdit}
+            style={{
+              background: "none",
+              color: "var(--c4-sidebar-muted, #64748b)",
+              border: "1px solid var(--c4-sidebar-border, #334155)",
+              borderRadius: 6,
+              padding: "8px 12px",
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   );
 }

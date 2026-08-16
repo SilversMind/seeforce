@@ -1,5 +1,35 @@
 import ELK from "elkjs/lib/elk.bundled.js";
 
+const HANDLE_ORDER = ["left-t", "top-t", "right-t", "bottom-t"] as const;
+
+function deduplicateTargetHandles<E extends { target: string; targetHandle: string }>(
+  edges: E[],
+): E[] {
+  const byTarget: Record<string, E[]> = {};
+  for (const edge of edges) {
+    (byTarget[edge.target] ??= []).push(edge);
+  }
+  for (const group of Object.values(byTarget)) {
+    if (group.length <= 1) continue;
+    const handleCounts: Record<string, number> = {};
+    for (const e of group) handleCounts[e.targetHandle] = (handleCounts[e.targetHandle] ?? 0) + 1;
+    if (!Object.values(handleCounts).some((c) => c > 1)) continue;
+    const used = new Set<string>();
+    for (const edge of group) {
+      if (!used.has(edge.targetHandle)) {
+        used.add(edge.targetHandle);
+        continue;
+      }
+      const alt = HANDLE_ORDER.find((h) => !used.has(h));
+      if (alt) {
+        (edge as { targetHandle: string }).targetHandle = alt;
+        used.add(alt);
+      }
+    }
+  }
+  return edges;
+}
+
 const elk = new ELK();
 
 const NODE_WIDTH = 180;
@@ -32,12 +62,13 @@ export function computeEdgeHandles<N extends WithPosition, E extends WithSourceT
 ): (E & HandlePair)[] {
   const posMap: Record<string, { x: number; y: number }> = {};
   nodes.forEach((n) => { posMap[n.id] = n.position; });
-  return edges
+  const routed = edges
     .filter((e) => e.source !== e.target)
     .map((e) => ({
       ...e,
       ...getHandlePair(posMap[e.source] ?? { x: 0, y: 0 }, posMap[e.target] ?? { x: 0, y: 0 }),
     }));
+  return deduplicateTargetHandles(routed);
 }
 
 export async function applyElkLayout<N extends WithPosition, E extends WithSourceTarget>(
@@ -86,10 +117,10 @@ export async function applyElkLayout<N extends WithPosition, E extends WithSourc
     return { ...n, position: { x: elkNode.x, y: elkNode.y } };
   });
 
-  const routedEdges = validEdges.map((e) => ({
+  const routedEdges = deduplicateTargetHandles(validEdges.map((e) => ({
     ...e,
     ...getHandlePair(posMap[e.source] ?? { x: 0, y: 0 }, posMap[e.target] ?? { x: 0, y: 0 }),
-  }));
+  })));
 
   return { nodes: laidOut, edges: routedEdges };
 }

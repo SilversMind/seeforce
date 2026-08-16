@@ -80,6 +80,7 @@ export function C4Graph() {
   const [mode, setMode] = useState<GraphMode>("enriched");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flowInstance = useRef<ReactFlowInstance<any, any> | null>(null);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fitAll = useCallback(() => {
     setTimeout(() => flowInstance.current?.fitView({ padding: 0.12 }), 0);
@@ -147,6 +148,10 @@ export function C4Graph() {
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
+      if (clickTimer.current) {
+        clearTimeout(clickTimer.current);
+        clickTimer.current = null;
+      }
       if (level === "C1" && node.type === "system") {
         drillToC2(node.id, (node.data as { label: string }).label);
       } else if (level === "C2" && node.type === "container") {
@@ -157,22 +162,36 @@ export function C4Graph() {
   );
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
-    setSidebarTarget((prev) =>
-      prev?.kind === "node" && prev.node.id === node.id
-        ? prev
-        : { kind: "node", node: node as unknown as RFNode },
-    );
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      setSidebarTarget((prev) =>
+        prev?.kind === "node" && prev.node.id === node.id
+          ? prev
+          : { kind: "node", node: node as unknown as RFNode },
+      );
+    }, 200);
   }, []);
 
   const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
-    setSidebarTarget((prev) =>
-      prev?.kind === "edge" && prev.edge.id === edge.id
-        ? prev
-        : { kind: "edge", edge: edge as unknown as RFEdge },
-    );
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      setSidebarTarget((prev) =>
+        prev?.kind === "edge" && prev.edge.id === edge.id
+          ? prev
+          : { kind: "edge", edge: edge as unknown as RFEdge },
+      );
+    }, 200);
   }, []);
 
-  const onPaneClick = useCallback(() => setSidebarTarget(null), []);
+  const onPaneClick = useCallback(() => {
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+    }
+    setSidebarTarget(null);
+  }, []);
 
   return (
     <GraphModeContext.Provider value={mode}>
