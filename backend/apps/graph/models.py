@@ -50,3 +50,16 @@ class EdgeOverlay(models.Model):
 
     def __str__(self) -> str:
         return f"edge:{self.edge_id} ({self.project_map})"
+
+
+class LexiconEntry(models.Model):
+    project_map = models.ForeignKey(ProjectMap, on_delete=models.CASCADE, related_name="lexicon_entries")
+    term = models.CharField(max_length=255)
+    definition = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("project_map", "term")]
+
+    def __str__(self) -> str:
+        return f"{self.term} ({self.project_map})"
