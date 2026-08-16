@@ -13,7 +13,7 @@ export function highlightTerms(text: string, lexicon: LexiconEntry[]): Segment[]
   const sorted = [...lexicon].sort((a, b) => b.term.length - a.term.length);
 
   const escaped = sorted.map((e) => e.term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const regex = new RegExp(`(${escaped.join("|")})`, "gi");
+  const regex = new RegExp(`\\b(${escaped.join("|")})\\b`, "gi");
 
   const segments: Segment[] = [];
   let lastIndex = 0;
