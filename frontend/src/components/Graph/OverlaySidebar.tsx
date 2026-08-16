@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { type RFNode, type RFEdge, upsertNodeOverlay, upsertEdgeOverlay } from "../../services/api";
+import { mutate } from "swr";
+import { type RFNode, type RFEdge, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
+import { useLexicon } from "../../contexts/LexiconContext";
 
 type SidebarTarget =
   | { kind: "node"; node: RFNode }
@@ -10,6 +12,7 @@ interface Props {
   projectMapId: number;
   onClose: () => void;
   onSaved: () => void;
+  onLexiconSaved: () => void;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -28,16 +31,43 @@ const TYPE_COLORS: Record<string, string> = {
   external: "var(--c4-external-border)",
 };
 
-export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props) {
+export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexiconSaved }: Props) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [edgeLabel, setEdgeLabel] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const { lexicon } = useLexicon();
+  const [lexTerm, setLexTerm] = useState("");
+  const [lexDef, setLexDef] = useState("");
+  const [lexSaving, setLexSaving] = useState(false);
+
   useEffect(() => {
     setEditing(false);
+    setLexTerm("");
+    setLexDef("");
   }, [target]);
+
+  async function handleLexiconSave() {
+    if (!lexTerm.trim() || !lexDef.trim()) return;
+    setLexSaving(true);
+    try {
+      await upsertLexiconEntry(projectMapId, lexTerm.trim(), lexDef.trim());
+      await mutate(`/api/graph/${projectMapId}/lexicon/`);
+      onLexiconSaved();
+      setLexTerm("");
+      setLexDef("");
+    } finally {
+      setLexSaving(false);
+    }
+  }
+
+  async function handleLexiconDelete(term: string) {
+    await deleteLexiconEntry(projectMapId, term);
+    await mutate(`/api/graph/${projectMapId}/lexicon/`);
+    onLexiconSaved();
+  }
 
   function startEdit() {
     if (!target) return;
@@ -183,6 +213,79 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved }: Props
                 </ReadValue>
               )}
             </Section>
+            {/* Lexicon section — only in read mode for nodes */}
+            {!editing && (
+              <Section label="Lexique">
+                {(() => {
+                  const desc = target!.node.data.overlay_description || target!.node.data.description || "";
+                  const relevant = lexicon.filter((e) =>
+                    desc.toLowerCase().includes(e.term.toLowerCase())
+                  );
+                  return relevant.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                      {relevant.map((e) => (
+                        <div
+                          key={e.term}
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 6,
+                            padding: "4px 8px",
+                            background: "var(--c4-sidebar-input-bg)",
+                            borderRadius: 4,
+                            border: "1px solid var(--c4-sidebar-border)",
+                          }}
+                        >
+                          <span style={{ fontWeight: 600, color: "var(--c4-system-border)", minWidth: 60, fontSize: 12 }}>
+                            {e.term}
+                          </span>
+                          <span style={{ flex: 1, color: "var(--c4-sidebar-muted)", fontSize: 12 }}>
+                            {e.definition}
+                          </span>
+                          <button
+                            onClick={() => handleLexiconDelete(e.term)}
+                            style={{ background: "none", border: "none", color: "var(--c4-sidebar-muted)", cursor: "pointer", fontSize: 14, lineHeight: 1, padding: 0 }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
+                <input
+                  value={lexTerm}
+                  onChange={(e) => setLexTerm(e.target.value)}
+                  placeholder="Term (e.g. SM83)"
+                  style={{ ...inputStyle, marginBottom: 6 }}
+                />
+                <textarea
+                  value={lexDef}
+                  onChange={(e) => setLexDef(e.target.value)}
+                  placeholder="Definition…"
+                  rows={2}
+                  style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", marginBottom: 6 }}
+                />
+                <button
+                  onClick={handleLexiconSave}
+                  disabled={lexSaving || !lexTerm.trim() || !lexDef.trim()}
+                  style={{
+                    width: "100%",
+                    background: "#3b82f6",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "6px 0",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: lexSaving || !lexTerm.trim() || !lexDef.trim() ? "not-allowed" : "pointer",
+                    opacity: lexSaving || !lexTerm.trim() || !lexDef.trim() ? 0.6 : 1,
+                  }}
+                >
+                  {lexSaving ? "Saving…" : "Add to lexique"}
+                </button>
+              </Section>
+            )}
           </>
         ) : open ? (
           <>

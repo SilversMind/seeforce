@@ -9,7 +9,7 @@ uses:
 - Edge manager: "Renders directional relationship edges between nodes"
 */
 import { useCallback, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import {
   ReactFlow,
   Background,
@@ -289,6 +289,7 @@ export function C4Graph() {
             projectMapId={rawProjectMapId}
             onClose={() => setSidebarTarget(null)}
             onSaved={() => refetch?.()}
+            onLexiconSaved={() => mutate(`/api/graph/${rawProjectMapId}/lexicon/`)}
           />
         )}
       </div>
