@@ -64,9 +64,13 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
   }
 
   async function handleLexiconDelete(term: string) {
-    await deleteLexiconEntry(projectMapId, term);
-    await mutate(`/api/graph/${projectMapId}/lexicon/`);
-    onLexiconSaved();
+    try {
+      await deleteLexiconEntry(projectMapId, term);
+      await mutate(`/api/graph/${projectMapId}/lexicon/`);
+      onLexiconSaved();
+    } catch (err) {
+      console.error("Failed to delete lexicon entry:", err);
+    }
   }
 
   function startEdit() {
