@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchMe()
       .then(setUser)
-      .catch(() => setUser(null))
+      .catch((err) => { console.error("fetchMe error:", err); setUser(null); })
       .finally(() => setIsLoading(false));
   }, []);
 
