@@ -2,7 +2,7 @@
 
 ## Context
 
-SeeForce needs authentication to support multi-user access with ownership-based write permissions. All authenticated users can read any project; only the project owner (first scanner) can write overlays, lexicon entries, or delete the project.
+SeeForce needs authentication so each user sees only their own projects. The project owner (first scanner) is the sole writer — no shared projects in v1.
 
 ## Auth Strategy
 
@@ -39,13 +39,15 @@ visibility = models.CharField(max_length=16, default="public")  # reserved for v
 
 | Action | Required |
 |--------|----------|
-| Read graph / list projects | Authenticated |
+| List / read own projects | Authenticated |
 | Scan (create or update project) | Authenticated |
 | Write node/edge overlay | Authenticated + `request.user == project.owner` |
 | Write lexicon entry | Authenticated + `request.user == project.owner` |
 | Delete project | Authenticated + `request.user == project.owner` |
 
-Non-owner write attempts return **403 Forbidden**.
+Projects are filtered by owner — users only see their own projects. Legacy projects (`owner = null`) are visible to the first user who rescans them; until then they are not listed.
+
+Non-owner access attempts return **403 Forbidden**.
 
 Unauthenticated requests return **401 Unauthorized** on all API endpoints.
 
@@ -83,8 +85,8 @@ MIDDLEWARE += ["allauth.account.middleware.AccountMiddleware"]
 ### Existing endpoint changes
 
 - All graph/project endpoints: add `@login_required` (or `IsAuthenticated` check)
+- `GET /api/projects/` filters by `owner = request.user` — no `is_mine` / `owner_username` fields needed
 - Write endpoints (overlays, lexicon, delete): add owner check → 403 if `request.user != project.owner`
-- `GET /api/projects/` response: add `is_mine: bool` and `owner_username: str | null` per project
 - Scan command: after `get_or_create` on ProjectMap, assign `owner = request.user` if currently null
 
 ### URL routing additions
@@ -143,38 +145,23 @@ export async function fetchMe(): Promise<AuthUser>        // GET /api/auth/me/
 export async function logout(): Promise<void>             // POST /api/auth/logout/
 ```
 
-### ProjectMap API response additions
-
-```typescript
-// Added to existing ProjectMapMeta interface:
-is_mine: boolean;
-owner_username: string | null;
-```
-
 ### HomePage changes
 
-Projects list split into two sections based on `is_mine`:
-- **"Mes projets"** — cards with Edit name + Delete buttons
-- **"Projets partagés"** — cards with owner badge (`owner_username`), no edit/delete controls
-
-If `is_mine = false` and `owner = null` (legacy orphan) → shown in "Projets partagés" with no owner badge.
+No structural change — single list of projects (all owned by the current user). Edit name + Delete buttons remain as-is.
 
 ### OverlaySidebar / graph write controls
 
-New prop `isOwner: boolean` passed from `GraphView` → `C4Graph` → `OverlaySidebar`:
-- `isOwner = false` → Edit button hidden, lexicon add/delete form hidden
-- Read-only display of overlays and lexicon still visible to non-owners
-
-`GraphView` derives `isOwner` from the project's `is_mine` field.
+No change needed in v1 — all visible projects are owned by the current user, so write controls are always enabled.
 
 ## Data migration
 
-Existing `ProjectMap` rows: `owner = null, visibility = "public"`. No data loss. They appear in all users' "Projets partagés" until rescanned by an authenticated user.
+Existing `ProjectMap` rows: `owner = null, visibility = "public"`. No data loss. They are not listed in any user's project list until rescanned — at which point the scanning user becomes owner.
 
 ## Out of scope (v1)
 
 - Google / GitLab OAuth
-- Role system (contributor, admin)
+- Project sharing / shared projects view
+- Role system (contributor, maintainer, viewer)
 - Project invite mechanism
 - Private projects (`visibility = "private"`)
 - User profile page
