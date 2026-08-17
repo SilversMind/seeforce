@@ -1,5 +1,3 @@
-const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000";
-
 export default function LoginPage() {
   return (
     <div
@@ -16,7 +14,7 @@ export default function LoginPage() {
       <h1 style={{ margin: 0 }}>SeeForce</h1>
       <p style={{ margin: 0, color: "#666" }}>Visualize your C4 architecture.</p>
       <a
-        href={`${backendUrl}/accounts/github/login/`}
+        href="/accounts/github/login/"
         style={{
           padding: "0.6rem 1.4rem",
           background: "#24292f",

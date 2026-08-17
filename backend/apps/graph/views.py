@@ -34,7 +34,7 @@ def _require_auth(request):
 
 
 def _require_owner(request, pm):
-    if pm.owner is not None and request.user != pm.owner:
+    if request.user != pm.owner:
         return Response(status=status.HTTP_403_FORBIDDEN)
     return None
 
@@ -90,12 +90,12 @@ def lexicon_collection(request, project_map_id):
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
     if request.method == "GET":
         entries = pm.lexicon_entries.order_by("term")
         return Response([{"term": e.term, "definition": e.definition} for e in entries])
     # POST
-    if err := _require_owner(request, pm):
-        return err
     from .serializers import LexiconEntrySerializer
     ser = LexiconEntrySerializer(data=request.data)
     if not ser.is_valid():
@@ -152,6 +152,8 @@ def fetch_project_map(request, project_map_id):
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
     return Response(ProjectMapSerializer(pm).data)
 
 
@@ -173,6 +175,8 @@ def project_map_view(request, project_map_id, level):
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
 
     system = request.query_params.get("system")
     container = request.query_params.get("container")
@@ -280,10 +284,13 @@ def scan_events(request):
         from django.http import HttpResponse
         return HttpResponse(status=401)
 
+    user = request.user  # capture before generator runs to avoid request teardown issues
+
     def event_stream():
         yield "data: " + json.dumps({"type": "connected"}) + "\n\n"
         last_updated = (
-            ProjectMap.objects.order_by("-updated_at")
+            ProjectMap.objects.filter(owner=user)
+            .order_by("-updated_at")
             .values_list("updated_at", flat=True)
             .first()
         )
@@ -291,7 +298,8 @@ def scan_events(request):
             time.sleep(2)
             close_old_connections()  # force fresh DB read — SQLite caches stale reads otherwise
             latest = (
-                ProjectMap.objects.order_by("-updated_at")
+                ProjectMap.objects.filter(owner=user)
+                .order_by("-updated_at")
                 .values("id", "updated_at")
                 .first()
             )

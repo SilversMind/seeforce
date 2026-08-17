@@ -1,7 +1,8 @@
 # Run the C4 scanner on one or more project paths (defaults to repo root)
 # Single repo:  just scan path/to/project
 # Multi-repo:   just scan path/to/backend path/to/frontend
-scan *paths:
+# With owner:   just scan path/to/project user=me@example.com
+scan *paths user="":
     #!/usr/bin/env bash
     set -euo pipefail
     root={{justfile_directory()}}
@@ -15,6 +16,9 @@ scan *paths:
     done
     if [ -z "$args" ]; then
         args="--path $root"
+    fi
+    if [ -n "{{user}}" ]; then
+        args="$args --user-email {{user}}"
     fi
     cd backend && uv run python3 manage.py scan $args
 

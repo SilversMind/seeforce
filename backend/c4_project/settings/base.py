@@ -3,7 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = "dev-secret-change-in-prod"
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-in-prod")
 
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
@@ -81,5 +81,6 @@ SOCIALACCOUNT_PROVIDERS = {
 SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_LOGIN_ON_GET = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

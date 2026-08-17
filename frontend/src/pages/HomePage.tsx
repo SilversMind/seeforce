@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import useSWR, { mutate } from "swr";
 import { useNavigate } from "react-router-dom";
 import { fetchProjectMaps, renameProjectMap, type ProjectMapMeta } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 function relativeDate(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -195,6 +196,7 @@ function EditSidebar({
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [editingProject, setEditingProject] = useState<ProjectMapMeta | null>(null);
   const { data: projects, isLoading, error } = useSWR<ProjectMapMeta[]>(
     "/api/graph/",
@@ -219,6 +221,21 @@ export function HomePage() {
           }}
         >
           + New project
+        </button>
+        <span style={{ fontSize: "0.875rem", color: "#94a3b8", opacity: 0.7 }}>{user?.username}</span>
+        <button
+          onClick={logout}
+          style={{
+            background: "#1e293b",
+            color: "#94a3b8",
+            border: "1px solid #334155",
+            borderRadius: 6,
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+          }}
+        >
+          Se déconnecter
         </button>
       </header>
 

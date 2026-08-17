@@ -75,6 +75,7 @@ class UploadProjectMapTest(TestCase):
 class FetchProjectMapTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
         self.client.force_login(self.user)
         self.ws = ProjectMap.objects.create(name="Test", source_json=SAMPLE_WORKSPACE, owner=self.user)
 
@@ -93,6 +94,16 @@ class FetchProjectMapTest(TestCase):
         self.client.logout()
         response = self.client.get(f"/api/graph/{self.ws.id}/")
         self.assertEqual(response.status_code, 401)
+
+    def test_fetch_other_owners_project_returns_403(self):
+        other_pm = ProjectMap.objects.create(name="Other", source_json={}, owner=self.other)
+        res = self.client.get(f"/api/graph/{other_pm.id}/")
+        self.assertEqual(res.status_code, 403)
+
+    def test_fetch_unowned_project_returns_403(self):
+        unowned = ProjectMap.objects.create(name="Unowned", source_json={})
+        res = self.client.get(f"/api/graph/{unowned.id}/")
+        self.assertEqual(res.status_code, 403)
 
 
 class ListProjectMapsTest(TestCase):
@@ -226,6 +237,15 @@ class NodeOverlayTest(TestCase):
         self.client.force_login(self.other)
         res = self.client.post(
             f"/api/graph/{self.pm.id}/overlay/node/",
+            data=json.dumps(self.payload),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 403)
+
+    def test_upsert_node_overlay_on_unowned_project_returns_403(self):
+        unowned = ProjectMap.objects.create(name="Unowned", source_json={})
+        res = self.client.post(
+            f"/api/graph/{unowned.id}/overlay/node/",
             data=json.dumps(self.payload),
             content_type="application/json",
         )
