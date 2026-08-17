@@ -62,7 +62,7 @@ export interface ReactFlowData {
 }
 
 export async function uploadProjectMap(name: string, workspace: unknown): Promise<ProjectMapMeta> {
-  const res = await fetch("/api/graph/upload/", {
+  const res = await fetch("/api/graph/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, workspace }),
@@ -79,7 +79,7 @@ export async function fetchLatestProjectMap(): Promise<ProjectMapMeta | null> {
 }
 
 export async function renameProjectMap(id: number, name: string): Promise<ProjectMapMeta> {
-  const res = await fetch(`/api/graph/${id}/rename/`, {
+  const res = await fetch(`/api/graph/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),

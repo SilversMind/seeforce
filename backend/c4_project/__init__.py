@@ -12,4 +12,6 @@ technology: Python Django
 description: Parse codebase, generate architecture data
 uses:
     - Database: "Reads and writes architecture graph data via Django ORM"
+    - GitHub: "Delegates user authentication via GitHub OAuth 2.0 (django-allauth)"
+      technology: HTTPS
 """

@@ -3,9 +3,9 @@
 name: Frontend
 system: SeeForce
 technology: React
-description: Display architecture data as a comprehensive graph
+description: Display architecture data as a comprehensive graph; handles auth-gated routing
 uses:
-  - Backend: "Fetches workspace and graph data"
+  - Backend: "Fetches graph data and manages user session (auth)"
     technology: REST
 */
 import { StrictMode } from "react";

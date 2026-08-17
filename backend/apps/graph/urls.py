@@ -1,17 +1,17 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 from . import views
 
+router = SimpleRouter()
+router.register(r"", views.ProjectMapViewSet, basename="projectmap")
+
 urlpatterns = [
-    path("", views.list_project_maps),
-    path("upload/", views.upload_project_map),
     path("latest/", views.latest_project_map),
     path("events/", views.scan_events),
-    path("<int:project_map_id>/", views.fetch_project_map),
-    path("<int:project_map_id>/delete/", views.delete_project_map),
-    path("<int:project_map_id>/rename/", views.rename_project_map),
     path("<int:project_map_id>/view/<str:level>/", views.project_map_view),
     path("<int:project_map_id>/overlay/node/", views.upsert_node_overlay),
     path("<int:project_map_id>/overlay/edge/", views.upsert_edge_overlay),
     path("<int:project_map_id>/lexicon/", views.lexicon_collection),
     path("<int:project_map_id>/lexicon/<str:term>/", views.delete_lexicon_entry),
+    path("", include(router.urls)),
 ]

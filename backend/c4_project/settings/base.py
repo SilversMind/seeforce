@@ -1,3 +1,10 @@
+"""
+@c1:system
+name: GitHub
+type: external
+description: GitHub OAuth 2.0 provider — authenticates SeeForce users via the GitHub identity system
+"""
+
 import os
 from pathlib import Path
 

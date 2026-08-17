@@ -83,7 +83,7 @@ function ProjectCard({
 }
 
 async function deleteProject(id: number) {
-  await fetch(`/api/graph/${id}/delete/`, { method: "DELETE" });
+  await fetch(`/api/graph/${id}/`, { method: "DELETE" });
   await mutate("/api/graph/");
 }
 

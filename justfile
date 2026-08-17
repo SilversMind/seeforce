@@ -1,8 +1,11 @@
+set dotenv-load := true
+set dotenv-path := "backend/.env"
+
 # Run the C4 scanner on one or more project paths (defaults to repo root)
 # Single repo:  just scan path/to/project
 # Multi-repo:   just scan path/to/backend path/to/frontend
-# With owner:   just scan path/to/project user=me@example.com
-scan *paths user="":
+# With owner:   just scan user=me@example.com path/to/project
+scan user="" *paths:
     #!/usr/bin/env bash
     set -euo pipefail
     root={{justfile_directory()}}

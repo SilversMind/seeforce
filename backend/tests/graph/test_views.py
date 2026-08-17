@@ -24,7 +24,7 @@ class UploadProjectMapTest(TestCase):
 
     def test_upload_creates_workspace(self):
         response = self.client.post(
-            "/api/graph/upload/",
+            "/api/graph/",
             data=json.dumps({"name": "My Project", "workspace": SAMPLE_WORKSPACE}),
             content_type="application/json",
         )
@@ -36,7 +36,7 @@ class UploadProjectMapTest(TestCase):
 
     def test_upload_assigns_uploader_as_owner(self):
         response = self.client.post(
-            "/api/graph/upload/",
+            "/api/graph/",
             data=json.dumps({"name": "My Project", "workspace": SAMPLE_WORKSPACE}),
             content_type="application/json",
         )
@@ -47,7 +47,7 @@ class UploadProjectMapTest(TestCase):
     def test_upload_unauthenticated_returns_401(self):
         self.client.logout()
         response = self.client.post(
-            "/api/graph/upload/",
+            "/api/graph/",
             data=json.dumps({"name": "My Project", "workspace": SAMPLE_WORKSPACE}),
             content_type="application/json",
         )
@@ -55,7 +55,7 @@ class UploadProjectMapTest(TestCase):
 
     def test_upload_missing_workspace_returns_400(self):
         response = self.client.post(
-            "/api/graph/upload/",
+            "/api/graph/",
             data=json.dumps({"name": "Bad"}),
             content_type="application/json",
         )
@@ -64,7 +64,7 @@ class UploadProjectMapTest(TestCase):
     def test_upload_non_dict_workspace_returns_400(self):
         for payload in ([1, 2, 3], 42, "workspace"):
             response = self.client.post(
-                "/api/graph/upload/",
+                "/api/graph/",
                 data=json.dumps({"name": "Bad", "workspace": payload}),
                 content_type="application/json",
             )
@@ -143,7 +143,7 @@ class RenameProjectMapTest(TestCase):
 
     def test_rename_updates_name(self):
         res = self.client.patch(
-            f"/api/graph/{self.pm.id}/rename/",
+            f"/api/graph/{self.pm.id}/",
             data=json.dumps({"name": "New"}),
             content_type="application/json",
         )
@@ -154,7 +154,7 @@ class RenameProjectMapTest(TestCase):
     def test_rename_unauthenticated_returns_401(self):
         self.client.logout()
         res = self.client.patch(
-            f"/api/graph/{self.pm.id}/rename/",
+            f"/api/graph/{self.pm.id}/",
             data=json.dumps({"name": "New"}),
             content_type="application/json",
         )
@@ -163,7 +163,7 @@ class RenameProjectMapTest(TestCase):
     def test_rename_non_owner_returns_403(self):
         self.client.force_login(self.other)
         res = self.client.patch(
-            f"/api/graph/{self.pm.id}/rename/",
+            f"/api/graph/{self.pm.id}/",
             data=json.dumps({"name": "New"}),
             content_type="application/json",
         )
@@ -171,7 +171,7 @@ class RenameProjectMapTest(TestCase):
 
     def test_rename_empty_name_returns_400(self):
         res = self.client.patch(
-            f"/api/graph/{self.pm.id}/rename/",
+            f"/api/graph/{self.pm.id}/",
             data=json.dumps({"name": ""}),
             content_type="application/json",
         )
@@ -186,18 +186,18 @@ class DeleteProjectMapTest(TestCase):
         self.client.force_login(self.user)
 
     def test_delete_removes_project(self):
-        res = self.client.delete(f"/api/graph/{self.pm.id}/delete/")
+        res = self.client.delete(f"/api/graph/{self.pm.id}/")
         self.assertEqual(res.status_code, 204)
         self.assertEqual(ProjectMap.objects.count(), 0)
 
     def test_delete_unauthenticated_returns_401(self):
         self.client.logout()
-        res = self.client.delete(f"/api/graph/{self.pm.id}/delete/")
+        res = self.client.delete(f"/api/graph/{self.pm.id}/")
         self.assertEqual(res.status_code, 401)
 
     def test_delete_non_owner_returns_403(self):
         self.client.force_login(self.other)
-        res = self.client.delete(f"/api/graph/{self.pm.id}/delete/")
+        res = self.client.delete(f"/api/graph/{self.pm.id}/")
         self.assertEqual(res.status_code, 403)
 
 
