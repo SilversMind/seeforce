@@ -10,6 +10,7 @@ uses:
 import json
 import time
 
+from django.contrib.auth import logout as django_logout
 from django.db import close_old_connections
 from django.http import StreamingHttpResponse
 from rest_framework import status
@@ -202,6 +203,27 @@ def upsert_edge_overlay(request, project_map_id):
     obj.label = d["label"]
     obj.save()
 
+    return Response({"ok": True})
+
+
+@api_view(["GET"])
+def auth_me(request):
+    if not request.user.is_authenticated:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    social = request.user.socialaccount_set.filter(provider="github").first()
+    avatar_url = social.extra_data.get("avatar_url", "") if social else ""
+    return Response({
+        "id": request.user.id,
+        "username": request.user.username,
+        "avatar_url": avatar_url,
+    })
+
+
+@api_view(["POST"])
+def auth_logout(request):
+    if not request.user.is_authenticated:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    django_logout(request)
     return Response({"ok": True})
 
 
