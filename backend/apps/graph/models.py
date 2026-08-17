@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -7,6 +8,14 @@ class ProjectMap(models.Model):
     source_json = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="projects",
+    )
+    visibility = models.CharField(max_length=16, default="public")
 
     class Meta:
         ordering = ["-updated_at"]
@@ -50,3 +59,16 @@ class EdgeOverlay(models.Model):
 
     def __str__(self) -> str:
         return f"edge:{self.edge_id} ({self.project_map})"
+
+
+class LexiconEntry(models.Model):
+    project_map = models.ForeignKey(ProjectMap, on_delete=models.CASCADE, related_name="lexicon_entries")
+    term = models.CharField(max_length=255)
+    definition = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("project_map", "term")]
+
+    def __str__(self) -> str:
+        return f"{self.term} ({self.project_map})"
