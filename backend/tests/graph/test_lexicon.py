@@ -1,11 +1,17 @@
 from django.test import TestCase
+from django.contrib.auth import get_user_model
 from apps.graph.models import ProjectMap, LexiconEntry
 import json
+
+User = get_user_model()
 
 
 class LexiconEntryModelTest(TestCase):
     def setUp(self):
-        self.pm = ProjectMap.objects.create(name="Test", source_json={})
+        self.user = User.objects.create_user(username="testuser", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
+        self.pm = ProjectMap.objects.create(name="Test", source_json={}, owner=self.user)
+        self.client.force_login(self.user)
 
     def test_create_entry(self):
         entry = LexiconEntry.objects.create(
@@ -20,7 +26,7 @@ class LexiconEntryModelTest(TestCase):
             LexiconEntry.objects.create(project_map=self.pm, term="CPU", definition="Different")
 
     def test_same_term_different_projects(self):
-        pm2 = ProjectMap.objects.create(name="Other", source_json={})
+        pm2 = ProjectMap.objects.create(name="Other", source_json={}, owner=self.other)
         LexiconEntry.objects.create(project_map=self.pm, term="CPU", definition="A")
         entry2 = LexiconEntry.objects.create(project_map=pm2, term="CPU", definition="B")
         self.assertEqual(entry2.term, "CPU")
@@ -28,7 +34,10 @@ class LexiconEntryModelTest(TestCase):
 
 class LexiconAPITest(TestCase):
     def setUp(self):
-        self.pm = ProjectMap.objects.create(name="Project", source_json={})
+        self.user = User.objects.create_user(username="testuser", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
+        self.pm = ProjectMap.objects.create(name="Project", source_json={}, owner=self.user)
+        self.client.force_login(self.user)
 
     def test_list_empty(self):
         res = self.client.get(f"/api/graph/{self.pm.id}/lexicon/")
@@ -83,3 +92,35 @@ class LexiconAPITest(TestCase):
             content_type="application/json",
         )
         self.assertEqual(res.status_code, 400)
+
+    def test_add_entry_unauthenticated_returns_401(self):
+        self.client.logout()
+        res = self.client.post(
+            f"/api/graph/{self.pm.id}/lexicon/",
+            data=json.dumps({"term": "ROM", "definition": "Read-Only Memory"}),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 401)
+
+    def test_add_entry_non_owner_returns_403(self):
+        self.client.force_login(self.other)
+        res = self.client.post(
+            f"/api/graph/{self.pm.id}/lexicon/",
+            data=json.dumps({"term": "ROM", "definition": "Read-Only Memory"}),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 403)
+
+    def test_delete_entry_unauthenticated_returns_401(self):
+        from apps.graph.models import LexiconEntry
+        LexiconEntry.objects.create(project_map=self.pm, term="ROM", definition="Read-Only Memory")
+        self.client.logout()
+        res = self.client.delete(f"/api/graph/{self.pm.id}/lexicon/ROM/")
+        self.assertEqual(res.status_code, 401)
+
+    def test_delete_entry_non_owner_returns_403(self):
+        from apps.graph.models import LexiconEntry
+        LexiconEntry.objects.create(project_map=self.pm, term="ROM", definition="Read-Only Memory")
+        self.client.force_login(self.other)
+        res = self.client.delete(f"/api/graph/{self.pm.id}/lexicon/ROM/")
+        self.assertEqual(res.status_code, 403)

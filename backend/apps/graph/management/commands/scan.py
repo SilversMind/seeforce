@@ -39,6 +39,11 @@ class Command(BaseCommand):
         )
         parser.add_argument("--name", default=None, help="Project name (defaults to first repo folder name)")
         parser.add_argument("--output", default=None, help="Also write workspace.json to this file")
+        parser.add_argument(
+            "--user-email",
+            default=None,
+            help="Email of the user to assign as project owner (if not already set)",
+        )
 
     def handle(self, *args, **options):
         paths = [Path(p).resolve() for p in options["paths"]]
@@ -48,6 +53,17 @@ class Command(BaseCommand):
 
         name = options["name"] or paths[0].name
         project_id = _get_or_create_project_id(paths)
+
+        user_email = options.get("user_email")
+        owner = None
+        if user_email:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            owner = User.objects.filter(email=user_email).first()
+            if not owner:
+                self.stderr.write(self.style.WARNING(
+                    f"No user found with email '{user_email}' — owner not assigned"
+                ))
 
         self.stdout.write(f"Scanning {', '.join(str(p) for p in paths)} (project: {project_id[:8]}…)")
         try:
@@ -83,6 +99,11 @@ class Command(BaseCommand):
         )
         action = "Created" if created else "Updated"
         self.stdout.write(self.style.SUCCESS(f"{action} ProjectMap id={pm.id} '{pm.name}'"))
+
+        if owner is not None and pm.owner is None:
+            pm.owner = owner
+            pm.save(update_fields=["owner"])
+            self.stdout.write(self.style.SUCCESS(f"Assigned owner: {owner.username}"))
 
         if output := options.get("output"):
             Path(output).write_text(json_str, encoding="utf-8")

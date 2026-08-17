@@ -27,9 +27,23 @@ from .serializers import (
 from .transformers import to_react_flow
 
 
+def _require_auth(request):
+    if not request.user.is_authenticated:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    return None
+
+
+def _require_owner(request, pm):
+    if pm.owner is not None and request.user != pm.owner:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    return None
+
+
 @api_view(["GET"])
 def list_project_maps(request):
-    pms = ProjectMap.objects.order_by("-updated_at")
+    if err := _require_auth(request):
+        return err
+    pms = ProjectMap.objects.filter(owner=request.user).order_by("-updated_at")
     return Response([
         {"id": pm.id, "name": pm.name, "project_id": pm.project_id, "updated_at": pm.updated_at}
         for pm in pms
@@ -38,10 +52,14 @@ def list_project_maps(request):
 
 @api_view(["PATCH"])
 def rename_project_map(request, project_map_id):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
     name = request.data.get("name", "").strip()
     if not name:
         return Response({"name": "This field is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -52,16 +70,22 @@ def rename_project_map(request, project_map_id):
 
 @api_view(["DELETE"])
 def delete_project_map(request, project_map_id):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
     pm.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["GET", "POST"])
 def lexicon_collection(request, project_map_id):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
@@ -70,6 +94,8 @@ def lexicon_collection(request, project_map_id):
         entries = pm.lexicon_entries.order_by("term")
         return Response([{"term": e.term, "definition": e.definition} for e in entries])
     # POST
+    if err := _require_owner(request, pm):
+        return err
     from .serializers import LexiconEntrySerializer
     ser = LexiconEntrySerializer(data=request.data)
     if not ser.is_valid():
@@ -84,10 +110,14 @@ def lexicon_collection(request, project_map_id):
 
 @api_view(["DELETE"])
 def delete_lexicon_entry(request, project_map_id, term):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
     try:
         entry = LexiconEntry.objects.get(project_map=pm, term=term)
     except LexiconEntry.DoesNotExist:
@@ -98,12 +128,15 @@ def delete_lexicon_entry(request, project_map_id, term):
 
 @api_view(["POST"])
 def upload_project_map(request):
+    if err := _require_auth(request):
+        return err
     ser = ProjectMapUploadSerializer(data=request.data)
     if not ser.is_valid():
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
     pm = ProjectMap.objects.create(
         name=ser.validated_data["name"],
         source_json=ser.validated_data["workspace"],
+        owner=request.user,
     )
     return Response(
         {"id": pm.id, "name": pm.name, "created_at": pm.created_at},
@@ -113,6 +146,8 @@ def upload_project_map(request):
 
 @api_view(["GET"])
 def fetch_project_map(request, project_map_id):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
@@ -122,7 +157,9 @@ def fetch_project_map(request, project_map_id):
 
 @api_view(["GET"])
 def latest_project_map(request):
-    pm = ProjectMap.objects.order_by("-updated_at").first()
+    if err := _require_auth(request):
+        return err
+    pm = ProjectMap.objects.filter(owner=request.user).order_by("-updated_at").first()
     if not pm:
         return Response(status=status.HTTP_404_NOT_FOUND)
     return Response({"id": pm.id, "name": pm.name, "project_id": pm.project_id})
@@ -130,6 +167,8 @@ def latest_project_map(request):
 
 @api_view(["GET"])
 def project_map_view(request, project_map_id, level):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
@@ -163,10 +202,14 @@ def project_map_view(request, project_map_id, level):
 
 @api_view(["POST"])
 def upsert_node_overlay(request, project_map_id):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
 
     ser = NodeOverlaySerializer(data=request.data)
     if not ser.is_valid():
@@ -189,10 +232,14 @@ def upsert_node_overlay(request, project_map_id):
 
 @api_view(["POST"])
 def upsert_edge_overlay(request, project_map_id):
+    if err := _require_auth(request):
+        return err
     try:
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
 
     ser = EdgeOverlaySerializer(data=request.data)
     if not ser.is_valid():
@@ -229,6 +276,10 @@ def auth_logout(request):
 
 def scan_events(request):
     """SSE endpoint — polls DB every 2s, emits scan_complete when updated_at changes."""
+    if not request.user.is_authenticated:
+        from django.http import HttpResponse
+        return HttpResponse(status=401)
+
     def event_stream():
         yield "data: " + json.dumps({"type": "connected"}) + "\n\n"
         last_updated = (
