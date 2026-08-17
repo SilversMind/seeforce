@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import LoginPage from "./pages/LoginPage";
 import { GraphView } from "./pages/GraphView";
 import { HomePage } from "./pages/HomePage";
 import { UploadPanel } from "./components/UploadPanel";
@@ -17,14 +19,43 @@ function NewProjectShell() {
   );
 }
 
+function AppRoutes() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/project/new" element={<NewProjectShell />} />
+      <Route path="/project/:id" element={<GraphView />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/project/new" element={<NewProjectShell />} />
-        <Route path="/project/:id" element={<GraphView />} />
-      </Routes>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

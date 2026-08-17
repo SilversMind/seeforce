@@ -1,3 +1,9 @@
+export interface AuthUser {
+  id: number;
+  username: string;
+  avatar_url: string;
+}
+
 export interface ProjectMapMeta {
   id: number;
   name: string;
@@ -149,4 +155,16 @@ export async function upsertEdgeOverlay(
     body: JSON.stringify({ edge_id, label }),
   });
   if (!res.ok) throw new Error(`Overlay save failed: ${res.status}`);
+}
+
+export async function fetchMe(): Promise<AuthUser | null> {
+  const res = await fetch("/api/auth/me/");
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`fetchMe failed: ${res.status}`);
+  return res.json();
+}
+
+export async function logout(): Promise<void> {
+  const res = await fetch("/api/auth/logout/", { method: "POST" });
+  if (!res.ok) throw new Error(`logout failed: ${res.status}`);
 }
