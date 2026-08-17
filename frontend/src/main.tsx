@@ -5,7 +5,8 @@ system: SeeForce
 technology: React
 description: Display architecture data as a comprehensive graph
 uses:
-  - Backend: "Fetches workspace and graph data via REST API over HTTP"
+  - Backend: "Fetches workspace and graph data"
+    technology: REST
 */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
