@@ -57,6 +57,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.graph.authentication.CsrfExemptSessionAuthentication",
+    ],
 }
 
 AUTHENTICATION_BACKENDS = [
