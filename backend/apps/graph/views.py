@@ -1,3 +1,12 @@
+"""
+@c3:component
+name: Edit API
+container: Backend
+description: Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete).
+uses:
+- Database: "reads and writes NodeOverlay, EdgeOverlay, and LexiconEntry rows"
+"""
+
 import json
 import time
 
@@ -7,7 +16,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import ProjectMap, NodeOverlay, EdgeOverlay
+from .models import ProjectMap, NodeOverlay, EdgeOverlay, LexiconEntry
 from .serializers import (
     ProjectMapSerializer,
     ProjectMapUploadSerializer,
@@ -15,6 +24,75 @@ from .serializers import (
     EdgeOverlaySerializer,
 )
 from .transformers import to_react_flow
+
+
+@api_view(["GET"])
+def list_project_maps(request):
+    pms = ProjectMap.objects.order_by("-updated_at")
+    return Response([
+        {"id": pm.id, "name": pm.name, "project_id": pm.project_id, "updated_at": pm.updated_at}
+        for pm in pms
+    ])
+
+
+@api_view(["PATCH"])
+def rename_project_map(request, project_map_id):
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    name = request.data.get("name", "").strip()
+    if not name:
+        return Response({"name": "This field is required."}, status=status.HTTP_400_BAD_REQUEST)
+    pm.name = name
+    pm.save(update_fields=["name", "updated_at"])
+    return Response({"id": pm.id, "name": pm.name, "updated_at": pm.updated_at})
+
+
+@api_view(["DELETE"])
+def delete_project_map(request, project_map_id):
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    pm.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET", "POST"])
+def lexicon_collection(request, project_map_id):
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == "GET":
+        entries = pm.lexicon_entries.order_by("term")
+        return Response([{"term": e.term, "definition": e.definition} for e in entries])
+    # POST
+    from .serializers import LexiconEntrySerializer
+    ser = LexiconEntrySerializer(data=request.data)
+    if not ser.is_valid():
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+    entry, _ = LexiconEntry.objects.get_or_create(
+        project_map=pm, term=ser.validated_data["term"]
+    )
+    entry.definition = ser.validated_data["definition"]
+    entry.save()
+    return Response({"ok": True})
+
+
+@api_view(["DELETE"])
+def delete_lexicon_entry(request, project_map_id, term):
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    try:
+        entry = LexiconEntry.objects.get(project_map=pm, term=term)
+    except LexiconEntry.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    entry.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])

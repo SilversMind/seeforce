@@ -16,8 +16,9 @@ _C_BLOCK_RE = re.compile(r"/\*+(.*?)\*/", re.DOTALL)
 _PREFIX_RE = re.compile(r"@c([123]):(\w+)")
 
 _EXPECTED_KIND = {"1": "system", "2": "container", "3": "component"}
+_SKIP_KINDS = {("1", "person"), ("1", "external")}
 
-_DEFAULT_EXTENSIONS = {".py", ".java", ".ts", ".tsx", ".js", ".go", ".cs", ".rb"}
+_DEFAULT_EXTENSIONS = {".py", ".java", ".ts", ".tsx", ".js", ".go", ".cs", ".rb", ".rs"}
 _DEFAULT_EXCLUDES = {
     "node_modules", "__pycache__", ".git", "dist", "build", "vendor",
     ".venv", "venv", ".env",
@@ -65,6 +66,8 @@ def _parse_block(content: str, file_path: str, line: int) -> C4Element | None:
         return None
 
     level, kind = match.group(1), match.group(2)
+    if (level, kind) in _SKIP_KINDS:
+        return None
     expected = _EXPECTED_KIND[level]
     if kind != expected:
         raise C4ParseError(

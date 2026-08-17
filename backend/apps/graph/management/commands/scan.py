@@ -12,37 +12,48 @@ import json
 _C4PROJECT_FILE = ".c4project"
 
 
-def _get_or_create_project_id(repo_path: Path) -> str:
-    """Read project_id from .c4project, creating the file on first run."""
-    c4file = repo_path / _C4PROJECT_FILE
-    if c4file.exists():
-        pid = c4file.read_text(encoding="utf-8").strip()
-        if pid:
-            return pid
+def _get_or_create_project_id(paths: list[Path]) -> str:
+    """Read project_id from first .c4project found across paths, creating in paths[0] if none exist."""
+    for p in paths:
+        c4file = p / _C4PROJECT_FILE
+        if c4file.exists():
+            pid = c4file.read_text(encoding="utf-8").strip()
+            if pid:
+                return pid
     pid = str(uuid.uuid4())
-    c4file.write_text(pid, encoding="utf-8")
+    (paths[0] / _C4PROJECT_FILE).write_text(pid, encoding="utf-8")
     return pid
 
 
 class Command(BaseCommand):
-    help = "Scan a repository for C4 annotations and upsert the ProjectMap"
+    help = "Scan one or more repositories for C4 annotations and upsert the ProjectMap"
 
     def add_arguments(self, parser):
-        parser.add_argument("--path", required=True, help="Path to the repository root")
-        parser.add_argument("--name", default=None, help="Project name (defaults to repo folder name)")
+        parser.add_argument(
+            "--path",
+            required=True,
+            action="append",
+            dest="paths",
+            metavar="PATH",
+            help="Path to a repository root (repeat for multi-repo projects)",
+        )
+        parser.add_argument("--name", default=None, help="Project name (defaults to first repo folder name)")
         parser.add_argument("--output", default=None, help="Also write workspace.json to this file")
 
     def handle(self, *args, **options):
-        repo_path = Path(options["path"]).resolve()
-        if not repo_path.is_dir():
-            raise CommandError(f"'{repo_path}' is not a directory")
+        paths = [Path(p).resolve() for p in options["paths"]]
+        for p in paths:
+            if not p.is_dir():
+                raise CommandError(f"'{p}' is not a directory")
 
-        name = options["name"] or repo_path.name
-        project_id = _get_or_create_project_id(repo_path)
+        name = options["name"] or paths[0].name
+        project_id = _get_or_create_project_id(paths)
 
-        self.stdout.write(f"Scanning {repo_path} (project: {project_id[:8]}…)")
+        self.stdout.write(f"Scanning {', '.join(str(p) for p in paths)} (project: {project_id[:8]}…)")
         try:
-            elements = scan(str(repo_path))
+            elements = []
+            for p in paths:
+                elements.extend(scan(str(p)))
             workspace = build(elements)
             json_str = export_workspace(workspace)
         except C4ParseError as exc:

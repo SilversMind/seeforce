@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
+import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 
 export function SystemNode({ data }: NodeProps) {
   const mode = useGraphMode();
@@ -21,7 +22,7 @@ export function SystemNode({ data }: NodeProps) {
         {label}
         {hasOverlay && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c4-system-border)", flexShrink: 0 }} />}
       </div>
-      {desc && <div style={{ fontSize: 11, color: "var(--c4-system-desc)", marginTop: 4 }}>{desc}</div>}
+      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 11, color: "var(--c4-system-desc)", marginTop: 4 }} />}
     </div>
   );
 }

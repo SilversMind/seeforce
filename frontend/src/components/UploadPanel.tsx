@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { uploadProjectMap } from "../services/api";
-import { useViewStore } from "../store/viewStore";
 
 export function UploadPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const setProjectMap = useViewStore((s) => s.setProjectMap);
+  const navigate = useNavigate();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -17,7 +17,7 @@ export function UploadPanel() {
       const workspace = JSON.parse(text);
       const name = workspace.name || file.name.replace(".json", "");
       const meta = await uploadProjectMap(name, workspace);
-      setProjectMap(meta.id);
+      navigate(`/project/${meta.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -27,7 +27,7 @@ export function UploadPanel() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, color: "#0f172a" }}>SeeForce</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 700, color: "var(--c4-sidebar-text)" }}>SeeForce</h2>
       <p style={{ color: "#64748b", fontSize: 14, textAlign: "center", maxWidth: 360 }}>
         Run <code style={{ background: "#f1f5f9", padding: "1px 6px", borderRadius: 4, fontSize: 13 }}>python manage.py scan --path /your/project</code> to auto-load, or upload a workspace.json manually.
       </p>

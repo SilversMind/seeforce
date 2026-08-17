@@ -9,6 +9,7 @@ uses:
 - Edge manager: "Renders directional relationship edges between nodes"
 */
 import { useCallback, useEffect, useRef, useState } from "react";
+import useSWR, { mutate } from "swr";
 import {
   ReactFlow,
   Background,
@@ -28,8 +29,10 @@ import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { applyElkLayout, computeEdgeHandles } from "../../lib/elkLayout";
 import { loadPositions, savePositions } from "../../lib/layoutStorage";
-import { type RFNode, type RFEdge } from "../../services/api";
+import { type RFNode, type RFEdge, fetchLexicon } from "../../services/api";
 import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
+import { LexiconContext } from "../../contexts/LexiconContext";
+import type { LexiconEntry } from "../../lib/lexicon";
 import { SystemNode } from "./nodes/SystemNode";
 import { ContainerNode } from "./nodes/ContainerNode";
 import { ComponentNode } from "./nodes/ComponentNode";
@@ -38,6 +41,7 @@ import { ExternalNode } from "./nodes/ExternalNode";
 import { RelationEdge } from "./edges/RelationEdge";
 import { Breadcrumb } from "../Breadcrumb";
 import { OverlaySidebar } from "./OverlaySidebar";
+import { LexiconBottomPanel } from "./LexiconBottomPanel";
 
 const nodeTypes = {
   system: SystemNode,
@@ -78,8 +82,14 @@ export function C4Graph() {
   const [isLayouting, setIsLayouting] = useState(false);
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
   const [mode, setMode] = useState<GraphMode>("enriched");
+  const [activeTerm, setActiveTerm] = useState<LexiconEntry | null>(null);
+  const { data: lexicon = [] } = useSWR(
+    rawProjectMapId != null ? `/api/graph/${rawProjectMapId}/lexicon/` : null,
+    () => fetchLexicon(rawProjectMapId!),
+  );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flowInstance = useRef<ReactFlowInstance<any, any> | null>(null);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fitAll = useCallback(() => {
     setTimeout(() => flowInstance.current?.fitView({ padding: 0.12 }), 0);
@@ -87,6 +97,7 @@ export function C4Graph() {
 
   useEffect(() => {
     setSidebarTarget(null);
+    setActiveTerm(null);
   }, [level, systemId, containerId]);
 
   useEffect(() => {
@@ -147,6 +158,10 @@ export function C4Graph() {
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
+      if (clickTimer.current) {
+        clearTimeout(clickTimer.current);
+        clickTimer.current = null;
+      }
       if (level === "C1" && node.type === "system") {
         drillToC2(node.id, (node.data as { label: string }).label);
       } else if (level === "C2" && node.type === "container") {
@@ -157,24 +172,39 @@ export function C4Graph() {
   );
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
-    setSidebarTarget((prev) =>
-      prev?.kind === "node" && prev.node.id === node.id
-        ? prev
-        : { kind: "node", node: node as unknown as RFNode },
-    );
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      setSidebarTarget((prev) =>
+        prev?.kind === "node" && prev.node.id === node.id
+          ? prev
+          : { kind: "node", node: node as unknown as RFNode },
+      );
+    }, 200);
   }, []);
 
   const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
-    setSidebarTarget((prev) =>
-      prev?.kind === "edge" && prev.edge.id === edge.id
-        ? prev
-        : { kind: "edge", edge: edge as unknown as RFEdge },
-    );
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      setSidebarTarget((prev) =>
+        prev?.kind === "edge" && prev.edge.id === edge.id
+          ? prev
+          : { kind: "edge", edge: edge as unknown as RFEdge },
+      );
+    }, 200);
   }, []);
 
-  const onPaneClick = useCallback(() => setSidebarTarget(null), []);
+  const onPaneClick = useCallback(() => {
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+    }
+    setSidebarTarget(null);
+  }, []);
 
   return (
+    <LexiconContext.Provider value={{ lexicon, setActiveTerm }}>
     <GraphModeContext.Provider value={mode}>
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
         <Breadcrumb />
@@ -259,9 +289,12 @@ export function C4Graph() {
             projectMapId={rawProjectMapId}
             onClose={() => setSidebarTarget(null)}
             onSaved={() => refetch?.()}
+            onLexiconSaved={() => mutate(`/api/graph/${rawProjectMapId}/lexicon/`)}
           />
         )}
       </div>
     </GraphModeContext.Provider>
+    <LexiconBottomPanel entry={activeTerm} onClose={() => setActiveTerm(null)} />
+    </LexiconContext.Provider>
   );
 }

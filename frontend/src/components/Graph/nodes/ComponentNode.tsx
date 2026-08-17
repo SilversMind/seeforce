@@ -6,6 +6,7 @@ description: Handles node management
 */
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
+import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 
 export function ComponentNode({ data }: NodeProps) {
   const mode = useGraphMode();
@@ -41,9 +42,7 @@ export function ComponentNode({ data }: NodeProps) {
           {data.technology as string}
         </div>
       )}
-      {desc && (
-        <div style={{ fontSize: 10, color: "var(--c4-component-desc)", marginTop: 4 }}>{desc}</div>
-      )}
+      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 10, color: "var(--c4-component-desc)", marginTop: 4 }} />}
     </div>
   );
 }

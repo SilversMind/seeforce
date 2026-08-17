@@ -31,3 +31,8 @@ class NodeOverlaySerializer(serializers.Serializer):
 class EdgeOverlaySerializer(serializers.Serializer):
     edge_id = serializers.CharField(max_length=500)
     label = serializers.CharField(max_length=500, default="", allow_blank=True)
+
+
+class LexiconEntrySerializer(serializers.Serializer):
+    term = serializers.CharField(max_length=255)
+    definition = serializers.CharField()
