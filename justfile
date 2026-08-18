@@ -4,8 +4,8 @@ set dotenv-path := "backend/.env"
 # Run the C4 scanner on one or more project paths (defaults to repo root)
 # Single repo:  just scan path/to/project
 # Multi-repo:   just scan path/to/backend path/to/frontend
-# With owner:   just scan user=me@example.com path/to/project
-scan user="" *paths:
+# With owner:   just scan --user me@example.com path/to/project
+scan *paths:
     #!/usr/bin/env bash
     set -euo pipefail
     root={{justfile_directory()}}
@@ -19,9 +19,6 @@ scan user="" *paths:
     done
     if [ -z "$args" ]; then
         args="--path $root"
-    fi
-    if [ -n "{{user}}" ]; then
-        args="$args --user-email {{user}}"
     fi
     cd backend && uv run python3 manage.py scan $args
 
