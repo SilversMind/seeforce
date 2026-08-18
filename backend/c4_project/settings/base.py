@@ -40,9 +40,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "c4_project.urls"
 
-STATIC_URL = "/assets/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "../frontend/dist"]
+STATICFILES_DIRS = []
+# Serve the built SPA directly at the web root (/, /assets/*, etc.)
+WHITENOISE_ROOT = BASE_DIR / "../frontend/dist"
 WHITENOISE_INDEX_FILE = True
 
 TEMPLATES = [
