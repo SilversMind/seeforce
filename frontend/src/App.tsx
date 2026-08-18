@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import { GraphView } from "./pages/GraphView";
 import { HomePage } from "./pages/HomePage";
+import { SharePage } from "./pages/SharePage";
 
 function AppRoutes() {
   const { user, isLoading } = useAuth();
@@ -30,6 +31,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/project/:id" element={<GraphView />} />
+      <Route path="/share/:token" element={<SharePage />} />
     </Routes>
   );
 }

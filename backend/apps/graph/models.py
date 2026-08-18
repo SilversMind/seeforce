@@ -63,6 +63,33 @@ class EdgeOverlay(models.Model):
         return f"edge:{self.edge_id} ({self.project_map})"
 
 
+class ShareToken(models.Model):
+    project_map = models.ForeignKey(ProjectMap, on_delete=models.CASCADE, related_name="share_tokens")
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            import secrets
+            self.token = secrets.token_urlsafe(32)
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"share:{self.token[:8]}… ({self.project_map})"
+
+
+class ProjectAccess(models.Model):
+    share_token = models.ForeignKey(ShareToken, on_delete=models.CASCADE, related_name="accesses")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="project_accesses")
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [("share_token", "user")]
+
+    def __str__(self) -> str:
+        return f"{self.user} → {self.share_token.project_map}"
+
+
 class LexiconEntry(models.Model):
     project_map = models.ForeignKey(ProjectMap, on_delete=models.CASCADE, related_name="lexicon_entries")
     term = models.CharField(max_length=255)

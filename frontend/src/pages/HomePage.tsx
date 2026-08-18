@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { useNavigate } from "react-router-dom";
-import { fetchProjectMaps, renameProjectMap, importFromGitHub, syncFromGitHub, uploadProjectMap, type ProjectMapMeta } from "../services/api";
+import { fetchProjectMaps, fetchSharedProjects, renameProjectMap, importFromGitHub, syncFromGitHub, uploadProjectMap, type ProjectMapMeta } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
 function relativeDate(iso: string): string {
@@ -377,10 +377,8 @@ export function HomePage() {
       setSyncError(e instanceof Error ? e.message : "Sync failed");
     }
   }
-  const { data: projects, isLoading, error } = useSWR<ProjectMapMeta[]>(
-    "/api/graph/",
-    fetchProjectMaps,
-  );
+  const { data: projects, isLoading, error } = useSWR<ProjectMapMeta[]>("/api/graph/", fetchProjectMaps);
+  const { data: sharedProjects } = useSWR<ProjectMapMeta[]>("/api/graph/shared/", fetchSharedProjects);
 
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", background: "var(--c4-page-bg)", position: "relative", overflow: "hidden" }}>
@@ -436,9 +434,10 @@ export function HomePage() {
           </div>
         )}
         {projects && projects.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16, maxWidth: 1200, margin: "0 auto" }}>
-            {projects.map((p) => (
-              <ProjectCard
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+              {projects.map((p) => (
+                <ProjectCard
                   key={p.id}
                   project={p}
                   onClick={() => navigate(`/project/${p.id}`)}
@@ -446,7 +445,27 @@ export function HomePage() {
                   onEdit={() => setEditingProject(p)}
                   onSync={p.project_id?.startsWith("github:") ? () => handleSync(p.id) : undefined}
                 />
-            ))}
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sharedProjects && sharedProjects.length > 0 && (
+          <div style={{ maxWidth: 1200, margin: "32px auto 0" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--c4-sidebar-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              Shared with me
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
+              {sharedProjects.map((p) => (
+                <ProjectCard
+                  key={`shared-${p.id}`}
+                  project={p}
+                  onClick={() => navigate(`/project/${p.id}`)}
+                  onDelete={() => {}}
+                  onEdit={() => {}}
+                />
+              ))}
+            </div>
           </div>
         )}
       </main>

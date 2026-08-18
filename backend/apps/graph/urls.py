@@ -15,5 +15,7 @@ urlpatterns = [
     path("<int:project_map_id>/lexicon/<str:term>/", views.delete_lexicon_entry),
     path("import/github/", views.import_from_github),
     path("<int:project_map_id>/sync-github/", views.sync_from_github),
+    path("<int:project_map_id>/share/", views.manage_share),
+    path("shared/", views.shared_projects),
     path("", include(router.urls)),
 ]

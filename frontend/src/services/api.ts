@@ -10,6 +10,8 @@ export interface ProjectMapMeta {
   project_id: string | null;
   created_at: string;
   updated_at: string;
+  shared?: boolean;
+  owner_username?: string;
 }
 
 export interface LexiconEntry {
@@ -180,6 +182,44 @@ export async function syncFromGitHub(projectMapId: number): Promise<void> {
   const res = await fetch(`/api/graph/${projectMapId}/sync-github/`, { method: "POST" });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error ?? `Sync failed: ${res.status}`);
+}
+
+export async function fetchSharedProjects(): Promise<ProjectMapMeta[]> {
+  const res = await fetch("/api/graph/shared/");
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getShareToken(projectMapId: number): Promise<string | null> {
+  const res = await fetch(`/api/graph/${projectMapId}/share/`);
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return (await res.json()).token ?? null;
+}
+
+export async function createShareToken(projectMapId: number): Promise<string> {
+  const res = await fetch(`/api/graph/${projectMapId}/share/`, { method: "POST" });
+  if (!res.ok) throw new Error(`Share failed: ${res.status}`);
+  return (await res.json()).token;
+}
+
+export async function revokeShareToken(projectMapId: number): Promise<void> {
+  const res = await fetch(`/api/graph/${projectMapId}/share/`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Revoke failed: ${res.status}`);
+}
+
+export interface ShareInfo {
+  id: number;
+  name: string;
+  project_id: string | null;
+  owner_username: string | null;
+  is_owner: boolean;
+}
+
+export async function useShareToken(token: string): Promise<ShareInfo> {
+  const res = await fetch(`/api/share/${token}/`);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error ?? `Invalid share link`);
+  return body;
 }
 
 export async function fetchMe(): Promise<AuthUser | null> {

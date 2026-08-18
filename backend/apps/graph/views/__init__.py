@@ -9,6 +9,7 @@ from .graph import (
 )
 from .lexicon import lexicon_collection, delete_lexicon_entry
 from .github_import import import_from_github, sync_from_github
+from .sharing import manage_share, use_share, shared_projects
 
 __all__ = [
     "auth_me",
@@ -23,4 +24,7 @@ __all__ = [
     "delete_lexicon_entry",
     "import_from_github",
     "sync_from_github",
+    "manage_share",
+    "use_share",
+    "shared_projects",
 ]

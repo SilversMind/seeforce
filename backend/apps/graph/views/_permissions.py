@@ -27,3 +27,19 @@ def _require_owner(request, pm):
     if request.user != pm.owner:
         return Response(status=status.HTTP_403_FORBIDDEN)
     return None
+
+
+def _has_access(user, pm) -> bool:
+    """True if user owns or has been granted shared access to pm."""
+    from ..models import ProjectAccess
+    if pm.owner == user:
+        return True
+    return ProjectAccess.objects.filter(
+        share_token__project_map=pm, user=user
+    ).exists()
+
+
+def _require_access(request, pm):
+    if not _has_access(request.user, pm):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    return None

@@ -24,7 +24,7 @@ from ..serializers import (
     EdgeOverlaySerializer,
 )
 from ..transformers import to_react_flow
-from ._permissions import IsAuthenticatedOrReturn401, IsOwner, _require_auth, _require_owner
+from ._permissions import IsAuthenticatedOrReturn401, IsOwner, _require_auth, _require_owner, _require_access
 
 
 class ProjectMapViewSet(viewsets.ModelViewSet):
@@ -100,7 +100,7 @@ def project_map_view(request, project_map_id, level):
         pm = ProjectMap.objects.get(id=project_map_id)
     except ProjectMap.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    if err := _require_owner(request, pm):
+    if err := _require_access(request, pm):
         return err
 
     system = request.query_params.get("system")
