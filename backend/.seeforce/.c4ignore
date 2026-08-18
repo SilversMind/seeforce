@@ -1,0 +1,4 @@
+# Ignore patterns for the SeeForce project scan
+tests/c4parser/fixtures/
+.superpowers
+examples/
