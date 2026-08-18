@@ -26,16 +26,17 @@ _DEFAULT_EXCLUDES = {
 
 
 def _load_c4ignore(root_path: str) -> list[str]:
-    """Return patterns from .c4ignore at root_path (fnmatch, # = comment)."""
-    ignore_file = Path(root_path) / ".c4ignore"
-    if not ignore_file.exists():
-        return []
-    patterns = []
-    for line in ignore_file.read_text(encoding="utf-8").splitlines():
-        line = line.strip().rstrip("/")
-        if line and not line.startswith("#"):
-            patterns.append(line)
-    return patterns
+    """Return patterns from .seeforce/.c4ignore or .c4ignore at root_path."""
+    root = Path(root_path)
+    for candidate in (root / ".seeforce" / ".c4ignore", root / ".c4ignore"):
+        if candidate.exists():
+            patterns = []
+            for line in candidate.read_text(encoding="utf-8").splitlines():
+                line = line.strip().rstrip("/")
+                if line and not line.startswith("#"):
+                    patterns.append(line)
+            return patterns
+    return []
 
 
 def _is_ignored(name: str, patterns: list[str], rel_path: str = "") -> bool:

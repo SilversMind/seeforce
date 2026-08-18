@@ -165,6 +165,23 @@ export async function upsertEdgeOverlay(
   if (!res.ok) throw new Error(`Overlay save failed: ${res.status}`);
 }
 
+export async function importFromGitHub(repo: string, branch: string, name?: string): Promise<ProjectMapMeta> {
+  const res = await fetch("/api/graph/import/github/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ repo, branch, name }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error ?? `Import failed: ${res.status}`);
+  return body;
+}
+
+export async function syncFromGitHub(projectMapId: number): Promise<void> {
+  const res = await fetch(`/api/graph/${projectMapId}/sync-github/`, { method: "POST" });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error ?? `Sync failed: ${res.status}`);
+}
+
 export async function fetchMe(): Promise<AuthUser | null> {
   const res = await fetch("/api/auth/me/");
   if (res.status === 401) return null;

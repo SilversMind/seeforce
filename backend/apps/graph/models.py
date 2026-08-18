@@ -16,6 +16,8 @@ class ProjectMap(models.Model):
         related_name="projects",
     )
     visibility = models.CharField(max_length=16, default="public")
+    github_repo = models.CharField(max_length=255, blank=True, default="")
+    github_branch = models.CharField(max_length=255, blank=True, default="main")
 
     class Meta:
         ordering = ["-updated_at"]

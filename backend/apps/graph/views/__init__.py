@@ -8,6 +8,7 @@ from .graph import (
     scan_events,
 )
 from .lexicon import lexicon_collection, delete_lexicon_entry
+from .github_import import import_from_github, sync_from_github
 
 __all__ = [
     "auth_me",
@@ -20,4 +21,6 @@ __all__ = [
     "scan_events",
     "lexicon_collection",
     "delete_lexicon_entry",
+    "import_from_github",
+    "sync_from_github",
 ]

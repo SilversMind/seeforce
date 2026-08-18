@@ -9,19 +9,32 @@ from c4parser.exceptions import C4ParseError, C4ValidationError
 
 import json
 
+_SEEFORCE_DIR = ".seeforce"
 _C4PROJECT_FILE = ".c4project"
 
 
 def _get_or_create_project_id(paths: list[Path]) -> str:
-    """Read project_id from first .c4project found across paths, creating in paths[0] if none exist."""
+    """Read project_id from .seeforce/ or legacy .c4project, creating in paths[0]/.seeforce/ if none exist."""
     for p in paths:
+        seeforce_cfg = p / _SEEFORCE_DIR / "project.json"
+        if seeforce_cfg.exists():
+            import json as _json
+            pid = _json.loads(seeforce_cfg.read_text(encoding="utf-8")).get("project_id", "")
+            if pid:
+                return pid
+        # Legacy fallback
         c4file = p / _C4PROJECT_FILE
         if c4file.exists():
             pid = c4file.read_text(encoding="utf-8").strip()
             if pid:
                 return pid
     pid = str(uuid.uuid4())
-    (paths[0] / _C4PROJECT_FILE).write_text(pid, encoding="utf-8")
+    seeforce_dir = paths[0] / _SEEFORCE_DIR
+    seeforce_dir.mkdir(exist_ok=True)
+    import json as _json
+    (seeforce_dir / "project.json").write_text(
+        _json.dumps({"project_id": pid}, indent=2), encoding="utf-8"
+    )
     return pid
 
 
@@ -38,7 +51,11 @@ class Command(BaseCommand):
             help="Path to a repository root (repeat for multi-repo projects)",
         )
         parser.add_argument("--name", default=None, help="Project name (defaults to first repo folder name)")
-        parser.add_argument("--output", default=None, help="Also write workspace.json to this file")
+        parser.add_argument(
+            "--output",
+            default=None,
+            help="Write workspace.json here (default: <first-path>/.seeforce/workspace.json, pass 'none' to skip)",
+        )
         parser.add_argument(
             "--user-email",
             default=None,
@@ -105,6 +122,11 @@ class Command(BaseCommand):
             pm.save(update_fields=["owner"])
             self.stdout.write(self.style.SUCCESS(f"Assigned owner: {owner.username}"))
 
-        if output := options.get("output"):
-            Path(output).write_text(json_str, encoding="utf-8")
-            self.stdout.write(f"Also saved to {output}")
+        output = options.get("output")
+        if output is None:
+            output = str(paths[0] / _SEEFORCE_DIR / "workspace.json")
+        if output.lower() != "none":
+            out_path = Path(output)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json_str, encoding="utf-8")
+            self.stdout.write(f"Workspace written to {out_path}")

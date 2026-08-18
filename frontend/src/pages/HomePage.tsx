@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useSWR, { mutate } from "swr";
 import { useNavigate } from "react-router-dom";
-import { fetchProjectMaps, renameProjectMap, type ProjectMapMeta } from "../services/api";
+import { fetchProjectMaps, renameProjectMap, importFromGitHub, syncFromGitHub, type ProjectMapMeta } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
 function relativeDate(iso: string): string {
@@ -21,11 +21,13 @@ function ProjectCard({
   onClick,
   onDelete,
   onEdit,
+  onSync,
 }: {
   project: ProjectMapMeta;
   onClick: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  onSync?: () => void;
 }) {
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
@@ -37,6 +39,13 @@ function ProjectCard({
     e.stopPropagation();
     onEdit();
   }
+
+  function handleSync(e: React.MouseEvent) {
+    e.stopPropagation();
+    onSync?.();
+  }
+
+  const isGitHub = project.project_id?.startsWith("github:");
 
   return (
     <div
@@ -57,6 +66,15 @@ function ProjectCard({
       onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.borderColor = "var(--c4-sidebar-border)")}
     >
       <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 4 }}>
+        {isGitHub && onSync && (
+          <button
+            onClick={handleSync}
+            title="Sync from GitHub"
+            style={{ background: "none", border: "none", color: "var(--c4-sidebar-muted)", cursor: "pointer", fontSize: 12, lineHeight: 1, padding: 2 }}
+          >
+            ↻
+          </button>
+        )}
         <button
           onClick={handleEdit}
           title="Rename project"
@@ -85,6 +103,96 @@ function ProjectCard({
 async function deleteProject(id: number) {
   await fetch(`/api/graph/${id}/`, { method: "DELETE" });
   await mutate("/api/graph/");
+}
+
+function GitHubImportSidebar({ open, onClose, onImported }: { open: boolean; onClose: () => void; onImported: () => void }) {
+  const [repo, setRepo] = useState("");
+  const [branch, setBranch] = useState("main");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) { setRepo(""); setBranch("main"); setError(null); }
+  }, [open]);
+
+  async function handleImport() {
+    setError(null);
+    setLoading(true);
+    try {
+      await importFromGitHub(repo.trim(), branch.trim());
+      await mutate("/api/graph/");
+      onImported();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Import failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{
+      position: "fixed", top: 48, right: 0,
+      width: "clamp(280px, 28vw, 420px)", height: "calc(100vh - 48px)",
+      transform: open ? "translateX(0)" : "translateX(100%)",
+      transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+      background: "var(--c4-sidebar-bg)", borderLeft: "1px solid var(--c4-sidebar-border)",
+      display: "flex", flexDirection: "column", zIndex: 20, fontSize: 13, color: "var(--c4-sidebar-text)",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--c4-sidebar-border)", gap: 8 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--c4-sidebar-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Import from GitHub
+        </span>
+        <button onClick={onClose} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--c4-sidebar-muted)", fontSize: 18, cursor: "pointer", lineHeight: 1 }}>×</button>
+      </div>
+
+      <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div>
+          <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
+            Repository
+          </label>
+          <input
+            value={repo} onChange={(e) => setRepo(e.target.value)}
+            placeholder="owner/repo"
+            style={inputStyle} autoFocus={open}
+            onKeyDown={(e) => e.key === "Enter" && handleImport()}
+          />
+          <div style={{ fontSize: 11, color: "var(--c4-sidebar-muted)", marginTop: 4 }}>
+            The repo must contain a <code style={{ fontFamily: "monospace" }}>.seeforce/workspace.json</code> file (run <code style={{ fontFamily: "monospace" }}>just scan</code> locally first).
+          </div>
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
+            Branch
+          </label>
+          <input
+            value={branch} onChange={(e) => setBranch(e.target.value)}
+            placeholder="main"
+            style={inputStyle}
+            onKeyDown={(e) => e.key === "Enter" && handleImport()}
+          />
+        </div>
+
+        {error && (
+          <div style={{ fontSize: 12, color: "#ef4444", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, padding: "8px 10px" }}>
+            {error}
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c4-sidebar-border)", display: "flex", gap: 8 }}>
+        <button
+          onClick={handleImport} disabled={loading || !repo.trim()}
+          style={{ flex: 1, background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 0", fontSize: 13, fontWeight: 600, cursor: loading || !repo.trim() ? "not-allowed" : "pointer", opacity: loading || !repo.trim() ? 0.7 : 1 }}
+        >
+          {loading ? "Importing…" : "Import"}
+        </button>
+        <button onClick={onClose} style={{ background: "none", color: "var(--c4-sidebar-muted)", border: "1px solid var(--c4-sidebar-border)", borderRadius: 6, padding: "8px 12px", fontSize: 13, cursor: "pointer" }}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
 
 const inputStyle: React.CSSProperties = {
@@ -198,6 +306,22 @@ export function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [editingProject, setEditingProject] = useState<ProjectMapMeta | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [syncingId, setSyncingId] = useState<number | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  async function handleSync(id: number) {
+    setSyncingId(id);
+    setSyncError(null);
+    try {
+      await syncFromGitHub(id);
+      await mutate("/api/graph/");
+    } catch (e) {
+      setSyncError(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncingId(null);
+    }
+  }
   const { data: projects, isLoading, error } = useSWR<ProjectMapMeta[]>(
     "/api/graph/",
     fetchProjectMaps,
@@ -208,9 +332,23 @@ export function HomePage() {
       <header style={{ height: 48, background: "#0f172a", display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
         <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>SeeForce</span>
         <button
-          onClick={() => navigate("/project/new")}
+          onClick={() => setImportOpen(true)}
           style={{
             marginLeft: "auto",
+            background: "#1e293b",
+            color: "#94a3b8",
+            border: "1px solid #334155",
+            borderRadius: 6,
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+          }}
+        >
+          Import from GitHub
+        </button>
+        <button
+          onClick={() => navigate("/project/new")}
+          style={{
             background: "#1e293b",
             color: "#94a3b8",
             border: "1px solid #334155",
@@ -246,9 +384,14 @@ export function HomePage() {
         {error && (
           <div style={{ color: "#ef4444", fontSize: 14 }}>Failed to load projects.</div>
         )}
+        {syncError && (
+          <div style={{ fontSize: 12, color: "#ef4444", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, padding: "8px 12px", marginBottom: 16 }}>
+            Sync failed: {syncError}
+          </div>
+        )}
         {projects && projects.length === 0 && (
           <div style={{ textAlign: "center", color: "var(--c4-sidebar-muted)", fontSize: 14, marginTop: 80 }}>
-            No projects yet. Scan a codebase to get started.
+            No projects yet. Import from GitHub or scan a codebase to get started.
           </div>
         )}
         {projects && projects.length > 0 && (
@@ -259,7 +402,8 @@ export function HomePage() {
                   project={p}
                   onClick={() => navigate(`/project/${p.id}`)}
                   onDelete={() => deleteProject(p.id)}
-                  onEdit={() => { setEditingProject(p); }}
+                  onEdit={() => setEditingProject(p)}
+                  onSync={p.project_id?.startsWith("github:") ? () => handleSync(p.id) : undefined}
                 />
             ))}
           </div>
@@ -267,6 +411,11 @@ export function HomePage() {
       </main>
 
       <EditSidebar project={editingProject} onClose={() => setEditingProject(null)} />
+      <GitHubImportSidebar
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={() => setImportOpen(false)}
+      />
     </div>
   );
 }
