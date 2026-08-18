@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { useNavigate } from "react-router-dom";
-import { fetchProjectMaps, renameProjectMap, importFromGitHub, syncFromGitHub, type ProjectMapMeta } from "../services/api";
+import { fetchProjectMaps, renameProjectMap, importFromGitHub, syncFromGitHub, uploadProjectMap, type ProjectMapMeta } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
 function relativeDate(iso: string): string {
@@ -105,29 +105,66 @@ async function deleteProject(id: number) {
   await mutate("/api/graph/");
 }
 
-function GitHubImportSidebar({ open, onClose, onImported }: { open: boolean; onClose: () => void; onImported: () => void }) {
+type NewProjectTab = "github" | "upload";
+
+function NewProjectSidebar({ open, onClose, onDone }: { open: boolean; onClose: () => void; onDone: (id: number) => void }) {
+  const [tab, setTab] = useState<NewProjectTab>("github");
   const [repo, setRepo] = useState("");
   const [branch, setBranch] = useState("main");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) { setRepo(""); setBranch("main"); setError(null); }
+    if (!open) { setRepo(""); setBranch("main"); setError(null); setLoading(false); }
   }, [open]);
 
   async function handleImport() {
     setError(null);
     setLoading(true);
     try {
-      await importFromGitHub(repo.trim(), branch.trim());
+      const meta = await importFromGitHub(repo.trim(), branch.trim());
       await mutate("/api/graph/");
-      onImported();
+      onDone(meta.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Import failed");
     } finally {
       setLoading(false);
     }
   }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const text = await file.text();
+      const workspace = JSON.parse(text);
+      const name = workspace.name || file.name.replace(".json", "");
+      const meta = await uploadProjectMap(name, workspace);
+      await mutate("/api/graph/");
+      onDone(meta.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setLoading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  const tabBtn = (t: NewProjectTab, label: string) => (
+    <button
+      onClick={() => { setTab(t); setError(null); }}
+      style={{
+        flex: 1, background: "none", border: "none", borderBottom: `2px solid ${tab === t ? "#3b82f6" : "transparent"}`,
+        color: tab === t ? "var(--c4-sidebar-text)" : "var(--c4-sidebar-muted)",
+        fontWeight: tab === t ? 600 : 400, fontSize: 13, padding: "8px 0", cursor: "pointer",
+      }}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div style={{
@@ -140,38 +177,58 @@ function GitHubImportSidebar({ open, onClose, onImported }: { open: boolean; onC
     }}>
       <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--c4-sidebar-border)", gap: 8 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: "var(--c4-sidebar-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-          Import from GitHub
+          New project
         </span>
         <button onClick={onClose} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--c4-sidebar-muted)", fontSize: 18, cursor: "pointer", lineHeight: 1 }}>×</button>
       </div>
 
-      <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-        <div>
-          <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
-            Repository
-          </label>
-          <input
-            value={repo} onChange={(e) => setRepo(e.target.value)}
-            placeholder="owner/repo"
-            style={inputStyle} autoFocus={open}
-            onKeyDown={(e) => e.key === "Enter" && handleImport()}
-          />
-          <div style={{ fontSize: 11, color: "var(--c4-sidebar-muted)", marginTop: 4 }}>
-            The repo must contain a <code style={{ fontFamily: "monospace" }}>.seeforce/workspace.json</code> file (run <code style={{ fontFamily: "monospace" }}>just scan</code> locally first).
-          </div>
-        </div>
+      <div style={{ display: "flex", borderBottom: "1px solid var(--c4-sidebar-border)" }}>
+        {tabBtn("github", "Import from GitHub")}
+        {tabBtn("upload", "Upload file")}
+      </div>
 
-        <div>
-          <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
-            Branch
-          </label>
-          <input
-            value={branch} onChange={(e) => setBranch(e.target.value)}
-            placeholder="main"
-            style={inputStyle}
-            onKeyDown={(e) => e.key === "Enter" && handleImport()}
-          />
-        </div>
+      <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        {tab === "github" && (
+          <>
+            <div>
+              <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
+                Repository
+              </label>
+              <input
+                value={repo} onChange={(e) => setRepo(e.target.value)}
+                placeholder="owner/repo"
+                style={inputStyle} autoFocus={open && tab === "github"}
+                onKeyDown={(e) => e.key === "Enter" && handleImport()}
+              />
+              <div style={{ fontSize: 11, color: "var(--c4-sidebar-muted)", marginTop: 4 }}>
+                Repo must contain <code style={{ fontFamily: "monospace" }}>.seeforce/workspace.json</code> — run <code style={{ fontFamily: "monospace" }}>just scan</code> first.
+              </div>
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
+                Branch
+              </label>
+              <input
+                value={branch} onChange={(e) => setBranch(e.target.value)}
+                placeholder="main"
+                style={inputStyle}
+                onKeyDown={(e) => e.key === "Enter" && handleImport()}
+              />
+            </div>
+          </>
+        )}
+
+        {tab === "upload" && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, gap: 12 }}>
+            <div style={{ fontSize: 12, color: "var(--c4-sidebar-muted)", textAlign: "center" }}>
+              Upload a <code style={{ fontFamily: "monospace" }}>workspace.json</code> generated by <code style={{ fontFamily: "monospace" }}>just scan</code>.
+            </div>
+            <label style={{ cursor: "pointer", background: "#3b82f6", color: "#fff", padding: "8px 20px", borderRadius: 6, fontSize: 13, fontWeight: 600, opacity: loading ? 0.7 : 1 }}>
+              {loading ? "Uploading…" : "Choose workspace.json"}
+              <input ref={fileRef} type="file" accept=".json" onChange={handleFile} style={{ display: "none" }} disabled={loading} />
+            </label>
+          </div>
+        )}
 
         {error && (
           <div style={{ fontSize: 12, color: "#ef4444", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, padding: "8px 10px" }}>
@@ -180,17 +237,19 @@ function GitHubImportSidebar({ open, onClose, onImported }: { open: boolean; onC
         )}
       </div>
 
-      <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c4-sidebar-border)", display: "flex", gap: 8 }}>
-        <button
-          onClick={handleImport} disabled={loading || !repo.trim()}
-          style={{ flex: 1, background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 0", fontSize: 13, fontWeight: 600, cursor: loading || !repo.trim() ? "not-allowed" : "pointer", opacity: loading || !repo.trim() ? 0.7 : 1 }}
-        >
-          {loading ? "Importing…" : "Import"}
-        </button>
-        <button onClick={onClose} style={{ background: "none", color: "var(--c4-sidebar-muted)", border: "1px solid var(--c4-sidebar-border)", borderRadius: 6, padding: "8px 12px", fontSize: 13, cursor: "pointer" }}>
-          Cancel
-        </button>
-      </div>
+      {tab === "github" && (
+        <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c4-sidebar-border)", display: "flex", gap: 8 }}>
+          <button
+            onClick={handleImport} disabled={loading || !repo.trim()}
+            style={{ flex: 1, background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 0", fontSize: 13, fontWeight: 600, cursor: loading || !repo.trim() ? "not-allowed" : "pointer", opacity: loading || !repo.trim() ? 0.7 : 1 }}
+          >
+            {loading ? "Importing…" : "Import"}
+          </button>
+          <button onClick={onClose} style={{ background: "none", color: "var(--c4-sidebar-muted)", border: "1px solid var(--c4-sidebar-border)", borderRadius: 6, padding: "8px 12px", fontSize: 13, cursor: "pointer" }}>
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -306,7 +365,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [editingProject, setEditingProject] = useState<ProjectMapMeta | null>(null);
-  const [importOpen, setImportOpen] = useState(false);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
   async function handleSync(id: number) {
@@ -328,23 +387,9 @@ export function HomePage() {
       <header style={{ height: 48, background: "#0f172a", display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
         <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>SeeForce</span>
         <button
-          onClick={() => setImportOpen(true)}
+          onClick={() => setNewProjectOpen(true)}
           style={{
             marginLeft: "auto",
-            background: "#1e293b",
-            color: "#94a3b8",
-            border: "1px solid #334155",
-            borderRadius: 6,
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-          }}
-        >
-          Import from GitHub
-        </button>
-        <button
-          onClick={() => navigate("/project/new")}
-          style={{
             background: "#1e293b",
             color: "#94a3b8",
             border: "1px solid #334155",
@@ -407,10 +452,10 @@ export function HomePage() {
       </main>
 
       <EditSidebar project={editingProject} onClose={() => setEditingProject(null)} />
-      <GitHubImportSidebar
-        open={importOpen}
-        onClose={() => setImportOpen(false)}
-        onImported={() => setImportOpen(false)}
+      <NewProjectSidebar
+        open={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
+        onDone={(id) => navigate(`/project/${id}`)}
       />
     </div>
   );
