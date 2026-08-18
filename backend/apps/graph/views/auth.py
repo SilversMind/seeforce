@@ -20,10 +20,15 @@ def auth_me(request):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
     social = request.user.socialaccount_set.filter(provider="github").first()
     avatar_url = social.extra_data.get("avatar_url", "") if social else ""
+    from allauth.socialaccount.models import SocialToken
+    has_token = SocialToken.objects.filter(
+        account__user=request.user, account__provider="github"
+    ).exists()
     return Response({
         "id": request.user.id,
         "username": request.user.username,
         "avatar_url": avatar_url,
+        "github_token_stored": has_token,
     })
 
 

@@ -11,10 +11,8 @@ from ._permissions import _require_auth, _require_owner
 
 def _github_token(user):
     from allauth.socialaccount.models import SocialToken
-    try:
-        return SocialToken.objects.get(account__user=user, account__provider="github").token
-    except SocialToken.DoesNotExist:
-        return None
+    token = SocialToken.objects.filter(account__user=user, account__provider="github").first()
+    return token.token if token else None
 
 
 def _fetch_workspace_json(token: str, repo: str, branch: str) -> dict:
