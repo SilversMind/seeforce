@@ -1,4 +1,4 @@
-# Ignore patterns for the SeeForce project scan
-tests/c4parser/fixtures/
+# Ignore patterns for the SeeForce project scan (relative to repo root)
+backend/tests/c4parser/fixtures/
 .superpowers
 examples/

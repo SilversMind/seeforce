@@ -224,74 +224,6 @@
         "tags": "Element,Software System",
         "relationships": [],
         "containers": []
-      },
-      {
-        "id": "shop",
-        "name": "Shop",
-        "description": "E-commerce platform",
-        "tags": "Element,Software System",
-        "relationships": [
-          {
-            "id": "rel-shop-kafka-order-events",
-            "destinationId": "kafka-order-events",
-            "description": "",
-            "tags": "Relationship"
-          }
-        ],
-        "containers": [
-          {
-            "id": "shop-api-backend",
-            "name": "API Backend",
-            "description": "REST API",
-            "technology": "Python/Django",
-            "source_file": "backend/tests/c4parser/fixtures/sample_project/api/apps.py",
-            "tags": "Element,Container",
-            "relationships": [],
-            "components": [
-              {
-                "id": "shop-api-backend-order-service",
-                "name": "Order Service",
-                "description": "",
-                "technology": "Django",
-                "source_file": "backend/tests/c4parser/fixtures/sample_project/api/services.py",
-                "tags": "Element,Component",
-                "relationships": [
-                  {
-                    "id": "rel-shop-api-backend-order-service-shop-api-backend-payment-service",
-                    "destinationId": "shop-api-backend-payment-service",
-                    "description": "",
-                    "technology": "",
-                    "tags": "Relationship"
-                  },
-                  {
-                    "id": "rel-shop-api-backend-order-service-kafka-order-events",
-                    "destinationId": "kafka-order-events",
-                    "description": "",
-                    "technology": "",
-                    "tags": "Relationship"
-                  }
-                ]
-              },
-              {
-                "id": "shop-api-backend-payment-service",
-                "name": "Payment Service",
-                "description": "",
-                "technology": "Django",
-                "source_file": "backend/tests/c4parser/fixtures/sample_project/api/services.py",
-                "tags": "Element,Component",
-                "relationships": []
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "kafka-order-events",
-        "name": "kafka:order-events",
-        "description": "",
-        "tags": "Element,Software System,External",
-        "relationships": [],
-        "containers": []
       }
     ]
   },
@@ -306,10 +238,6 @@
       {
         "key": "Containers-seeforce",
         "softwareSystemId": "seeforce"
-      },
-      {
-        "key": "Containers-shop",
-        "softwareSystemId": "shop"
       }
     ],
     "componentViews": [
@@ -320,10 +248,6 @@
       {
         "key": "Components-seeforce-backend",
         "containerId": "seeforce-backend"
-      },
-      {
-        "key": "Components-shop-api-backend",
-        "containerId": "shop-api-backend"
       }
     ],
     "configuration": {
