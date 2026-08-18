@@ -10,22 +10,15 @@ from c4parser.exceptions import C4ParseError, C4ValidationError
 import json
 
 _SEEFORCE_DIR = ".seeforce"
-_C4PROJECT_FILE = ".c4project"
 
 
 def _get_or_create_project_id(paths: list[Path]) -> str:
-    """Read project_id from .seeforce/ or legacy .c4project, creating in paths[0]/.seeforce/ if none exist."""
+    """Read project_id from .seeforce/project.json, creating it if none exist."""
     for p in paths:
         seeforce_cfg = p / _SEEFORCE_DIR / "project.json"
         if seeforce_cfg.exists():
             import json as _json
             pid = _json.loads(seeforce_cfg.read_text(encoding="utf-8")).get("project_id", "")
-            if pid:
-                return pid
-        # Legacy fallback
-        c4file = p / _C4PROJECT_FILE
-        if c4file.exists():
-            pid = c4file.read_text(encoding="utf-8").strip()
             if pid:
                 return pid
     pid = str(uuid.uuid4())
