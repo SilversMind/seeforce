@@ -51,7 +51,7 @@ def _strip_comment_stars(block: str) -> str:
     return "\n".join(lines)
 
 
-def _parse_block(content: str, file_path: str, line: int) -> C4Element | None:
+def _parse_block(content: str, file_path: str, line: int, git_root: str | None = None) -> C4Element | None:
     # The @cN: marker must START a line (after dedent) — summary lines before
     # it are allowed, but mid-line mentions in string literals are not, so the
     # scanner never trips on its own error messages.
@@ -87,7 +87,8 @@ def _parse_block(content: str, file_path: str, line: int) -> C4Element | None:
     if not isinstance(data, dict):
         return None
 
-    data["source_file"] = file_path
+    ref_root = git_root if git_root else os.path.dirname(file_path)
+    data["source_file"] = os.path.relpath(file_path, ref_root).replace(os.sep, "/")
 
     match level:
         case "1":
@@ -129,6 +130,16 @@ def scan(
     ignore = _load_c4ignore(root_path)
     elements: list[C4Element] = []
 
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=root_path, capture_output=True, text=True, timeout=5,
+        )
+        git_root: str | None = result.stdout.strip() if result.returncode == 0 else None
+    except Exception:
+        git_root = None
+
     for dirpath, dirnames, filenames in os.walk(root_path):
         # Prune excluded dirs in-place so os.walk skips them.
         # rel_path uses forward slashes for cross-platform pattern matching.
@@ -160,7 +171,7 @@ def scan(
             for block, line in _extract_blocks(text):
                 if "@c" not in block:
                     continue
-                element = _parse_block(block, file_path, line)
+                element = _parse_block(block, file_path, line, git_root=git_root)
                 if element is not None:
                     elements.append(element)
 

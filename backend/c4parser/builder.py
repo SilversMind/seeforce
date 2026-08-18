@@ -252,6 +252,7 @@ def build(elements: list[C4Element]) -> dict:
                     "name": comp.name,
                     "description": comp.description,
                     "technology": comp.technology,
+                    "source_file": comp.source_file,
                     "tags": "Element,Component",
                     "relationships": _build_component_relationships(comp),
                 })
@@ -261,6 +262,7 @@ def build(elements: list[C4Element]) -> dict:
                 "name": cont.name,
                 "description": cont.description,
                 "technology": cont.technology,
+                "source_file": cont.source_file,
                 "tags": "Element,Container",
                 "relationships": _build_container_relationships(cont),
                 "components": comp_nodes,

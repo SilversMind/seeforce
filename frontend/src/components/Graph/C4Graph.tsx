@@ -15,7 +15,7 @@ import {
   Background,
   Controls,
   MiniMap,
-  MarkerType,
+  ConnectionMode,
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
@@ -27,7 +27,7 @@ import "@xyflow/react/dist/style.css";
 
 import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { applyElkLayout, computeEdgeHandles } from "../../lib/elkLayout";
+import { applyElkLayout } from "../../lib/elkLayout";
 import { loadPositions, savePositions } from "../../lib/layoutStorage";
 import { type RFNode, type RFEdge, fetchLexicon } from "../../services/api";
 import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
@@ -38,7 +38,7 @@ import { ContainerNode } from "./nodes/ContainerNode";
 import { ComponentNode } from "./nodes/ComponentNode";
 import { PersonNode } from "./nodes/PersonNode";
 import { ExternalNode } from "./nodes/ExternalNode";
-import { RelationEdge } from "./edges/RelationEdge";
+import { FloatingEdge } from "./edges/FloatingEdge";
 import { Breadcrumb } from "../Breadcrumb";
 import { OverlaySidebar } from "./OverlaySidebar";
 import { LexiconBottomPanel } from "./LexiconBottomPanel";
@@ -52,7 +52,7 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-  relation: RelationEdge,
+  relation: FloatingEdge,
 };
 
 type SidebarTarget =
@@ -115,7 +115,7 @@ export function C4Graph() {
         saved[n.id] ? { ...n, position: saved[n.id] } : n,
       );
       setNodes(positioned);
-      setEdges(computeEdgeHandles(positioned, fetchedEdges));
+      setEdges(fetchedEdges);
       fitAll();
       return;
     }
@@ -207,6 +207,14 @@ export function C4Graph() {
     <LexiconContext.Provider value={{ lexicon, setActiveTerm }}>
     <GraphModeContext.Provider value={mode}>
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
+        {/* Shared SVG marker — referenced as url(#c4-arrow) by all FloatingEdge instances */}
+        <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+          <defs>
+            <marker id="c4-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 7 3.5, 0 7" className="c4-arrow-fill" />
+            </marker>
+          </defs>
+        </svg>
         <Breadcrumb />
 
         {/* Mode toggle */}
@@ -276,7 +284,8 @@ export function C4Graph() {
             flowInstance.current = instance;
           }}
           colorMode="system"
-          defaultEdgeOptions={{ markerEnd: { type: MarkerType.ArrowClosed } }}
+          connectionMode={ConnectionMode.Loose}
+          defaultEdgeOptions={{}}
         >
           <Background />
           <Controls />

@@ -217,6 +217,13 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                 </ReadValue>
               )}
             </Section>
+            {target!.node.data.code_ref && (
+              <Section label="Code ref">
+                <span style={{ fontFamily: "monospace", fontSize: 11, wordBreak: "break-all", color: "var(--c4-sidebar-muted)" }}>
+                  {target!.node.data.code_ref}
+                </span>
+              </Section>
+            )}
             {/* Lexicon section — only in edit mode for nodes */}
             {editing && (
               <Section label="Lexique">
@@ -293,7 +300,10 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
           </>
         ) : open ? (
           <>
-            <Section label="Label">
+            <Section label="From">
+              <ReadValue>{(target!.edge.data?.source_node as { label: string } | undefined)?.label ?? target!.edge.source}</ReadValue>
+            </Section>
+            <Section label="Relation">
               {editing ? (
                 <input
                   value={edgeLabel}
@@ -307,6 +317,9 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                   {(target!.edge.data?.overlay_label as string) || (target!.edge.label as string) || "—"}
                 </ReadValue>
               )}
+            </Section>
+            <Section label="To">
+              <ReadValue>{(target!.edge.data?.target_node as { label: string } | undefined)?.label ?? target!.edge.target}</ReadValue>
             </Section>
             {target!.edge.data?.technology && (
               <Section label="Technology">

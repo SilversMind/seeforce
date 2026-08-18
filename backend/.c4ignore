@@ -1,0 +1,2 @@
+# C4 scanner ignore patterns when scanning backend/ directly
+tests/c4parser/fixtures/

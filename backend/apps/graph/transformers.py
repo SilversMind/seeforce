@@ -22,6 +22,7 @@ def _node(
     label: str,
     technology: str = "",
     description: str = "",
+    code_ref: str = "",
     *,
     overlay_key: OverlayKey | None = None,
     node_overlay: dict[OverlayKey, dict] | None = None,
@@ -36,6 +37,7 @@ def _node(
             "label": label,
             "technology": technology,
             "description": description,
+            "code_ref": code_ref,
             "overlay_label": ov.get("display_name", "") if ov else "",
             "overlay_description": ov.get("description", "") if ov else "",
             "has_overlay": bool(ov and (ov.get("display_name") or ov.get("description"))),
@@ -239,6 +241,7 @@ def _c2_view(
                 container["name"],
                 technology=container.get("technology", ""),
                 description=container.get("description", ""),
+                code_ref=container.get("source_file", ""),
                 overlay_key=okey,
                 node_overlay=node_overlay,
             )
@@ -277,6 +280,7 @@ def _c3_view(
                         comp["name"],
                         technology=comp.get("technology", ""),
                         description=comp.get("description", ""),
+                        code_ref=comp.get("source_file", ""),
                         overlay_key=okey,
                         node_overlay=node_overlay,
                     )

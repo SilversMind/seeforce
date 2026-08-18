@@ -29,6 +29,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -38,10 +39,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "c4_project.urls"
 
+STATIC_URL = "/assets/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "../frontend/dist"]
+WHITENOISE_INDEX_FILE = True
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "../frontend/dist"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

@@ -1,4 +1,6 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
+.react-flow__handle { opacity: 0; pointer-events: none; }
+.c4-arrow-fill { fill: var(--c4-edge-stroke); }
 body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-page-bg); }
 
 :root {

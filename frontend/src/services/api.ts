@@ -28,16 +28,24 @@ export interface RFNodeData extends Record<string, unknown> {
   label: string;
   technology: string;
   description: string;
+  code_ref: string;
   overlay_label: string;
   overlay_description: string;
   has_overlay: boolean;
   overlay_key: NodeOverlayKey;
 }
 
+export interface RFEdgeEndpoint {
+  id: string;
+  label: string;
+}
+
 export interface RFEdgeData extends Record<string, unknown> {
   overlay_label: string;
   has_overlay: boolean;
   technology: string;
+  source_node: RFEdgeEndpoint;
+  target_node: RFEdgeEndpoint;
 }
 
 export interface RFNode {
