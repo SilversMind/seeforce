@@ -40,9 +40,7 @@ def manage_share(request, project_map_id):
 
 @api_view(["GET"])
 def use_share(request, token):
-    """Any logged-in user: registers access and returns project metadata."""
-    if err := _require_auth(request):
-        return err
+    """Public: returns project metadata. Registers access if user is authenticated."""
     try:
         token_obj = ShareToken.objects.select_related("project_map__owner").get(token=token)
     except ShareToken.DoesNotExist:
@@ -50,7 +48,7 @@ def use_share(request, token):
 
     pm = token_obj.project_map
 
-    if pm.owner != request.user:
+    if request.user.is_authenticated and pm.owner != request.user:
         ProjectAccess.objects.get_or_create(share_token=token_obj, user=request.user)
 
     return Response({
@@ -58,8 +56,40 @@ def use_share(request, token):
         "name": pm.name,
         "project_id": pm.project_id,
         "owner_username": pm.owner.username if pm.owner else None,
-        "is_owner": pm.owner == request.user,
+        "is_owner": request.user.is_authenticated and pm.owner == request.user,
     })
+
+
+@api_view(["GET"])
+def share_view(request, token, level):
+    """Public: returns React Flow graph data for a shared project."""
+    try:
+        token_obj = ShareToken.objects.select_related("project_map").get(token=token)
+    except ShareToken.DoesNotExist:
+        return Response({"error": "Invalid or revoked share link."}, status=status.HTTP_404_NOT_FOUND)
+
+    from ..transformers import to_react_flow
+    from ..models import NodeOverlay, EdgeOverlay
+
+    pm = token_obj.project_map
+    system = request.query_params.get("system")
+    container = request.query_params.get("container")
+
+    node_overlay = {
+        (ov.node_type, ov.system_name, ov.container_name, ov.node_name): {
+            "display_name": ov.display_name,
+            "description": ov.description,
+        }
+        for ov in NodeOverlay.objects.filter(project_map=pm)
+    }
+    edge_overlay = {
+        ov.edge_id: {"label": ov.label}
+        for ov in EdgeOverlay.objects.filter(project_map=pm)
+    }
+
+    result = to_react_flow(pm.source_json, level=level, system=system, container=container,
+                           node_overlay=node_overlay, edge_overlay=edge_overlay)
+    return Response(result)
 
 
 @api_view(["GET"])

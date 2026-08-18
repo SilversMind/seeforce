@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import useSWR from "swr";
-import { buildViewUrl, type ReactFlowData } from "../services/api";
+import { buildViewUrl, buildShareViewUrl, type ReactFlowData } from "../services/api";
 import type { ViewState } from "../store/viewStore";
 
 const fetcher = (url: string) =>
@@ -21,7 +21,9 @@ export function useWorkspace(view: ViewState): {
 } {
   const url =
     view.projectMapId != null
-      ? buildViewUrl(view.projectMapId, view.level, view.systemId, view.containerId)
+      ? view.shareToken
+        ? buildShareViewUrl(view.shareToken, view.level, view.systemId, view.containerId)
+        : buildViewUrl(view.projectMapId, view.level, view.systemId, view.containerId)
       : null;
 
   const { data, error, isLoading, mutate } = useSWR<ReactFlowData>(url, fetcher);

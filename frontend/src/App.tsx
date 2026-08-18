@@ -8,30 +8,26 @@ import { SharePage } from "./pages/SharePage";
 function AppRoutes() {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-        }}
-      >
-        Loading…
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <LoginPage />;
-  }
-
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/project/:id" element={<GraphView />} />
+      {/* Public share route — no auth required */}
       <Route path="/share/:token" element={<SharePage />} />
+
+      {/* Auth-gated routes */}
+      <Route path="*" element={
+        isLoading ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+            Loading…
+          </div>
+        ) : !user ? (
+          <LoginPage />
+        ) : (
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/project/:id" element={<GraphView />} />
+          </Routes>
+        )
+      } />
     </Routes>
   );
 }

@@ -126,6 +126,20 @@ export async function deleteLexiconEntry(projectMapId: number, term: string): Pr
   if (!res.ok && res.status !== 204) throw new Error(`Delete failed: ${res.status}`);
 }
 
+export function buildShareViewUrl(
+  token: string,
+  level: string,
+  systemId: string | null,
+  containerId: string | null,
+): string {
+  const base = `/api/share/${token}/view/${level}/`;
+  const params = new URLSearchParams();
+  if (systemId) params.set("system", systemId);
+  if (containerId) params.set("container", containerId);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
 export function buildViewUrl(
   projectMapId: number,
   level: string,
