@@ -412,7 +412,7 @@ export function HomePage() {
             cursor: "pointer",
           }}
         >
-          Se déconnecter
+          Log out
         </button>
       </header>
 
