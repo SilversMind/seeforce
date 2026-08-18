@@ -10,7 +10,7 @@ services:
     runtime: python
     rootDir: .
     buildCommand: bash build.sh
-    startCommand: cd backend && PYTHONPATH=. .venv/bin/gunicorn c4_project.wsgi --workers 2 --bind 0.0.0.0:$PORT
+    startCommand: cd backend && gunicorn c4_project.wsgi --workers 2 --bind 0.0.0.0:$PORT
     plan: free
     envVars:
       - key: DJANGO_SETTINGS_MODULE
