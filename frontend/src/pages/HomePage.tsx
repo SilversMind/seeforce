@@ -307,19 +307,15 @@ export function HomePage() {
   const { user, logout } = useAuth();
   const [editingProject, setEditingProject] = useState<ProjectMapMeta | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [syncingId, setSyncingId] = useState<number | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
   async function handleSync(id: number) {
-    setSyncingId(id);
     setSyncError(null);
     try {
       await syncFromGitHub(id);
       await mutate("/api/graph/");
     } catch (e) {
       setSyncError(e instanceof Error ? e.message : "Sync failed");
-    } finally {
-      setSyncingId(null);
     }
   }
   const { data: projects, isLoading, error } = useSWR<ProjectMapMeta[]>(
