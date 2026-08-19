@@ -11,7 +11,7 @@ dependencies = [
     "click>=8.1",
     "httpx>=0.27",
     "seeforce-c4parser>=0.1.0",
-    "mcp>=1.0",
+    "mcp>=2.0",
 ]
 
 [project.scripts]

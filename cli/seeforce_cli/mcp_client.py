@@ -14,8 +14,6 @@ async def fetch_workspace() -> dict:
             if not isinstance(projects, list):
                 projects = [projects]
             match_meta = next((p for p in projects if p.get("project_id") == project_id), None)
-            if not match_meta and projects:
-                match_meta = projects[0]
             if not match_meta:
                 raise ValueError(f"No project found with id {project_id!r}")
             r2 = await client.get(f"/api/graph/{match_meta['id']}/")

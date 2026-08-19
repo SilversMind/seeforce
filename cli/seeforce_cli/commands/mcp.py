@@ -1,6 +1,7 @@
 import json
+import os
+import tempfile
 from pathlib import Path
-from typing import Optional
 
 import click
 import httpx
@@ -13,13 +14,25 @@ def _claude_json_path() -> Path:
 
 
 def _load_claude_json(path: Path) -> dict:
-    if path.exists():
+    if not path.exists():
+        return {}
+    try:
         return json.loads(path.read_text())
-    return {}
+    except json.JSONDecodeError as exc:
+        raise click.ClickException(f"{path} contains invalid JSON: {exc}") from exc
 
 
 def _save_claude_json(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(data, indent=2))
+    dir_ = path.parent
+    dir_.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=dir_, prefix=".claude.json.")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(json.dumps(data, indent=2))
+        os.replace(tmp, path)
+    except Exception:
+        os.unlink(tmp)
+        raise
 
 
 @click.group()
@@ -47,8 +60,8 @@ def install(project_path: str, skip_project_id: bool):
 
     data["mcpServers"]["seeforce"] = {
         "type": "stdio",
-        "command": "uvx",
-        "args": ["--from", "seeforce", "seeforce-mcp"],
+        "command": "seeforce-mcp",
+        "args": [],
         "env": {
             "SEEFORCE_API_URL": api_url,
             "SEEFORCE_API_TOKEN": token,
