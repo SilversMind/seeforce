@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { mutate } from "swr";
+import useSWR from "swr";
 import { useViewStore } from "../store/viewStore";
 import { C4Graph } from "../components/Graph/C4Graph";
-import { getShareToken, createShareToken, revokeShareToken } from "../services/api";
+import { getShareToken, createShareToken, revokeShareToken, fetchProjectMap } from "../services/api";
 
 function ShareModal({ projectMapId, onClose }: { projectMapId: number; onClose: () => void }) {
   const [token, setToken] = useState<string | null>(null);
@@ -84,7 +85,15 @@ export function GraphView() {
   const projectMapId = parseInt(id!, 10);
   const navigate = useNavigate();
   const setProjectMap = useViewStore((s) => s.setProjectMap);
+  const setGithubMeta = useViewStore((s) => s.setGithubMeta);
+  const githubRepo = useViewStore((s) => s.githubRepo);
+  const githubBranch = useViewStore((s) => s.githubBranch);
   const [shareOpen, setShareOpen] = useState(false);
+
+  const { data: meta } = useSWR(
+    !isNaN(projectMapId) ? projectMapId : null,
+    fetchProjectMap,
+  );
 
   useEffect(() => {
     if (isNaN(projectMapId)) {
@@ -93,6 +102,12 @@ export function GraphView() {
     }
     setProjectMap(projectMapId);
   }, [projectMapId, setProjectMap, navigate]);
+
+  useEffect(() => {
+    if (meta) {
+      setGithubMeta(meta.github_repo ?? "", meta.github_branch ?? "");
+    }
+  }, [meta, setGithubMeta]);
 
   useEffect(() => {
     const es = new EventSource("/api/graph/events/");
@@ -132,6 +147,12 @@ export function GraphView() {
         >
           SeeForce
         </span>
+        {githubRepo && githubBranch && (
+          <>
+            <span style={{ color: "#475569", fontSize: 12 }}>·</span>
+            <span style={{ color: "#64748b", fontSize: 12, fontFamily: "monospace" }}>{githubBranch}</span>
+          </>
+        )}
         <button
           onClick={() => navigate("/")}
           style={{

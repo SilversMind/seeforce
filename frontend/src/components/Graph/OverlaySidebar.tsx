@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { mutate } from "swr";
 import { type RFNode, type RFEdge, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
 import { useLexicon } from "../../contexts/LexiconContext";
+import { useViewStore } from "../../store/viewStore";
 
 type SidebarTarget =
   | { kind: "node"; node: RFNode }
@@ -39,6 +40,8 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
   const [saving, setSaving] = useState(false);
 
   const { lexicon } = useLexicon();
+  const githubRepo = useViewStore((s) => s.githubRepo);
+  const githubBranch = useViewStore((s) => s.githubBranch);
   const [lexTerm, setLexTerm] = useState("");
   const [lexDef, setLexDef] = useState("");
   const [lexSaving, setLexSaving] = useState(false);
@@ -218,10 +221,29 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
               )}
             </Section>
             {target!.node.data.code_ref && (
-              <Section label="Code ref">
-                <span style={{ fontFamily: "monospace", fontSize: 11, wordBreak: "break-all", color: "var(--c4-sidebar-muted)" }}>
-                  {target!.node.data.code_ref}
-                </span>
+              <Section label="Source file">
+                {githubRepo ? (
+                  <a
+                    href={`https://github.com/${githubRepo}/blob/${githubBranch ?? "main"}/${target!.node.data.code_ref}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontFamily: "monospace", fontSize: 11, wordBreak: "break-all", color: "#60a5fa", textDecoration: "none" }}
+                  >
+                    {target!.node.data.code_ref}
+                  </a>
+                ) : (
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontFamily: "monospace", fontSize: 11, wordBreak: "break-all", color: "var(--c4-sidebar-muted)" }}>
+                      {target!.node.data.code_ref}
+                    </span>
+                    <span
+                      title="Import from GitHub to enable source links"
+                      style={{ fontSize: 10, color: "#475569", border: "1px solid #334155", borderRadius: "50%", width: 14, height: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "default", flexShrink: 0 }}
+                    >
+                      ?
+                    </span>
+                  </span>
+                )}
               </Section>
             )}
             {/* Lexicon section — only in edit mode for nodes */}

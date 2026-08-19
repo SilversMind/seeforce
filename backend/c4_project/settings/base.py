@@ -2,7 +2,7 @@
 @c1:system
 name: GitHub
 type: external
-description: GitHub OAuth 2.0 provider — authenticates SeeForce users via the GitHub identity system
+description: Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph
 """
 
 import os

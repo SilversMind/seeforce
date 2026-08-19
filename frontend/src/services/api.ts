@@ -10,8 +10,16 @@ export interface ProjectMapMeta {
   project_id: string | null;
   created_at: string;
   updated_at: string;
+  github_repo?: string;
+  github_branch?: string;
   shared?: boolean;
   owner_username?: string;
+}
+
+export async function fetchProjectMap(id: number): Promise<ProjectMapMeta> {
+  const res = await fetch(`/api/graph/${id}/`);
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return res.json();
 }
 
 export interface LexiconEntry {

@@ -1,3 +1,13 @@
+"""
+@c3:component
+name: GitHub Import
+container: Backend
+description: Imports and re-syncs project architecture from GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using the user's stored OAuth token and stores it as a ProjectMap; also resolves source file paths to clickable GitHub blob links.
+uses:
+  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API using stored OAuth token"
+    technology: HTTPS
+"""
+
 import json
 
 import requests as http_requests

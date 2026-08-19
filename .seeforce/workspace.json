@@ -202,6 +202,23 @@
                     "tags": "Relationship"
                   }
                 ]
+              },
+              {
+                "id": "seeforce-backend-github-import",
+                "name": "GitHub Import",
+                "description": "Imports and re-syncs project architecture from GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using the user's stored OAuth token and stores it as a ProjectMap; also resolves source file paths to clickable GitHub blob links.",
+                "technology": "",
+                "source_file": "backend/apps/graph/views/github_import.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-backend-github-import-github",
+                    "destinationId": "github",
+                    "description": "Fetches .seeforce/workspace.json via GitHub Contents API using stored OAuth token",
+                    "technology": "HTTPS",
+                    "tags": "Relationship"
+                  }
+                ]
               }
             ]
           },
@@ -220,7 +237,7 @@
       {
         "id": "github",
         "name": "GitHub",
-        "description": "GitHub OAuth 2.0 provider — authenticates SeeForce users via the GitHub identity system",
+        "description": "Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph",
         "tags": "Element,Software System",
         "relationships": [],
         "containers": []
