@@ -1,3 +1,4 @@
+import os
 import tomllib
 from pathlib import Path
 
@@ -20,8 +21,13 @@ def load_config() -> dict:
     }
 
 
+def _toml_str(s: str) -> str:
+    return s.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def save_config(api_url: str, token: str) -> None:
     path = config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    content = f'[api]\nurl = "{api_url.rstrip("/")}"\ntoken = "{token}"\n'
+    content = f'[api]\nurl = "{_toml_str(api_url.rstrip("/"))}"\ntoken = "{_toml_str(token)}"\n'
     path.write_text(content, encoding="utf-8")
+    os.chmod(path, 0o600)

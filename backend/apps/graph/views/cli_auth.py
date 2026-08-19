@@ -13,7 +13,7 @@ def cli_auth(request):
     if not request.user.is_authenticated:
         login_url = getattr(settings, "LOGIN_URL", "/accounts/login/")
         next_url = request.get_full_path()
-        return HttpResponseRedirect(f"{login_url}?next={next_url}")
+        return HttpResponseRedirect(f"{login_url}?{urlencode({'next': next_url})}")
 
     if not port or not port.isdigit():
         return HttpResponseBadRequest("Missing or invalid 'port' parameter.")
