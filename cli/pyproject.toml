@@ -21,5 +21,8 @@ seeforce-mcp = "seeforce_cli.mcp_server:main"
 [tool.hatch.build.targets.wheel]
 packages = ["seeforce_cli"]
 
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
 [tool.uv.sources]
 seeforce-c4parser = { path = "../packages/c4parser", editable = true }
