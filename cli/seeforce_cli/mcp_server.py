@@ -19,12 +19,18 @@ Each project repo should contain a .c4project file with its project UUID.
 """
 
 import asyncio
+import os
+from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
 
 from seeforce_cli.mcp_client import fetch_workspace
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
 from seeforce_cli.mcp_workspace import all_components, all_containers, all_systems, external_systems, format_rel
+
+_PROMPT_PATH = Path(__file__).parent / "prompts" / "c4_annotator.md"
+_SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".java", ".go", ".cs", ".rb", ".rs"}
+_EXCLUDE_DIRS = {"node_modules", "__pycache__", ".git", "dist", "build", "vendor", ".venv", "venv", ".env", "tests"}
 
 server = MCPServer("SeeForce")
 
@@ -165,6 +171,44 @@ async def get_architecture_for_files(file_paths: list[str]) -> str:
         sections.append(f"Known external systems in this project: {', '.join(known_externals)}")
 
     return "\n\n".join(sections) if sections else "No files provided."
+
+
+@server.tool()
+async def annotate_codebase() -> str:
+    """
+    Returns the SeeForce C4 annotation guide and all source files from the current project.
+    Call this when the user asks to annotate their codebase with C4 architecture markers.
+    After receiving the output: follow the guide to add @c1, @c2, @c3 annotations to the
+    relevant files. Skip tests, migrations, and config boilerplate. When done, remind the
+    user to run: seeforce scan . && git add -A && git commit -m "chore: add C4 annotations"
+    """
+    prompt = _PROMPT_PATH.read_text(encoding="utf-8")
+    cwd = os.getcwd()
+
+    sections: list[str] = []
+    total_chars = 0
+    MAX_CHARS = 400_000
+
+    for dirpath, dirnames, filenames in os.walk(cwd):
+        dirnames[:] = [d for d in dirnames if d not in _EXCLUDE_DIRS]
+        for filename in filenames:
+            if Path(filename).suffix not in _SOURCE_EXTENSIONS:
+                continue
+            file_path = os.path.join(dirpath, filename)
+            rel_path = os.path.relpath(file_path, cwd)
+            try:
+                content = Path(file_path).read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            section = f"### {rel_path}\n```\n{content}\n```\n"
+            if total_chars + len(section) > MAX_CHARS:
+                sections.append("### ⚠ Remaining files omitted — context limit reached.")
+                break
+            sections.append(section)
+            total_chars += len(section)
+
+    files_block = "\n".join(sections) if sections else "No source files found."
+    return f"{prompt}\n\n---\n\n## Source Files\n\n{files_block}"
 
 
 def main():
