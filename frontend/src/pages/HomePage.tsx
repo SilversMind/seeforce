@@ -403,6 +403,23 @@ function SetupGuide({ onImport }: { onImport: () => void }) {
       ),
     },
     {
+      title: "Annotate with your AI assistant (optional)",
+      content: (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <CopyableCommand cmd="seeforce mcp install" />
+          <p style={{ margin: 0, fontSize: 12, color: "var(--c4-sidebar-muted)" }}>
+            Then open Claude Code (or Cursor) in your project and say:
+          </p>
+          <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 6, padding: "8px 12px" }}>
+            <code style={{ color: "#86efac", fontFamily: "monospace", fontSize: 13 }}>"Annotate my codebase with C4"</code>
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--c4-sidebar-muted)" }}>
+            The MCP server provides the annotation guide automatically. Afterwards re-run <code style={{ fontFamily: "monospace" }}>seeforce scan .</code> and commit.
+          </p>
+        </div>
+      ),
+    },
+    {
       title: "Import your project",
       content: (
         <button
@@ -412,10 +429,6 @@ function SetupGuide({ onImport }: { onImport: () => void }) {
           + Import from GitHub
         </button>
       ),
-    },
-    {
-      title: "Connect to Claude Code (optional)",
-      content: <CopyableCommand cmd="seeforce mcp install" />,
     },
   ];
 
