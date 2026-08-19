@@ -231,6 +231,24 @@
             "tags": "Element,Container",
             "relationships": [],
             "components": []
+          },
+          {
+            "id": "seeforce-mcp-server",
+            "name": "MCP Server",
+            "description": "Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio. Provides tools to query containers, components, and file ownership without reading source files.",
+            "technology": "Python / MCP stdio",
+            "source_file": "mcp/server.py",
+            "tags": "Element,Container",
+            "relationships": [
+              {
+                "id": "rel-seeforce-mcp-server-seeforce-backend",
+                "destinationId": "seeforce-backend",
+                "description": "Fetches workspace architecture data via REST API",
+                "technology": "REST",
+                "tags": "Relationship"
+              }
+            ],
+            "components": []
           }
         ]
       },

@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
     "apps.graph",
 ]
@@ -75,6 +76,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "apps.graph.authentication.CsrfExemptSessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
 }
 
