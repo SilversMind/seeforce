@@ -9,10 +9,42 @@ import click
 from seeforce_cli.config import load_config, save_config
 
 _CALLBACK_HTML = b"""<!DOCTYPE html>
-<html><body>
-<h2>SeeForce CLI authenticated successfully.</h2>
-<p>You can close this tab.</p>
-</body></html>"""
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SeeForce</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f172a;
+    color: #f0f6fc;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 1.5rem;
+  }
+  .check {
+    width: 56px; height: 56px;
+    background: #166534;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check svg { width: 28px; height: 28px; stroke: #4ade80; stroke-width: 2.5; fill: none; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  p { color: #8b949e; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+  <div class="check">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h1>Authenticated</h1>
+  <p>You can close this tab and return to your terminal.</p>
+</body>
+</html>"""
 
 _received: dict = {}
 
