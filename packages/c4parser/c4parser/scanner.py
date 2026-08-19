@@ -1,6 +1,7 @@
 import fnmatch
 import os
 import re
+import sys
 import textwrap
 import yaml
 from pathlib import Path
@@ -21,7 +22,7 @@ _SKIP_KINDS = {("1", "person"), ("1", "external")}
 _DEFAULT_EXTENSIONS = {".py", ".java", ".ts", ".tsx", ".js", ".go", ".cs", ".rb", ".rs"}
 _DEFAULT_EXCLUDES = {
     "node_modules", "__pycache__", ".git", "dist", "build", "vendor",
-    ".venv", "venv", ".env",
+    ".venv", "venv", ".env", "tests",
 }
 
 
@@ -172,7 +173,11 @@ def scan(
             for block, line in _extract_blocks(text):
                 if "@c" not in block:
                     continue
-                element = _parse_block(block, file_path, line, git_root=git_root)
+                try:
+                    element = _parse_block(block, file_path, line, git_root=git_root)
+                except C4ParseError as exc:
+                    print(f"Warning: {exc}", file=sys.stderr)
+                    continue
                 if element is not None:
                     elements.append(element)
 
