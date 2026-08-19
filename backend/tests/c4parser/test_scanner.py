@@ -2,7 +2,6 @@ import pytest
 from pathlib import Path
 from c4parser.scanner import scan
 from c4parser.types import C4System, C4Container, C4Component
-from c4parser.exceptions import C4ParseError
 
 FIXTURES = Path(__file__).parent / "fixtures" / "sample_project"
 
@@ -53,11 +52,12 @@ def test_scan_skips_pycache(tmp_path):
     assert not any(getattr(e, "name", None) == "Ghost" for e in elements)
 
 
-def test_scan_invalid_yaml_raises(tmp_path):
+def test_scan_invalid_yaml_warns(tmp_path, capsys):
     bad = tmp_path / "bad.py"
     bad.write_text('"""\n@c1:system\nname: [bad yaml\n"""\n')
-    with pytest.raises(C4ParseError):
-        scan(str(tmp_path))
+    elements = scan(str(tmp_path))
+    assert elements == []
+    assert "Warning:" in capsys.readouterr().err
 
 
 def test_scan_java_block_comment(tmp_path):
@@ -82,20 +82,20 @@ def test_scan_java_block_comment(tmp_path):
     assert comp.uses == ["Payment Service"]
 
 
-def test_scan_wrong_kind_for_level_raises(tmp_path):
+def test_scan_wrong_kind_for_level_warns(tmp_path, capsys):
     bad = tmp_path / "bad.py"
     bad.write_text('"""\n@c1:container\nname: Wrong\nsystem: X\n"""\n')
-    with pytest.raises(C4ParseError) as exc_info:
-        scan(str(tmp_path))
-    assert "must be @c1:system" in str(exc_info.value)
+    elements = scan(str(tmp_path))
+    assert elements == []
+    assert "must be @c1:system" in capsys.readouterr().err
 
 
-def test_scan_parse_error_includes_line_number(tmp_path):
+def test_scan_parse_error_includes_line_number(tmp_path, capsys):
     bad = tmp_path / "bad.py"
     bad.write_text('# padding\n# padding\n"""\n@c1:system\nname: [bad yaml\n"""\n')
-    with pytest.raises(C4ParseError) as exc_info:
-        scan(str(tmp_path))
-    assert exc_info.value.line == 3
+    elements = scan(str(tmp_path))
+    assert elements == []
+    assert ":3]" in capsys.readouterr().err
 
 
 def test_scan_summary_line_before_marker(tmp_path):
