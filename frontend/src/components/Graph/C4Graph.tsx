@@ -8,7 +8,7 @@ uses:
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"
 - Edge manager: "Renders directional relationship edges between nodes"
 */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import {
   ReactFlow,
@@ -29,7 +29,7 @@ import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { applyElkLayout } from "../../lib/elkLayout";
 import { loadPositions, savePositions } from "../../lib/layoutStorage";
-import { type RFNode, type RFEdge, fetchLexicon } from "../../services/api";
+import { type RFNode, type RFEdge, fetchLexicon, fetchProjectTags } from "../../services/api";
 import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
 import { LexiconContext } from "../../contexts/LexiconContext";
 import type { LexiconEntry } from "../../lib/lexicon";
@@ -83,9 +83,14 @@ export function C4Graph() {
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
   const [mode, setMode] = useState<GraphMode>("enriched");
   const [activeTerm, setActiveTerm] = useState<LexiconEntry | null>(null);
+  const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const { data: lexicon = [] } = useSWR(
     rawProjectMapId != null ? `/api/graph/${rawProjectMapId}/lexicon/` : null,
     () => fetchLexicon(rawProjectMapId!),
+  );
+  const { data: allProjectTags = [] } = useSWR(
+    rawProjectMapId != null ? `/api/graph/${rawProjectMapId}/tags/` : null,
+    () => fetchProjectTags(rawProjectMapId!),
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flowInstance = useRef<ReactFlowInstance<any, any> | null>(null);
@@ -99,6 +104,17 @@ export function C4Graph() {
     setSidebarTarget(null);
     setActiveTerm(null);
   }, [level, systemId, containerId]);
+
+  useEffect(() => {
+    if (!sidebarTarget) return;
+    if (sidebarTarget.kind === "node") {
+      const updated = nodes.find((n) => n.id === sidebarTarget.node.id);
+      if (updated) setSidebarTarget({ kind: "node", node: updated as RFNode });
+    } else {
+      const updated = edges.find((e) => e.id === sidebarTarget.edge.id);
+      if (updated) setSidebarTarget({ kind: "edge", edge: updated as RFEdge });
+    }
+  }, [nodes, edges]);
 
   useEffect(() => {
     if (fetchedNodes.length === 0) {
@@ -203,6 +219,19 @@ export function C4Graph() {
     setSidebarTarget(null);
   }, []);
 
+  const displayNodes = useMemo(() => {
+    if (activeTags.size === 0) return nodes;
+    return nodes.filter((n) =>
+      (n.data.tags as string[] | undefined)?.some((t) => activeTags.has(t)) ?? false
+    );
+  }, [nodes, activeTags]);
+
+  const displayEdges = useMemo(() => {
+    if (activeTags.size === 0) return edges;
+    const visibleIds = new Set(displayNodes.map((n) => n.id));
+    return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
+  }, [edges, displayNodes, activeTags]);
+
   return (
     <LexiconContext.Provider value={{ lexicon, setActiveTerm }}>
     <GraphModeContext.Provider value={mode}>
@@ -251,6 +280,64 @@ export function C4Graph() {
           ))}
         </div>
 
+        {/* Tag filter panel */}
+        {allProjectTags.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 80,
+              left: 12,
+              zIndex: 15,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 4,
+              maxWidth: 220,
+              background: "var(--c4-sidebar-bg)",
+              border: "1px solid var(--c4-sidebar-border)",
+              borderRadius: 6,
+              padding: "6px 8px",
+            }}
+          >
+            <span style={{ fontSize: 10, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", width: "100%", marginBottom: 2 }}>
+              Filter by tag
+            </span>
+            {allProjectTags.map((tag) => {
+              const active = activeTags.has(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() =>
+                    setActiveTags((prev) => {
+                      const next = new Set(prev);
+                      active ? next.delete(tag) : next.add(tag);
+                      return next;
+                    })
+                  }
+                  style={{
+                    fontSize: 11,
+                    padding: "2px 8px",
+                    borderRadius: 12,
+                    border: `1px solid ${active ? "var(--c4-system-border)" : "var(--c4-sidebar-border)"}`,
+                    background: active ? "var(--c4-system-border)" : "transparent",
+                    color: active ? "#fff" : "var(--c4-sidebar-muted)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+            {activeTags.size > 0 && (
+              <button
+                onClick={() => setActiveTags(new Set())}
+                style={{ fontSize: 10, padding: "2px 6px", border: "none", background: "none", color: "var(--c4-sidebar-muted)", cursor: "pointer", textDecoration: "underline" }}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        )}
+
         {(isLoading || isLayouting) && (
           <div
             style={{
@@ -269,8 +356,8 @@ export function C4Graph() {
         )}
 
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={displayNodes}
+          edges={displayEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
@@ -297,7 +384,7 @@ export function C4Graph() {
             target={sidebarTarget}
             projectMapId={rawProjectMapId}
             onClose={() => setSidebarTarget(null)}
-            onSaved={() => refetch?.()}
+            onSaved={() => { refetch?.(); mutate(`/api/graph/${rawProjectMapId}/tags/`); }}
             onLexiconSaved={() => mutate(`/api/graph/${rawProjectMapId}/lexicon/`)}
           />
         )}

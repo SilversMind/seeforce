@@ -9,29 +9,29 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
   --c4-system-bg: #dbeafe;
   --c4-system-border: #3b82f6;
   --c4-system-text: #1e3a5f;
-  --c4-system-desc: #4a6fa5;
+  --c4-system-desc: #1e3a5f;
 
   --c4-container-bg: #dcfce7;
   --c4-container-border: #16a34a;
   --c4-container-text: #14532d;
   --c4-container-tech-bg: #16a34a;
   --c4-container-tech-text: #fff;
-  --c4-container-desc: #256941;
+  --c4-container-desc: #14532d;
 
   --c4-component-bg: #fef9c3;
   --c4-component-border: #ca8a04;
   --c4-component-text: #451a03;
-  --c4-component-desc: #78716c;
+  --c4-component-desc: #451a03;
 
   --c4-person-bg: #f3e8ff;
   --c4-person-border: #9333ea;
   --c4-person-text: #581c87;
-  --c4-person-desc: #7e22ce;
+  --c4-person-desc: #581c87;
 
   --c4-external-bg: #f1f5f9;
   --c4-external-border: #94a3b8;
   --c4-external-text: #334155;
-  --c4-external-desc: #64748b;
+  --c4-external-desc: #334155;
 
   --c4-edge-stroke: #94a3b8;
   --c4-edge-label-text: #475569;
@@ -50,29 +50,29 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
     --c4-system-bg: #0d1f38;
     --c4-system-border: #4a9eff;
     --c4-system-text: #84b6ee;
-    --c4-system-desc: #5e8ab4;
+    --c4-system-desc: #84b6ee;
 
     --c4-container-bg: #0a2018;
     --c4-container-border: #3dba7d;
     --c4-container-text: #77e09d;
     --c4-container-tech-bg: #134e2a;
     --c4-container-tech-text: #bbf7d0;
-    --c4-container-desc: #4d9e72;
+    --c4-container-desc: #77e09d;
 
     --c4-component-bg: #221c0e;
     --c4-component-border: #d4a017;
     --c4-component-text: #eed77b;
-    --c4-component-desc: #8a7a5a;
+    --c4-component-desc: #eed77b;
 
     --c4-person-bg: #1a0d30;
     --c4-person-border: #9b72cf;
     --c4-person-text: #c9a5ef;
-    --c4-person-desc: #7c5ab8;
+    --c4-person-desc: #c9a5ef;
 
     --c4-external-bg: #151e2d;
     --c4-external-border: #4e6080;
     --c4-external-text: #8594a9;
-    --c4-external-desc: #4e6080;
+    --c4-external-desc: #8594a9;
 
     --c4-edge-stroke: #4e6080;
     --c4-edge-label-text: #94a3b8;

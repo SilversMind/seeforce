@@ -110,6 +110,7 @@ def project_map_view(request, project_map_id, level):
         (ov.node_type, ov.system_name, ov.container_name, ov.node_name): {
             "display_name": ov.display_name,
             "description": ov.description,
+            "tags": ov.tags,
         }
         for ov in NodeOverlay.objects.filter(project_map=pm)
     }
@@ -154,6 +155,7 @@ def upsert_node_overlay(request, project_map_id):
     )
     obj.display_name = d["display_name"]
     obj.description = d["description"]
+    obj.tags = d["tags"]
     obj.save()
     return Response({"ok": True})
 
@@ -178,6 +180,23 @@ def upsert_edge_overlay(request, project_map_id):
     obj.label = d["label"]
     obj.save()
     return Response({"ok": True})
+
+
+@api_view(["GET"])
+def project_tags(request, project_map_id):
+    if err := _require_auth(request):
+        return err
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_access(request, pm):
+        return err
+
+    all_tags: set[str] = set()
+    for ov in NodeOverlay.objects.filter(project_map=pm):
+        all_tags.update(ov.tags or [])
+    return Response({"tags": sorted(all_tags)})
 
 
 def scan_events(request):

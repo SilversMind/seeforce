@@ -41,6 +41,7 @@ export interface RFNodeData extends Record<string, unknown> {
   code_ref: string;
   overlay_label: string;
   overlay_description: string;
+  tags: string[];
   has_overlay: boolean;
   overlay_key: NodeOverlayKey;
 }
@@ -167,13 +168,20 @@ export async function upsertNodeOverlay(
   key: NodeOverlayKey,
   display_name: string,
   description: string,
+  tags: string[] = [],
 ): Promise<void> {
   const res = await fetch(`/api/graph/${projectMapId}/overlay/node/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...key, display_name, description }),
+    body: JSON.stringify({ ...key, display_name, description, tags }),
   });
   if (!res.ok) throw new Error(`Overlay save failed: ${res.status}`);
+}
+
+export async function fetchProjectTags(projectMapId: number): Promise<string[]> {
+  const res = await fetch(`/api/graph/${projectMapId}/tags/`);
+  if (!res.ok) throw new Error(`Fetch tags failed: ${res.status}`);
+  return (await res.json()).tags;
 }
 
 export async function upsertEdgeOverlay(

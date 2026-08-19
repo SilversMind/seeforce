@@ -36,6 +36,8 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [edgeLabel, setEdgeLabel] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +83,8 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
     if (target.kind === "node") {
       setName(target.node.data.overlay_label ?? "");
       setDescription(target.node.data.overlay_description ?? "");
+      setTags(target.node.data.tags ?? []);
+      setTagInput("");
     } else {
       setEdgeLabel(target.edge.data?.overlay_label ?? "");
     }
@@ -95,7 +99,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
     setSaving(true);
     try {
       if (target!.kind === "node") {
-        await upsertNodeOverlay(projectMapId, target!.node.data.overlay_key, name, description);
+        await upsertNodeOverlay(projectMapId, target!.node.data.overlay_key, name, description, tags);
       } else {
         await upsertEdgeOverlay(projectMapId, target!.edge.id, edgeLabel);
       }
@@ -215,7 +219,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                 />
               ) : (
-                <ReadValue muted>
+                <ReadValue>
                   {target!.node.data.overlay_description || target!.node.data.description || "—"}
                 </ReadValue>
               )}
@@ -246,6 +250,51 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                 )}
               </Section>
             )}
+            <Section label="Tags">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, minHeight: 24 }}>
+                {(editing ? tags : (target!.node.data.tags ?? [])).map((t) => (
+                  <span
+                    key={t}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                      background: "var(--c4-sidebar-input-bg)", border: "1px solid #334155",
+                      borderRadius: 12, padding: "2px 8px", fontSize: 11, color: "var(--c4-sidebar-text)",
+                    }}
+                  >
+                    {t}
+                    {editing && (
+                      <button
+                        onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
+                        style={{ background: "none", border: "none", color: "var(--c4-sidebar-muted)", cursor: "pointer", fontSize: 12, lineHeight: 1, padding: 0 }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+                {!editing && (target!.node.data.tags ?? []).length === 0 && (
+                  <span style={{ color: "var(--c4-sidebar-muted)", fontSize: 12 }}>No tags</span>
+                )}
+              </div>
+              {editing && (
+                <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                  <input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+                        e.preventDefault();
+                        const t = tagInput.trim().toLowerCase().replace(/,/g, "");
+                        if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+                        setTagInput("");
+                      }
+                    }}
+                    placeholder="Add tag, press Enter"
+                    style={{ ...inputStyle, flex: 1, fontSize: 11 }}
+                  />
+                </div>
+              )}
+            </Section>
             {/* Lexicon section — only in edit mode for nodes */}
             {editing && (
               <Section label="Lexique">

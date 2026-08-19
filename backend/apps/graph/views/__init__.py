@@ -5,6 +5,7 @@ from .graph import (
     project_map_view,
     upsert_node_overlay,
     upsert_edge_overlay,
+    project_tags,
     scan_events,
 )
 from .lexicon import lexicon_collection, delete_lexicon_entry
@@ -19,6 +20,7 @@ __all__ = [
     "project_map_view",
     "upsert_node_overlay",
     "upsert_edge_overlay",
+    "project_tags",
     "scan_events",
     "lexicon_collection",
     "delete_lexicon_entry",

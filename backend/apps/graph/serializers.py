@@ -26,6 +26,7 @@ class NodeOverlaySerializer(serializers.Serializer):
     node_name = serializers.CharField(max_length=255)
     display_name = serializers.CharField(max_length=255, default="", allow_blank=True)
     description = serializers.CharField(default="", allow_blank=True)
+    tags = serializers.ListField(child=serializers.CharField(max_length=64), default=list)
 
 
 class EdgeOverlaySerializer(serializers.Serializer):

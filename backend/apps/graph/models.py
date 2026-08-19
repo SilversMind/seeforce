@@ -41,6 +41,7 @@ class NodeOverlay(models.Model):
     node_name = models.CharField(max_length=255)
     display_name = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, default="")
+    tags = models.JSONField(default=list, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

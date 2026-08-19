@@ -40,6 +40,7 @@ def _node(
             "code_ref": code_ref,
             "overlay_label": ov.get("display_name", "") if ov else "",
             "overlay_description": ov.get("description", "") if ov else "",
+            "tags": ov.get("tags", []) if ov else [],
             "has_overlay": bool(ov and (ov.get("display_name") or ov.get("description"))),
             "overlay_key": {
                 "node_type": ctx[0],
