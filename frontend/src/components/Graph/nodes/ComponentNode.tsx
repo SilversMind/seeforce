@@ -22,6 +22,7 @@ export function ComponentNode({ data }: NodeProps) {
         border: "1px solid var(--c4-component-border)",
         borderRadius: 6,
         minWidth: 140,
+        maxWidth: 440,
         color: "var(--c4-component-text)",
       }}
     >

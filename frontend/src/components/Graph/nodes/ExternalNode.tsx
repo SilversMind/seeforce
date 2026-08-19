@@ -9,7 +9,7 @@ export function ExternalNode({ data }: NodeProps) {
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
 
   return (
-    <div style={{ padding: 16, background: "var(--c4-external-bg)", border: "2px dashed var(--c4-external-border)", borderRadius: 8, minWidth: 140, color: "var(--c4-external-text)" }}>
+    <div style={{ padding: 16, background: "var(--c4-external-bg)", border: "2px dashed var(--c4-external-border)", borderRadius: 8, minWidth: 140, maxWidth: 520, color: "var(--c4-external-text)" }}>
       <Handle id="top-t" type="target" position={Position.Top} />
       <Handle id="top-s" type="source" position={Position.Top} />
       <Handle id="bottom-t" type="target" position={Position.Bottom} />

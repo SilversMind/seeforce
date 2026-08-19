@@ -9,7 +9,7 @@ export function ContainerNode({ data }: NodeProps) {
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
 
   return (
-    <div style={{ padding: 16, background: "var(--c4-container-bg)", border: "2px solid var(--c4-container-border)", borderRadius: 8, minWidth: 160, color: "var(--c4-container-text)" }}>
+    <div style={{ padding: 16, background: "var(--c4-container-bg)", border: "2px solid var(--c4-container-border)", borderRadius: 8, minWidth: 160, maxWidth: 520, color: "var(--c4-container-text)" }}>
       <Handle id="top-t" type="target" position={Position.Top} />
       <Handle id="top-s" type="source" position={Position.Top} />
       <Handle id="bottom-t" type="target" position={Position.Bottom} />
