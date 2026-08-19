@@ -16,7 +16,11 @@ dependencies = [
     "dj-database-url>=2.2",
     "mcp>=2.0.0",
     "httpx>=0.28.1",
+    "seeforce-c4parser>=0.1.0",
 ]
+
+[tool.uv.sources]
+seeforce-c4parser = { path = "../packages/c4parser", editable = true }
 
 [project.optional-dependencies]
 dev = [
