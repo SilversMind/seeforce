@@ -3,7 +3,7 @@
 # Usage: curl -fsSL https://seeforce.onrender.com/install.sh | sh
 set -e
 
-REPO="https://github.com/SilversMind/seeforce.git"
+REPO="https://github.com/SilversMind/seeforce-cli.git"
 PKG="git+${REPO}#subdirectory=cli"
 
 echo "Installing SeeForce CLI..."
