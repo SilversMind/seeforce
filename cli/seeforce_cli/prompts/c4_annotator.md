@@ -104,9 +104,10 @@ Use the comment style appropriate for the language:
 """
 @c1:system
 name: Payment Platform
-description: Handles all payment processing and subscription management for customers.
+description: Handles all payment processing and subscription management for customers. Used to answer "can this customer be charged, and are they current on their subscription?"
 """
 ```
+Rule: end the C1 system description with the single plain-language question this system exists to answer (in quotes, phrased the way a stakeholder would actually ask it — "does any machine show a match for this compromised package/version?", "can this customer be charged?"). This is the single most important sentence in the whole annotation set — it's what makes the diagram legible to someone who has never seen the codebase. Never skip it.
 
 ### C1 — Person
 ```python
@@ -227,7 +228,7 @@ Rule: one entry per term, case-insensitive dedup (don't add both "OSV" and "osv"
 Follow these steps in order:
 
 1. **Detect project type** — read manifest files (`Cargo.toml`, `package.json`, `pyproject.toml`, `docker-compose.yml`, `README.md`) and classify as `web` or `systems`. Announce the type.
-2. **Identify the system** — name, purpose, tech stack, user roles (persons), external services
+2. **Identify the system** — name, purpose, tech stack, user roles (persons), external services, and the one plain-language question this system exists to answer
 3. **Map C2 containers** — apply the type-specific C2 definition above; list them before writing any annotation
 4. **Identify persons and externals** — annotate all person roles and external services at C1
 5. **For each C2 container**: read its source directory and entry points — identify C3 component boundaries (skip if < 3 concerns)
@@ -243,7 +244,7 @@ Follow these steps in order:
 - Output only the modified file contents, one file at a time
 - Do not annotate files that have no architectural significance (migrations, tests, config boilerplate)
 - Descriptions must state *responsibility* ("Processes incoming webhook events from Stripe"), not just restate the name ("Webhook handler")
-- Keep descriptions to 1–2 sentences maximum
+- Keep descriptions to 1–2 sentences maximum, except the `@c1:system` description, which gets one extra sentence for its closing "used to answer ..." question — never omit that question
 - Technology field in C3: omit if it would just repeat the parent C2 language
 - All external services named in descriptions must have corresponding `@c1:external` annotations
 - All person roles must have `@c1:person` annotations
