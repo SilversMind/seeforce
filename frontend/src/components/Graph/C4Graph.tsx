@@ -64,6 +64,7 @@ export function C4Graph() {
   const {
     drillToC2,
     drillToC3,
+    jumpTo,
     level,
     projectMapId: rawProjectMapId,
     systemId,
@@ -178,13 +179,16 @@ export function C4Graph() {
         clearTimeout(clickTimer.current);
         clickTimer.current = null;
       }
-      if (level === "C1" && node.type === "system") {
+      const nav = (node.data as { nav?: Parameters<typeof jumpTo>[0] }).nav;
+      if (nav) {
+        jumpTo(nav);
+      } else if (level === "C1" && node.type === "system") {
         drillToC2(node.id, (node.data as { label: string }).label);
       } else if (level === "C2" && node.type === "container") {
         drillToC3(node.id, (node.data as { label: string }).label);
       }
     },
-    [level, drillToC2, drillToC3],
+    [level, drillToC2, drillToC3, jumpTo],
   );
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {

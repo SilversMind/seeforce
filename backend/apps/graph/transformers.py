@@ -26,6 +26,7 @@ def _node(
     *,
     overlay_key: OverlayKey | None = None,
     node_overlay: dict[OverlayKey, dict] | None = None,
+    nav: dict | None = None,
 ) -> dict:
     ov = node_overlay.get(overlay_key) if (node_overlay and overlay_key) else None
     ctx = overlay_key or (node_type, "", "", label)
@@ -48,6 +49,7 @@ def _node(
                 "container_name": ctx[2],
                 "node_name": ctx[3],
             },
+            **({"nav": nav} if nav else {}),
         },
     }
 
@@ -113,7 +115,10 @@ def _is_external(element: dict) -> bool:
 
 
 def _element_index(model: dict) -> dict[str, dict]:
-    """Map every element id in the model to its name and kind."""
+    """Map every element id in the model to its name, kind, and — for
+    containers/components — the system/container it lives in, so an edge
+    endpoint outside the current view can be rendered as what it actually is
+    (not lumped in with true C1 externals) and navigated to directly."""
     index: dict[str, dict] = {}
     for person in model.get("people", []):
         index[person["id"]] = {"name": person["name"], "kind": "person"}
@@ -121,9 +126,21 @@ def _element_index(model: dict) -> dict[str, dict]:
         kind = "external" if _is_external(system) else "system"
         index[system["id"]] = {"name": system["name"], "kind": kind}
         for container in system.get("containers", []):
-            index[container["id"]] = {"name": container["name"], "kind": "container"}
+            index[container["id"]] = {
+                "name": container["name"],
+                "kind": "container",
+                "system_id": system["id"],
+                "system_name": system["name"],
+            }
             for comp in container.get("components", []):
-                index[comp["id"]] = {"name": comp["name"], "kind": "component"}
+                index[comp["id"]] = {
+                    "name": comp["name"],
+                    "kind": "component",
+                    "system_id": system["id"],
+                    "system_name": system["name"],
+                    "container_id": container["id"],
+                    "container_name": container["name"],
+                }
     return index
 
 
@@ -133,7 +150,14 @@ def _add_placeholders(
     model: dict,
     node_overlay: dict[OverlayKey, dict] | None = None,
 ) -> None:
-    """Emit placeholder nodes for edge endpoints outside the current node set."""
+    """Emit placeholder nodes for edge endpoints outside the current node set.
+
+    An endpoint that's a real container/component just living outside this
+    view (e.g. a C3 view showing a sibling container's component) is rendered
+    as its real kind with a `nav` target so the UI can jump straight to its
+    home view — it is not the same thing as a true C1 external system, and
+    must not be visually indistinguishable from one.
+    """
     known = {n["id"] for n in nodes}
     index = _element_index(model)
     for edge in edges:
@@ -144,7 +168,24 @@ def _add_placeholders(
             kind = info["kind"] if info else "external"
             name = info["name"] if info else endpoint
             okey: OverlayKey = (kind, "", "", name)
-            nodes.append(_node(endpoint, "external", name, overlay_key=okey, node_overlay=node_overlay))
+            nav = None
+            if info and kind == "component":
+                nav = {
+                    "level": "C3",
+                    "systemId": info["system_id"],
+                    "systemName": info["system_name"],
+                    "containerId": info["container_id"],
+                    "containerName": info["container_name"],
+                }
+            elif info and kind == "container":
+                nav = {
+                    "level": "C3",
+                    "systemId": info["system_id"],
+                    "systemName": info["system_name"],
+                    "containerId": endpoint,
+                    "containerName": info["name"],
+                }
+            nodes.append(_node(endpoint, kind, name, overlay_key=okey, node_overlay=node_overlay, nav=nav))
             known.add(endpoint)
 
 

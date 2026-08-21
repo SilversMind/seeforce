@@ -171,8 +171,19 @@ def test_c3_view_emits_placeholders_for_external_and_cross_container_targets():
     nodes = {n["id"]: n for n in result["nodes"]}
     assert nodes["kafka-order-events"]["type"] == "external"
     assert nodes["kafka-order-events"]["data"]["label"] == "kafka:order-events"
-    assert nodes["shop-auth-tokens"]["type"] == "external"
+    assert "nav" not in nodes["kafka-order-events"]["data"]
+    # A component in a sibling container is a real internal element, not a
+    # true C1 external — it must render as its own kind (so ComponentNode
+    # picks it up, not ExternalNode) and carry a nav target to jump to it.
+    assert nodes["shop-auth-tokens"]["type"] == "component"
     assert nodes["shop-auth-tokens"]["data"]["label"] == "Token Validator"
+    assert nodes["shop-auth-tokens"]["data"]["nav"] == {
+        "level": "C3",
+        "systemId": "shop",
+        "systemName": "Shop",
+        "containerId": "shop-auth",
+        "containerName": "Auth Service",
+    }
     edge_targets = {e["target"] for e in result["edges"]}
     assert {"kafka-order-events", "shop-auth-tokens"} <= edge_targets
 

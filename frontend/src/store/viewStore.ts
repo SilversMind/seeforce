@@ -21,6 +21,7 @@ interface ViewStore extends ViewState {
   clearProjectMap: () => void;
   drillToC2: (systemId: string, systemName: string) => void;
   drillToC3: (containerId: string, containerName: string) => void;
+  jumpTo: (nav: { level: Level; systemId: string; systemName: string; containerId: string | null; containerName: string | null }) => void;
   goToC1: () => void;
   goToC2: () => void;
 }
@@ -53,6 +54,15 @@ export const useViewStore = create<ViewStore>((set) => ({
 
   drillToC3: (containerId, containerName) =>
     set({ level: "C3", containerId, containerName }),
+
+  jumpTo: (nav) =>
+    set({
+      level: nav.level,
+      systemId: nav.systemId,
+      systemName: nav.systemName,
+      containerId: nav.containerId,
+      containerName: nav.containerName,
+    }),
 
   goToC1: () =>
     set({ level: "C1", systemId: null, systemName: null, containerId: null, containerName: null }),
