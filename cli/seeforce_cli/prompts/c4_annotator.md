@@ -71,6 +71,8 @@ Rule: for `systems` projects — after identifying a C2 container, scan its dire
 - Relations follow runtime call/data flow, not static import graphs
 - Only annotate relations that cross architectural boundaries
 - When a container or component uses both REST and WebSocket, create separate `uses:` entries with `technology:` to distinguish them
+- **Never create a reverse edge between a pair that's already connected.** Before adding `A uses: B`, check whether `B` (or one of `B`'s existing edges) already points back at `A`. If the relationship already exists in one direction, don't add the opposite direction too — pick the dominant call direction and describe it once. Two edges between the same pair, one each way, render as a single bidirectional arrow and lose meaning.
+- **Never mix levels in a `uses:` list.** A `@c2:container`'s `uses:` may only name other `@c1` systems/externals or other `@c2` containers — never a `@c3:component`, even one that lives inside a container it already uses. If the real call target is a component inside another container, either point the `uses:` at that container instead, or add a `@c3:component` annotation to the actual calling code inside *this* container and put the component-level `uses:` there (component→component references are allowed and must be qualified with `ContainerName/ComponentName` if the name is ambiguous across containers).
 
 ### Common Judgment Calls
 

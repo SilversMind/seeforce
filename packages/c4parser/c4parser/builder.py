@@ -136,6 +136,8 @@ def build(elements: list[C4Element]) -> dict:
             candidates.append(system_ids[use])
         if use in container_ids:
             candidates.append(container_ids[use])
+        if use in external_ids:
+            candidates.append(external_ids[use])
         # Check all components across all containers (excluding local, already checked)
         for (cont_name, comp_name), cid in component_ids.items():
             if comp_name == use and cont_name != source_comp.container:
