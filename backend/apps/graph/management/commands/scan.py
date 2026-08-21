@@ -5,7 +5,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.graph.models import ProjectMap, sync_lexicon_entries
-from c4parser import scan, build, export_workspace
+from c4parser import scan, build, export_workspace, find_orphans
 from c4parser.exceptions import C4ParseError, C4ValidationError
 
 _SEEFORCE_DIR = ".seeforce"
@@ -98,6 +98,8 @@ class Command(BaseCommand):
                 f"Found: {systems} system(s), {containers} container(s), {components} component(s)"
             )
         )
+        for warning in find_orphans(workspace):
+            self.stderr.write(self.style.WARNING(warning))
 
         source_json = json.loads(json_str)
         pm, created = ProjectMap.objects.update_or_create(

@@ -165,7 +165,8 @@ uses:
 - Use business-domain names, not technical-layer names (not "Domain Layer" — use "Core Domain" or the actual domain name).
 
 **Connectivity rules:**
-- Every C3 component must have at least one edge (either via its own `uses:` or by being referenced in another component's `uses:`). Orphan components with no edges indicate a missing relationship — find and annotate it.
+- Every C2 container and every C3 component must have at least one edge in either direction (its own `uses:`, or being named in another element's `uses:`). A container or component nothing calls and that calls nothing isn't doing anything at that level — it either needs a relationship you missed, or it doesn't belong as its own C2/C3 element (fold it into whatever it's actually part of).
+- Orphan elements with no edges indicate a missing relationship — find and annotate it. `seeforce scan` will warn about any orphans it finds; treat those warnings as required fixes, not noise.
 - External services mentioned in descriptions must appear as `@c1:external` annotations and be referenced in `uses:` fields, not buried in prose.
 
 ---
@@ -231,7 +232,7 @@ Follow these steps in order:
 4. **Identify persons and externals** — annotate all person roles and external services at C1
 5. **For each C2 container**: read its source directory and entry points — identify C3 component boundaries (skip if < 3 concerns)
 6. **Infer relations** from imports, function calls, channel sends, HTTP clients, DB queries — runtime flow only
-7. **Verify connectivity**: every C3 must have at least one edge; every external system must have at least one `uses:` pointing to it
+7. **Verify connectivity**: every C2 and C3 must have at least one edge in either direction; every external system must have at least one `uses:` pointing to it
 8. **Scan every description you're about to write for jargon** — domain terms, acronyms, internal conventions, protocol/format names a newcomer wouldn't know — and add a `@lexicon` entry for each
 9. **Write annotations** — one annotation per architectural element, no duplicates
 

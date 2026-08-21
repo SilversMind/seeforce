@@ -26,6 +26,33 @@ def _use_technology(entry: str | dict) -> str:
     return ""
 
 
+def find_orphans(workspace: dict) -> list[str]:
+    """Return warnings for C2/C3 elements with no relationship in either
+    direction. A container or component nothing calls and that calls
+    nothing isn't doing anything at that level — almost always a missing
+    `uses:` annotation, not an intentional design."""
+    incoming: set[str] = set()
+    for sys_node in workspace["model"]["softwareSystems"]:
+        for cont in sys_node.get("containers", []):
+            for rel in cont.get("relationships", []):
+                incoming.add(rel["destinationId"])
+            for comp in cont.get("components", []):
+                for rel in comp.get("relationships", []):
+                    incoming.add(rel["destinationId"])
+
+    warnings: list[str] = []
+    for sys_node in workspace["model"]["softwareSystems"]:
+        if "External" in sys_node.get("tags", ""):
+            continue
+        for cont in sys_node.get("containers", []):
+            if not cont.get("relationships") and cont["id"] not in incoming:
+                warnings.append(f"Container '{cont['name']}' has no relationships (no uses:, not referenced by anything) — orphan container")
+            for comp in cont.get("components", []):
+                if not comp.get("relationships") and comp["id"] not in incoming:
+                    warnings.append(f"Component '{comp['name']}' (in '{cont['name']}') has no relationships — orphan component")
+    return warnings
+
+
 def build(elements: list[C4Element]) -> dict:
     # --- Phase 1: Collect elements ---
     # Systems keyed by name

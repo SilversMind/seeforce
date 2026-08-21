@@ -45,6 +45,9 @@ def scan(path: str, dry_run: bool, output: Optional[str]):
         f"Found {len(elements)} elements — "
         f"{len(systems)} system(s), {n_containers} container(s), {n_components} component(s){lexicon_note}"
     )
+
+    for warning in c4parser.find_orphans(workspace):
+        click.echo(f"Warning: {warning}", err=True)
     click.echo(f"Workspace: {workspace['name']}")
 
     if dry_run:
