@@ -90,13 +90,6 @@ export async function uploadProjectMap(name: string, workspace: unknown): Promis
   return res.json();
 }
 
-export async function fetchLatestProjectMap(): Promise<ProjectMapMeta | null> {
-  const res = await fetch("/api/graph/latest/");
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-  return res.json();
-}
-
 export async function renameProjectMap(id: number, name: string): Promise<ProjectMapMeta> {
   const res = await fetch(`/api/graph/${id}/`, {
     method: "PATCH",
