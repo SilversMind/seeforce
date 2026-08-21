@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import useSWR from "swr";
-import { buildViewUrl, buildShareViewUrl, type ReactFlowData } from "../services/api";
+import { buildViewUrl, buildShareViewUrl, previewWorkspace, type ReactFlowData } from "../services/api";
 import type { ViewState } from "../store/viewStore";
 
 const fetcher = (url: string) =>
@@ -19,14 +19,30 @@ export function useWorkspace(view: ViewState): {
   error: Error | undefined;
   refetch: () => void;
 } {
-  const url =
-    view.projectMapId != null
+  const isEphemeral = view.ephemeralWorkspace != null;
+
+  const url = isEphemeral
+    ? null
+    : view.projectMapId != null
       ? view.shareToken
         ? buildShareViewUrl(view.shareToken, view.level, view.systemId, view.containerId)
         : buildViewUrl(view.projectMapId, view.level, view.systemId, view.containerId)
       : null;
 
-  const { data, error, isLoading, mutate } = useSWR<ReactFlowData>(url, fetcher);
+  const ephemeralKey = isEphemeral
+    ? ["preview", view.level, view.systemId, view.containerId]
+    : null;
+
+  const { data: normalData, error: normalError, isLoading: normalLoading, mutate } = useSWR<ReactFlowData>(url, fetcher);
+
+  const { data: ephemeralData, error: ephemeralError, isLoading: ephemeralLoading } = useSWR<ReactFlowData>(
+    ephemeralKey,
+    () => previewWorkspace(view.ephemeralWorkspace, view.level, view.systemId ?? undefined, view.containerId ?? undefined),
+  );
+
+  const data = isEphemeral ? ephemeralData : normalData;
+  const error = isEphemeral ? ephemeralError : normalError;
+  const isLoading = isEphemeral ? ephemeralLoading : normalLoading;
 
   const nodes = data?.nodes ?? EMPTY_NODES;
   const rawEdges = data?.edges ?? EMPTY_EDGES;

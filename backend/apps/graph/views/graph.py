@@ -199,6 +199,19 @@ def project_tags(request, project_map_id):
     return Response({"tags": sorted(all_tags)})
 
 
+@api_view(["POST"])
+def preview_view(request, level):
+    if err := _require_auth(request):
+        return err
+    workspace = request.data.get("workspace")
+    if not workspace:
+        return Response({"error": "workspace required"}, status=status.HTTP_400_BAD_REQUEST)
+    system = request.query_params.get("system")
+    container = request.query_params.get("container")
+    result = to_react_flow(workspace, level=level, system=system, container=container)
+    return Response(result)
+
+
 def scan_events(request):
     """SSE endpoint — polls DB every 2s, emits scan_complete when updated_at changes."""
     if not request.user.is_authenticated:

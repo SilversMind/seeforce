@@ -14,6 +14,7 @@ urlpatterns = [
     path("<int:project_map_id>/overlay/edge/", views.upsert_edge_overlay),
     path("<int:project_map_id>/lexicon/", views.lexicon_collection),
     path("<int:project_map_id>/lexicon/<str:term>/", views.delete_lexicon_entry),
+    path("preview/<str:level>/", views.preview_view),
     path("import/github/", views.import_from_github),
     path("<int:project_map_id>/sync-github/", views.sync_from_github),
     path("<int:project_map_id>/share/", views.manage_share),

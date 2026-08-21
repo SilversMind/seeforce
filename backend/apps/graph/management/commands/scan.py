@@ -1,3 +1,4 @@
+import json
 import uuid
 from pathlib import Path
 
@@ -7,8 +8,6 @@ from apps.graph.models import ProjectMap
 from c4parser import scan, build, export_workspace
 from c4parser.exceptions import C4ParseError, C4ValidationError
 
-import json
-
 _SEEFORCE_DIR = ".seeforce"
 
 
@@ -17,16 +16,14 @@ def _get_or_create_project_id(paths: list[Path]) -> str:
     for p in paths:
         seeforce_cfg = p / _SEEFORCE_DIR / "project.json"
         if seeforce_cfg.exists():
-            import json as _json
-            pid = _json.loads(seeforce_cfg.read_text(encoding="utf-8")).get("project_id", "")
+            pid = json.loads(seeforce_cfg.read_text(encoding="utf-8")).get("project_id", "")
             if pid:
                 return pid
     pid = str(uuid.uuid4())
     seeforce_dir = paths[0] / _SEEFORCE_DIR
     seeforce_dir.mkdir(exist_ok=True)
-    import json as _json
     (seeforce_dir / "project.json").write_text(
-        _json.dumps({"project_id": pid}, indent=2), encoding="utf-8"
+        json.dumps({"project_id": pid}, indent=2), encoding="utf-8"
     )
     return pid
 

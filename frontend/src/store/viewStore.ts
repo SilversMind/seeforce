@@ -5,6 +5,7 @@ export type Level = "C1" | "C2" | "C3";
 export interface ViewState {
   projectMapId: number | null;
   shareToken: string | null;
+  ephemeralWorkspace: unknown | null;
   level: Level;
   systemId: string | null;
   systemName: string | null;
@@ -18,6 +19,7 @@ interface ViewStore extends ViewState {
   setProjectMap: (id: number) => void;
   setShareView: (id: number, token: string) => void;
   setGithubMeta: (repo: string, branch: string) => void;
+  setEphemeralWorkspace: (workspace: unknown) => void;
   clearProjectMap: () => void;
   drillToC2: (systemId: string, systemName: string) => void;
   drillToC3: (containerId: string, containerName: string) => void;
@@ -28,6 +30,7 @@ interface ViewStore extends ViewState {
 export const useViewStore = create<ViewStore>((set) => ({
   projectMapId: null,
   shareToken: null,
+  ephemeralWorkspace: null,
   level: "C1",
   systemId: null,
   systemName: null,
@@ -37,16 +40,19 @@ export const useViewStore = create<ViewStore>((set) => ({
   githubBranch: null,
 
   setProjectMap: (id) =>
-    set({ projectMapId: id, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+    set({ projectMapId: id, shareToken: null, ephemeralWorkspace: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
 
   setShareView: (id, token) =>
-    set({ projectMapId: id, shareToken: token, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+    set({ projectMapId: id, shareToken: token, ephemeralWorkspace: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
 
   setGithubMeta: (repo, branch) =>
     set({ githubRepo: repo || null, githubBranch: branch || null }),
 
+  setEphemeralWorkspace: (workspace) =>
+    set({ ephemeralWorkspace: workspace, projectMapId: null, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+
   clearProjectMap: () =>
-    set({ projectMapId: null, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+    set({ projectMapId: null, shareToken: null, ephemeralWorkspace: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
 
   drillToC2: (systemId, systemName) =>
     set({ level: "C2", systemId, systemName, containerId: null, containerName: null }),
