@@ -8,7 +8,10 @@ description: Source of truth for project architecture (via .seeforce/workspace.j
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-in-prod")
 
