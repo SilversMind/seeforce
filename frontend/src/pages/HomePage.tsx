@@ -107,7 +107,7 @@ async function deleteProject(id: number) {
 
 type NewProjectTab = "github" | "upload";
 
-function NewProjectSidebar({ open, onClose, onDone }: { open: boolean; onClose: () => void; onDone: (id: number) => void }) {
+function NewProjectSidebar({ open, initialTab, onClose, onDone }: { open: boolean; initialTab: NewProjectTab; onClose: () => void; onDone: (id: number) => void }) {
   const [tab, setTab] = useState<NewProjectTab>("github");
   const [repo, setRepo] = useState("");
   const [branch, setBranch] = useState("main");
@@ -116,8 +116,12 @@ function NewProjectSidebar({ open, onClose, onDone }: { open: boolean; onClose: 
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) { setRepo(""); setBranch("main"); setError(null); setLoading(false); }
-  }, [open]);
+    if (open) {
+      setTab(initialTab);
+    } else {
+      setRepo(""); setBranch("main"); setError(null); setLoading(false);
+    }
+  }, [open, initialTab]);
 
   async function handleImport() {
     setError(null);
@@ -442,7 +446,7 @@ function CopyableCommand({ cmd }: { cmd: string }) {
   );
 }
 
-function SetupGuide({ onImport }: { onImport: () => void }) {
+function SetupGuide({ onImport }: { onImport: (tab: NewProjectTab) => void }) {
   const steps: Array<{ title: string; content: React.ReactNode }> = [
     {
       title: "Install the CLI",
@@ -486,12 +490,20 @@ function SetupGuide({ onImport }: { onImport: () => void }) {
     {
       title: "Import your project",
       content: (
-        <button
-          onClick={onImport}
-          style={{ background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-        >
-          + Import from GitHub
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => onImport("github")}
+            style={{ background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+          >
+            + Import from GitHub
+          </button>
+          <button
+            onClick={() => onImport("upload")}
+            style={{ background: "#0f172a", color: "var(--c4-sidebar-text)", border: "1px solid #334155", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+          >
+            Upload workspace.json
+          </button>
+        </div>
       ),
     },
   ];
@@ -534,6 +546,7 @@ export function HomePage() {
   const { user, logout } = useAuth();
   const [editingProject, setEditingProject] = useState<ProjectMapMeta | null>(null);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectTab, setNewProjectTab] = useState<NewProjectTab>("github");
   const [syncError, setSyncError] = useState<string | null>(null);
 
   async function handleSync(id: number) {
@@ -553,7 +566,7 @@ export function HomePage() {
       <header style={{ height: 48, background: "#0f172a", display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
         <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>SeeForce</span>
         <button
-          onClick={() => setNewProjectOpen(true)}
+          onClick={() => { setNewProjectTab("github"); setNewProjectOpen(true); }}
           style={{
             marginLeft: "auto",
             background: "#1e293b",
@@ -597,7 +610,7 @@ export function HomePage() {
           </div>
         )}
         {projects && projects.length === 0 && (
-          <SetupGuide onImport={() => setNewProjectOpen(true)} />
+          <SetupGuide onImport={(tab) => { setNewProjectTab(tab); setNewProjectOpen(true); }} />
         )}
         {projects && projects.length > 0 && (
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -639,6 +652,7 @@ export function HomePage() {
       <EditSidebar project={editingProject} onClose={() => setEditingProject(null)} />
       <NewProjectSidebar
         open={newProjectOpen}
+        initialTab={newProjectTab}
         onClose={() => setNewProjectOpen(false)}
         onDone={(id) => navigate(`/project/${id}`)}
       />
