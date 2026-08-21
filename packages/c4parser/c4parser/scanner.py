@@ -6,7 +6,7 @@ import textwrap
 import yaml
 from pathlib import Path
 
-from .types import C4System, C4Container, C4Component, C4Element
+from .types import C4System, C4Container, C4Component, C4Lexicon, C4Element
 from .exceptions import C4ParseError
 
 # Triple-quoted Python docstrings — backreference so quotes must match.
@@ -55,11 +55,15 @@ def _strip_comment_stars(block: str) -> str:
 
 
 def _parse_block(content: str, file_path: str, line: int, git_root: str | None = None) -> C4Element | None:
-    # The @cN: marker must START a line (after dedent) — summary lines before
-    # it are allowed, but mid-line mentions in string literals are not, so the
-    # scanner never trips on its own error messages.
+    # The @cN: / @lexicon marker must START a line (after dedent) — summary
+    # lines before it are allowed, but mid-line mentions in string literals
+    # are not, so the scanner never trips on its own error messages.
     stripped = textwrap.dedent(content).strip()
-    marker = re.search(r"(?m)^@c[123]:", stripped)
+    lex_marker = re.search(r"(?m)^@lexicon\b", stripped)
+    c_marker = re.search(r"(?m)^@c[123]:", stripped)
+    if lex_marker and (not c_marker or lex_marker.start() < c_marker.start()):
+        return _parse_lexicon_block(stripped[lex_marker.end():], file_path, line, git_root)
+    marker = c_marker
     if not marker:
         return None
 
@@ -111,6 +115,22 @@ def _parse_block(content: str, file_path: str, line: int, git_root: str | None =
                     raise C4ParseError(f"@c3:component missing required field '{req}'", file_path, line)
             return C4Component(**{k: v for k, v in data.items() if k in C4Component.__dataclass_fields__})
     return None
+
+
+def _parse_lexicon_block(rest: str, file_path: str, line: int, git_root: str | None) -> C4Lexicon | None:
+    yaml_text = rest.strip()
+    try:
+        data = yaml.safe_load(yaml_text) or {}
+    except yaml.YAMLError as exc:
+        raise C4ParseError(str(exc), file_path=file_path, line=line)
+    if not isinstance(data, dict):
+        return None
+    for req in ("term", "definition"):
+        if req not in data:
+            raise C4ParseError(f"@lexicon missing required field '{req}'", file_path, line)
+    ref_root = git_root if git_root else os.path.dirname(file_path)
+    data["source_file"] = os.path.relpath(file_path, ref_root).replace(os.sep, "/")
+    return C4Lexicon(**{k: v for k, v in data.items() if k in C4Lexicon.__dataclass_fields__})
 
 
 def _extract_blocks(text: str) -> list[tuple[str, int]]:
@@ -170,11 +190,11 @@ def scan(
             except OSError:
                 continue
 
-            if "@c" not in text:
+            if "@c" not in text and "@lexicon" not in text:
                 continue  # fast path
 
             for block, line in _extract_blocks(text):
-                if "@c" not in block:
+                if "@c" not in block and "@lexicon" not in block:
                     continue
                 try:
                     element = _parse_block(block, file_path, line, git_root=git_root)

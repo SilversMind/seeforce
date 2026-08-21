@@ -29,4 +29,11 @@ class C4Component:
     source_file: str = ""
 
 
-C4Element = C4System | C4Container | C4Component
+@dataclass
+class C4Lexicon:
+    term: str
+    definition: str
+    source_file: str = ""
+
+
+C4Element = C4System | C4Container | C4Component | C4Lexicon

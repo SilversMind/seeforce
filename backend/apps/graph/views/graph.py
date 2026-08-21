@@ -16,7 +16,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from ..models import ProjectMap, NodeOverlay, EdgeOverlay
+from ..models import ProjectMap, NodeOverlay, EdgeOverlay, sync_lexicon_entries
 from ..serializers import (
     ProjectMapSerializer,
     ProjectMapUploadSerializer,
@@ -58,6 +58,7 @@ class ProjectMapViewSet(viewsets.ModelViewSet):
             source_json=ser.validated_data["workspace"],
             owner=request.user,
         )
+        sync_lexicon_entries(pm, ser.validated_data["workspace"])
         return Response(
             {"id": pm.id, "name": pm.name, "created_at": pm.created_at},
             status=status.HTTP_201_CREATED,

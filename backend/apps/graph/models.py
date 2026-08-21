@@ -102,3 +102,19 @@ class LexiconEntry(models.Model):
 
     def __str__(self) -> str:
         return f"{self.term} ({self.project_map})"
+
+
+def sync_lexicon_entries(project_map: "ProjectMap", workspace: dict) -> None:
+    """Upsert LexiconEntry rows from a scanned workspace's "lexicon" list
+    (populated by @lexicon annotations). Never deletes — entries added
+    manually through the UI, or terms dropped from the source, are left
+    alone rather than silently disappearing on the next scan/sync."""
+    for entry in workspace.get("lexicon", []) or []:
+        term = entry.get("term")
+        definition = entry.get("definition")
+        if not term or not definition:
+            continue
+        LexiconEntry.objects.update_or_create(
+            project_map=project_map, term=term,
+            defaults={"definition": definition},
+        )

@@ -1,5 +1,5 @@
 import re
-from .types import C4System, C4Container, C4Component, C4Element
+from .types import C4System, C4Container, C4Component, C4Lexicon, C4Element
 from .exceptions import C4ValidationError
 
 
@@ -35,6 +35,8 @@ def build(elements: list[C4Element]) -> dict:
     # Components keyed by (container_name, component_name) to allow same-named
     # components across different containers
     components: dict[tuple[str, str], C4Component] = {}
+    # Lexicon entries keyed by term (last annotation for a given term wins)
+    lexicon: dict[str, C4Lexicon] = {}
 
     for el in elements:
         match el:
@@ -44,6 +46,8 @@ def build(elements: list[C4Element]) -> dict:
                 containers[el.name] = el
             case C4Component():
                 components[(el.container, el.name)] = el
+            case C4Lexicon():
+                lexicon[el.term] = el
 
     # --- Phase 2: Validate hierarchy ---
     for c in containers.values():
@@ -299,6 +303,10 @@ def build(elements: list[C4Element]) -> dict:
 
     return {
         "name": systems[first_system_name].name if first_system_name else "workspace",
+        "lexicon": [
+            {"term": entry.term, "definition": entry.definition}
+            for entry in sorted(lexicon.values(), key=lambda e: e.term)
+        ],
         "model": {
             "people": [],
             "softwareSystems": all_systems,

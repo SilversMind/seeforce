@@ -122,9 +122,10 @@ description: End user who initiates purchases and manages their subscription.
 """
 @c1:external
 name: Stripe
-description: Third-party payment processor. Handles card charging and refunds.
+description: Third-party payment processor, hosted by Stripe (not part of this codebase). Handles card charging and refunds; the platform calls it via the Stripe REST API to create charges and process webhook confirmations.
 """
 ```
+Rule: an external's description must answer two things a newcomer can't infer from the name alone — **where it lives** (whose infrastructure, not part of this repo) and **what role it plays** (what this system actually does with it, not just "third-party service"). "Third-party payment processor" alone is not enough — see the example above.
 
 ### C2 — Container
 ```python
@@ -190,6 +191,28 @@ This allows the visualization to show the protocol on each edge separately.
 
 ---
 
+## Lexicon
+
+Treat the viewer as someone **totally unfamiliar with this repo and its problem domain** — not a teammate, not someone who already knows the jargon. Any word in a description that names a domain concept, internal convention, protocol, file format, or acronym specific to this codebase or its industry needs a lexicon entry, even if it feels obvious to someone who just read the source.
+
+Examples of terms that need an entry: "ecosystem detector", "per-scan time bound", "OSV schema", "webhook confirmation", "wildcard entry", "bounded context" — anything a reader can't resolve from general programming knowledge alone.
+
+Add one `@lexicon` block per term, anywhere in the codebase (module-level docstring is fine, doesn't need to live near the term's first use):
+
+```python
+"""
+@lexicon
+term: ecosystem detector
+definition: A per-package-manager parser (npm, PyPI, RubyGems, etc.) that recognizes and extracts records from that ecosystem's manifest or lock files.
+"""
+```
+
+Rule: definitions must stand alone — don't define a term using another undefined term.
+Rule: don't create an entry for words that are standard software engineering vocabulary (e.g. "component", "endpoint", "cache") — only domain- or repo-specific jargon.
+Rule: one entry per term, case-insensitive dedup (don't add both "OSV" and "osv").
+
+---
+
 ## Annotation Placement
 
 - **Module-level**: place at the top of the file, before imports, as the module docstring
@@ -209,7 +232,8 @@ Follow these steps in order:
 5. **For each C2 container**: read its source directory and entry points — identify C3 component boundaries (skip if < 3 concerns)
 6. **Infer relations** from imports, function calls, channel sends, HTTP clients, DB queries — runtime flow only
 7. **Verify connectivity**: every C3 must have at least one edge; every external system must have at least one `uses:` pointing to it
-8. **Write annotations** — one annotation per architectural element, no duplicates
+8. **Scan every description you're about to write for jargon** — domain terms, acronyms, internal conventions, protocol/format names a newcomer wouldn't know — and add a `@lexicon` entry for each
+9. **Write annotations** — one annotation per architectural element, no duplicates
 
 ---
 
@@ -222,3 +246,4 @@ Follow these steps in order:
 - Technology field in C3: omit if it would just repeat the parent C2 language
 - All external services named in descriptions must have corresponding `@c1:external` annotations
 - All person roles must have `@c1:person` annotations
+- Any domain-specific or repo-specific jargon in a description must have a corresponding `@lexicon` entry — see the Lexicon section above

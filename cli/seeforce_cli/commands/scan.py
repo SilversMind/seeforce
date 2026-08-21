@@ -39,9 +39,11 @@ def scan(path: str, dry_run: bool, output: Optional[str]):
         for s in systems
         for c in s.get("containers", [])
     )
+    n_lexicon = len(workspace.get("lexicon", []))
+    lexicon_note = f", {n_lexicon} lexicon entr{'y' if n_lexicon == 1 else 'ies'}" if n_lexicon else ""
     click.echo(
         f"Found {len(elements)} elements — "
-        f"{len(systems)} system(s), {n_containers} container(s), {n_components} component(s)"
+        f"{len(systems)} system(s), {n_containers} container(s), {n_components} component(s){lexicon_note}"
     )
     click.echo(f"Workspace: {workspace['name']}")
 

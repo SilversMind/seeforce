@@ -4,7 +4,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.graph.models import ProjectMap
+from apps.graph.models import ProjectMap, sync_lexicon_entries
 from c4parser import scan, build, export_workspace
 from c4parser.exceptions import C4ParseError, C4ValidationError
 
@@ -106,6 +106,7 @@ class Command(BaseCommand):
         )
         action = "Created" if created else "Updated"
         self.stdout.write(self.style.SUCCESS(f"{action} ProjectMap id={pm.id} '{pm.name}'"))
+        sync_lexicon_entries(pm, workspace)
 
         if owner is not None and pm.owner is None:
             pm.owner = owner

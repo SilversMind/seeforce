@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from ..models import ProjectMap
+from ..models import ProjectMap, sync_lexicon_entries
 from ._permissions import _require_auth, _require_owner
 
 
@@ -94,6 +94,7 @@ def import_from_github(request):
             "github_branch": branch,
         },
     )
+    sync_lexicon_entries(pm, workspace)
 
     return Response(
         {"id": pm.id, "name": pm.name, "created": created},
@@ -132,5 +133,6 @@ def sync_from_github(request, project_map_id):
 
     pm.source_json = workspace
     pm.save(update_fields=["source_json", "updated_at"])
+    sync_lexicon_entries(pm, workspace)
 
     return Response({"id": pm.id, "name": pm.name, "synced": True})
