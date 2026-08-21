@@ -213,3 +213,82 @@ class SyncFromGitHubTest(TestCase):
         self.assertTrue(resp.json()["synced"])
         self.pm.refresh_from_db()
         self.assertEqual(self.pm.source_json["name"], "refreshed")
+
+
+class LinkToGithubTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="linker", password="pass")
+        self.client.force_login(self.user)
+        self.pm = ProjectMap.objects.create(
+            name="uploaded project",
+            source_json=SAMPLE_WORKSPACE,
+            owner=self.user,
+        )
+
+    def _make_token(self):
+        from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
+        from django.contrib.sites.models import Site
+        app = SocialApp.objects.create(provider="github", name="gh", client_id="id", secret="s")
+        app.sites.add(Site.objects.get_current())
+        account = SocialAccount.objects.create(user=self.user, provider="github", uid="789")
+        SocialToken.objects.create(app=app, account=account, token="gh-link-token")
+
+    def _link(self, data):
+        return self.client.post(
+            f"/api/graph/{self.pm.id}/link-github/",
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+    def test_unauthenticated_returns_401(self):
+        self.client.logout()
+        resp = self._link({"repo": "owner/repo"})
+        self.assertEqual(resp.status_code, 401)
+
+    def test_other_user_cannot_link(self):
+        other = User.objects.create_user(username="other2", password="pass")
+        self.client.force_login(other)
+        resp = self._link({"repo": "owner/repo"})
+        self.assertEqual(resp.status_code, 403)
+
+    def test_invalid_repo_format_returns_400(self):
+        self._make_token()
+        resp = self._link({"repo": "not-a-valid-repo"})
+        self.assertEqual(resp.status_code, 400)
+
+    def test_already_linked_project_returns_400(self):
+        self._make_token()
+        self.pm.github_repo = "owner/already"
+        self.pm.save(update_fields=["github_repo"])
+        resp = self._link({"repo": "owner/other"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("already linked", resp.json()["error"])
+
+    def test_repo_already_imported_elsewhere_returns_400(self):
+        self._make_token()
+        ProjectMap.objects.create(
+            name="other project",
+            source_json=SAMPLE_WORKSPACE,
+            owner=self.user,
+            project_id="github:owner/taken",
+            github_repo="owner/taken",
+            github_branch="main",
+        )
+        resp = self._link({"repo": "owner/taken"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("already imported", resp.json()["error"])
+
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_successful_link_attaches_repo_in_place(self, mock_get):
+        self._make_token()
+        mock_get.return_value = _mock_github_ok(SAMPLE_WORKSPACE)
+        resp = self._link({"repo": "owner/newrepo", "branch": "develop"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()["linked"])
+        self.assertEqual(resp.json()["id"], self.pm.id)
+        self.pm.refresh_from_db()
+        self.assertEqual(self.pm.github_repo, "owner/newrepo")
+        self.assertEqual(self.pm.github_branch, "develop")
+        self.assertEqual(self.pm.project_id, "github:owner/newrepo")
+        # Same row, not a new project.
+        self.assertEqual(ProjectMap.objects.count(), 1)

@@ -207,6 +207,16 @@ export async function syncFromGitHub(projectMapId: number): Promise<void> {
   if (!res.ok) throw new Error(body.error ?? `Sync failed: ${res.status}`);
 }
 
+export async function linkProjectToGithub(projectMapId: number, repo: string, branch: string): Promise<void> {
+  const res = await fetch(`/api/graph/${projectMapId}/link-github/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ repo, branch }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error ?? `Link failed: ${res.status}`);
+}
+
 export async function fetchSharedProjects(): Promise<ProjectMapMeta[]> {
   const res = await fetch("/api/graph/shared/");
   if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);

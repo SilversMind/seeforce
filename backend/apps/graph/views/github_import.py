@@ -103,6 +103,60 @@ def import_from_github(request):
 
 
 @api_view(["POST"])
+def link_to_github(request, project_map_id):
+    """Attach an existing (e.g. upload-created) ProjectMap to a GitHub repo
+    in place, so it becomes sync-able going forward instead of requiring a
+    second, separate project to be created via import_from_github."""
+    if err := _require_auth(request):
+        return err
+    try:
+        pm = ProjectMap.objects.get(id=project_map_id)
+    except ProjectMap.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if err := _require_owner(request, pm):
+        return err
+
+    if pm.github_repo:
+        return Response(
+            {"error": "This project is already linked to a GitHub repo."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    repo = (request.data.get("repo") or "").strip().strip("/")
+    branch = (request.data.get("branch") or "main").strip()
+    if not repo or repo.count("/") != 1:
+        return Response({"error": "repo must be 'owner/repo'"}, status=status.HTTP_400_BAD_REQUEST)
+
+    project_id = f"github:{repo}"
+    if ProjectMap.objects.filter(project_id=project_id).exclude(id=pm.id).exists():
+        return Response(
+            {"error": f"{repo} is already imported as a separate project."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    token = _github_token(request.user)
+    if not token:
+        return Response(
+            {"error": "GitHub account not connected. Log out and log back in with GitHub."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        workspace = _fetch_workspace_json(token, repo, branch)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    pm.project_id = project_id
+    pm.github_repo = repo
+    pm.github_branch = branch
+    pm.source_json = workspace
+    pm.save(update_fields=["project_id", "github_repo", "github_branch", "source_json", "updated_at"])
+    sync_lexicon_entries(pm, workspace)
+
+    return Response({"id": pm.id, "name": pm.name, "linked": True})
+
+
+@api_view(["POST"])
 def sync_from_github(request, project_map_id):
     if err := _require_auth(request):
         return err

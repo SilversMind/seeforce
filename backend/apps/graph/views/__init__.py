@@ -9,7 +9,7 @@ from .graph import (
     scan_events,
 )
 from .lexicon import lexicon_collection, delete_lexicon_entry
-from .github_import import import_from_github, sync_from_github
+from .github_import import import_from_github, sync_from_github, link_to_github
 from .sharing import manage_share, use_share, share_view, shared_projects
 
 __all__ = [
@@ -26,6 +26,7 @@ __all__ = [
     "delete_lexicon_entry",
     "import_from_github",
     "sync_from_github",
+    "link_to_github",
     "manage_share",
     "use_share",
     "share_view",
