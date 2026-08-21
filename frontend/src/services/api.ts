@@ -90,20 +90,6 @@ export async function uploadProjectMap(name: string, workspace: unknown): Promis
   return res.json();
 }
 
-export async function previewWorkspace(workspace: unknown, level: string, system?: string, container?: string): Promise<ReactFlowData> {
-  const params = new URLSearchParams();
-  if (system) params.set("system", system);
-  if (container) params.set("container", container);
-  const query = params.toString() ? `?${params}` : "";
-  const res = await fetch(`/api/graph/preview/${level}/${query}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ workspace }),
-  });
-  if (!res.ok) throw new Error(`Preview failed: ${res.status}`);
-  return res.json();
-}
-
 export async function renameProjectMap(id: number, name: string): Promise<ProjectMapMeta> {
   const res = await fetch(`/api/graph/${id}/`, {
     method: "PATCH",

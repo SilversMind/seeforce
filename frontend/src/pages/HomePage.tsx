@@ -382,24 +382,6 @@ function CopyableCommand({ cmd }: { cmd: string }) {
 }
 
 function SetupGuide({ onImport }: { onImport: () => void }) {
-  const navigate = useNavigate();
-  const previewFileRef = useRef<HTMLInputElement>(null);
-
-  function handlePreviewFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    file.text().then((text) => {
-      try {
-        JSON.parse(text);
-        sessionStorage.setItem("seeforce_preview", text);
-        navigate("/preview");
-      } catch {
-        alert("Invalid workspace.json file.");
-      }
-    });
-    if (previewFileRef.current) previewFileRef.current.value = "";
-  }
-
   const steps: Array<{ title: string; content: React.ReactNode }> = [
     {
       title: "Install the CLI",
@@ -435,27 +417,20 @@ function SetupGuide({ onImport }: { onImport: () => void }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <CopyableCommand cmd="seeforce scan ." />
           <p style={{ margin: 0, fontSize: 12, color: "var(--c4-sidebar-muted)" }}>
-            Generates <code style={{ fontFamily: "monospace" }}>workspace.json</code>. Upload it directly to preview, or commit and push to GitHub for permanent access.
+            Generates <code style={{ fontFamily: "monospace" }}>workspace.json</code> in your repo root. Commit and push it to GitHub.
           </p>
         </div>
       ),
     },
     {
-      title: "Visualize your architecture",
+      title: "Import your project",
       content: (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label style={{ cursor: "pointer", background: "#0f172a", border: "1px solid #334155", color: "#94a3b8", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, display: "inline-block", width: "fit-content" }}>
-            Upload workspace.json to preview
-            <input ref={previewFileRef} type="file" accept=".json" onChange={handlePreviewFile} style={{ display: "none" }} />
-          </label>
-          <p style={{ margin: 0, fontSize: 11, color: "var(--c4-sidebar-muted)" }}>Ephemeral — lost on refresh. Or save permanently:</p>
-          <button
-            onClick={onImport}
-            style={{ background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "fit-content" }}
-          >
-            + Import from GitHub
-          </button>
-        </div>
+        <button
+          onClick={onImport}
+          style={{ background: "#3b82f6", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+        >
+          + Import from GitHub
+        </button>
       ),
     },
   ];
