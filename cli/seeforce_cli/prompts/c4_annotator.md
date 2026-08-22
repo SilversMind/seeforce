@@ -65,9 +65,11 @@ Rule: do NOT annotate every class or function. Only annotate named architectural
 Rule: if the container is simple (< 3 logical concerns and no distinct sub-directories), skip C3 entirely.
 Rule: prefer coarser boundaries — 5 well-named components beat 20 noisy ones.
 Rule: for `systems` projects — after identifying a C2 container, scan its directory. If it contains 2+ distinct sub-modules or sub-directories with separate responsibilities, annotate them as C3. A C2 with an entire sub-directory structure and no C3 is almost always a missed opportunity.
+Rule: before splitting a container into multiple C3 components, check that each proposed component will actually have its own edge — either its own `uses:`, or being named in another element's `uses:`. Two functions being logically distinct in the code isn't enough to justify a split if nothing at that granularity calls into one of them; if you can't find a real caller or callee for a candidate component, fold it back into the container's own description instead of giving it a component that will show up as a disconnected orphan.
 
 **Relations**
 - Describe *what happens*, not just "uses" (e.g. "sends payment events to", "authenticates via", "reads user records from")
+- If the call passes or returns a specific domain object (a struct/record type central to the codebase, e.g. a `Finding`, an `Order`, a `Record`), name it in the description and say what happens to it (returned to the caller, forwarded to X, persisted) — don't describe only the trigger side of the call and leave the reader to guess what comes back or where it goes next
 - Relations follow runtime call/data flow, not static import graphs
 - Only annotate relations that cross architectural boundaries
 - When a container or component uses both REST and WebSocket, create separate `uses:` entries with `technology:` to distinguish them
