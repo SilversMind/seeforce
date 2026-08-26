@@ -64,6 +64,24 @@ class LexiconAPITest(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(LexiconEntry.objects.get(project_map=self.pm, term="CPU").definition, "New definition")
 
+    def test_upsert_is_case_insensitive(self):
+        LexiconEntry.objects.create(project_map=self.pm, term="OSV", definition="Old")
+        res = self.client.post(
+            f"/api/graph/{self.pm.id}/lexicon/",
+            data=json.dumps({"term": "osv", "definition": "New definition"}),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 200)
+        # Updates the existing row rather than creating a second one.
+        self.assertEqual(LexiconEntry.objects.filter(project_map=self.pm).count(), 1)
+        self.assertEqual(LexiconEntry.objects.get(project_map=self.pm, term="OSV").definition, "New definition")
+
+    def test_delete_is_case_insensitive(self):
+        LexiconEntry.objects.create(project_map=self.pm, term="DMA", definition="Direct Memory Access")
+        res = self.client.delete(f"/api/graph/{self.pm.id}/lexicon/dma/")
+        self.assertEqual(res.status_code, 204)
+        self.assertEqual(LexiconEntry.objects.filter(project_map=self.pm, term="DMA").count(), 0)
+
     def test_list_returns_entries(self):
         LexiconEntry.objects.create(project_map=self.pm, term="PPU", definition="Pixel Processing Unit")
         LexiconEntry.objects.create(project_map=self.pm, term="APU", definition="Audio Processing Unit")

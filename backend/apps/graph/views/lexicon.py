@@ -24,9 +24,12 @@ def lexicon_collection(request, project_map_id):
     ser = LexiconEntrySerializer(data=request.data)
     if not ser.is_valid():
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
-    entry, _ = LexiconEntry.objects.get_or_create(
-        project_map=pm, term=ser.validated_data["term"]
-    )
+    term = ser.validated_data["term"]
+    # Case-insensitive: re-adding "OSV" after "osv" already exists updates the
+    # existing row instead of creating a near-duplicate glossary entry.
+    entry = pm.lexicon_entries.filter(term__iexact=term).first()
+    if entry is None:
+        entry = LexiconEntry(project_map=pm, term=term)
     entry.definition = ser.validated_data["definition"]
     entry.save()
     return Response({"ok": True})
@@ -42,9 +45,8 @@ def delete_lexicon_entry(request, project_map_id, term):
         return Response(status=status.HTTP_404_NOT_FOUND)
     if err := _require_owner(request, pm):
         return err
-    try:
-        entry = LexiconEntry.objects.get(project_map=pm, term=term)
-    except LexiconEntry.DoesNotExist:
+    entry = pm.lexicon_entries.filter(term__iexact=term).first()
+    if entry is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
     entry.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)

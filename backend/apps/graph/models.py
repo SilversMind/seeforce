@@ -114,7 +114,10 @@ def sync_lexicon_entries(project_map: "ProjectMap", workspace: dict) -> None:
         definition = entry.get("definition")
         if not term or not definition:
             continue
-        LexiconEntry.objects.update_or_create(
-            project_map=project_map, term=term,
-            defaults={"definition": definition},
-        )
+        # Case-insensitive: don't create a second entry for "OSV" if "osv"
+        # already exists (e.g. one added manually, one from a re-scan).
+        row = project_map.lexicon_entries.filter(term__iexact=term).first()
+        if row is None:
+            row = LexiconEntry(project_map=project_map, term=term)
+        row.definition = definition
+        row.save()
