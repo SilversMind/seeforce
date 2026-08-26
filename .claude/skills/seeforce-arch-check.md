@@ -8,13 +8,13 @@ triggers:
 
 ## When to invoke
 
-Invoke this skill automatically after any implementation session that:
-- Creates a new file
-- Adds a new route, endpoint, service, or consumer
-- Introduces a new external dependency (package, API, protocol)
-- Changes how containers communicate
+A Stop hook (`.claude/hooks/arch-sync-check.sh`) runs automatically at the end of every turn and does a cheap, no-LLM heuristic pre-filter on uncommitted source files (new file, new import, new class/function/component, new route). When it finds a match, it injects a reminder into context — **invoke this skill when that reminder appears**, before considering the task done.
 
-Do NOT invoke for: pure UI styling, test-only changes, config tweaks with no new responsibilities.
+The hook is deliberately dumb (regex/diff-stat only, same de-dup per unchanged diff so it doesn't nag every turn) — it can't tell whether a change is *semantically* significant, only whether it *looks* structurally significant. This skill is where the actual judgment happens: comparing current annotations against what the code now does.
+
+You can also invoke it manually — e.g. after a session that predates this hook, after hand-edited code the hook never saw, or when the user asks to check architecture directly.
+
+Do NOT invoke for: pure UI styling, test-only changes, config tweaks with no new responsibilities — same exclusion list as `CLAUDE.md`'s "before any important change" rule.
 
 ## Steps
 
