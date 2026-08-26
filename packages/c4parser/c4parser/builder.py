@@ -1,7 +1,7 @@
 """
 @c3:component
 name: Workspace Builder
-container: Backend
+container: Annotation Parser
 description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id (validating level-mixing, ambiguity, and orphans along the way), and assembles the final workspace.json structure — systems, containers, components, relationships, and views.
 """
 import re

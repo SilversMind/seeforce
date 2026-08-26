@@ -1,7 +1,7 @@
 """
 @c3:component
 name: Annotation Scanner
-container: Backend
+container: Annotation Parser
 description: Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.
 """
 import fnmatch

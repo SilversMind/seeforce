@@ -172,27 +172,16 @@
                 "description": "Delegates user authentication via GitHub OAuth 2.0 (django-allauth)",
                 "technology": "HTTPS",
                 "tags": "Relationship"
+              },
+              {
+                "id": "rel-seeforce-backend-seeforce-annotation-parser",
+                "destinationId": "seeforce-annotation-parser",
+                "description": "parses and builds workspace.json when scanning a repo locally via manage.py scan",
+                "technology": "",
+                "tags": "Relationship"
               }
             ],
             "components": [
-              {
-                "id": "seeforce-backend-annotation-scanner",
-                "name": "Annotation Scanner",
-                "description": "Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.",
-                "technology": "",
-                "source_file": "packages/c4parser/c4parser/scanner.py",
-                "tags": "Element,Component",
-                "relationships": []
-              },
-              {
-                "id": "seeforce-backend-workspace-builder",
-                "name": "Workspace Builder",
-                "description": "Takes the flat element list from Annotation Scanner, resolves every \"uses:\" reference into a concrete element id (validating level-mixing, ambiguity, and orphans along the way), and assembles the final workspace.json structure — systems, containers, components, relationships, and views.",
-                "technology": "",
-                "source_file": "packages/c4parser/c4parser/builder.py",
-                "tags": "Element,Component",
-                "relationships": []
-              },
               {
                 "id": "seeforce-backend-graph-transformer",
                 "name": "Graph transformer",
@@ -211,15 +200,15 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-backend-annotation-scanner",
-                    "destinationId": "seeforce-backend-annotation-scanner",
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-annotation-scanner",
+                    "destinationId": "seeforce-annotation-parser-annotation-scanner",
                     "description": "parses annotation blocks from the target repo path(s)",
                     "technology": "",
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-backend-workspace-builder",
-                    "destinationId": "seeforce-backend-workspace-builder",
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-workspace-builder",
+                    "destinationId": "seeforce-annotation-parser-workspace-builder",
                     "description": "resolves relationships and assembles the parsed elements into workspace.json",
                     "technology": "",
                     "tags": "Relationship"
@@ -301,6 +290,35 @@
             ]
           },
           {
+            "id": "seeforce-annotation-parser",
+            "name": "Annotation Parser",
+            "description": "Standalone library (published as seeforce-c4parser) that parses @c1/@c2/@c3/@lexicon annotations from a repo's source files and assembles the resulting workspace.json. Independently packaged and shared by the Backend and the SeeForce CLI, not owned by either.",
+            "technology": "Python",
+            "source_file": "packages/c4parser/c4parser/__init__.py",
+            "tags": "Element,Container",
+            "relationships": [],
+            "components": [
+              {
+                "id": "seeforce-annotation-parser-annotation-scanner",
+                "name": "Annotation Scanner",
+                "description": "Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.",
+                "technology": "",
+                "source_file": "packages/c4parser/c4parser/scanner.py",
+                "tags": "Element,Component",
+                "relationships": []
+              },
+              {
+                "id": "seeforce-annotation-parser-workspace-builder",
+                "name": "Workspace Builder",
+                "description": "Takes the flat element list from Annotation Scanner, resolves every \"uses:\" reference into a concrete element id (validating level-mixing, ambiguity, and orphans along the way), and assembles the final workspace.json structure — systems, containers, components, relationships, and views.",
+                "technology": "",
+                "source_file": "packages/c4parser/c4parser/builder.py",
+                "tags": "Element,Component",
+                "relationships": []
+              }
+            ]
+          },
+          {
             "id": "seeforce-database",
             "name": "Database",
             "description": "Store graph data",
@@ -361,6 +379,10 @@
       {
         "key": "Components-seeforce-backend",
         "containerId": "seeforce-backend"
+      },
+      {
+        "key": "Components-seeforce-annotation-parser",
+        "containerId": "seeforce-annotation-parser"
       }
     ],
     "configuration": {
