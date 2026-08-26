@@ -1,3 +1,13 @@
+/*
+@c3:component
+name: Overlay Editor
+container: Frontend
+description: Sliding detail panel for the selected node or edge — shows name, description, tags, and source-file link; in edit mode, saves overlay edits and manages the lexicon terms relevant to the node's description (add, edit, delete).
+uses:
+- Lexicon: "reads the shared glossary via context to find terms relevant to the node being edited"
+- Edit API: "saves node/edge overlay edits and lexicon entry changes"
+  technology: REST
+*/
 import { useState, useEffect } from "react";
 import { mutate } from "swr";
 import { type RFNode, type RFEdge, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
@@ -47,22 +57,43 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
   const [lexTerm, setLexTerm] = useState("");
   const [lexDef, setLexDef] = useState("");
   const [lexSaving, setLexSaving] = useState(false);
+  const [editingLexTerm, setEditingLexTerm] = useState<string | null>(null);
 
   useEffect(() => {
     setEditing(false);
     setLexTerm("");
     setLexDef("");
+    setEditingLexTerm(null);
   }, [target]);
 
+  function startLexEdit(term: string, definition: string) {
+    setEditingLexTerm(term);
+    setLexTerm(term);
+    setLexDef(definition);
+  }
+
+  function cancelLexEdit() {
+    setEditingLexTerm(null);
+    setLexTerm("");
+    setLexDef("");
+  }
+
   async function handleLexiconSave() {
-    if (!lexTerm.trim() || !lexDef.trim()) return;
+    const term = lexTerm.trim();
+    const definition = lexDef.trim();
+    if (!term || !definition) return;
     setLexSaving(true);
     try {
-      await upsertLexiconEntry(projectMapId, lexTerm.trim(), lexDef.trim());
+      // Renaming a term is a delete + recreate — the backend keys entries by term.
+      if (editingLexTerm && editingLexTerm.toLowerCase() !== term.toLowerCase()) {
+        await deleteLexiconEntry(projectMapId, editingLexTerm);
+      }
+      await upsertLexiconEntry(projectMapId, term, definition);
       await mutate(`/api/graph/${projectMapId}/lexicon/`);
       onLexiconSaved();
       setLexTerm("");
       setLexDef("");
+      setEditingLexTerm(null);
     } finally {
       setLexSaving(false);
     }
@@ -73,6 +104,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
       await deleteLexiconEntry(projectMapId, term);
       await mutate(`/api/graph/${projectMapId}/lexicon/`);
       onLexiconSaved();
+      if (editingLexTerm?.toLowerCase() === term.toLowerCase()) cancelLexEdit();
     } catch (err) {
       console.error("Failed to delete lexicon entry:", err);
     }
@@ -308,14 +340,17 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                       {relevant.map((e) => (
                         <div
                           key={e.term}
+                          onClick={() => startLexEdit(e.term, e.definition)}
+                          title="Click to edit"
                           style={{
                             display: "flex",
                             alignItems: "flex-start",
                             gap: 6,
                             padding: "4px 8px",
-                            background: "var(--c4-sidebar-input-bg)",
+                            background: editingLexTerm?.toLowerCase() === e.term.toLowerCase() ? "var(--c4-sidebar-border)" : "var(--c4-sidebar-input-bg)",
                             borderRadius: 4,
                             border: "1px solid var(--c4-sidebar-border)",
+                            cursor: "pointer",
                           }}
                         >
                           <span style={{ fontWeight: 600, color: "var(--c4-system-border)", minWidth: 60, fontSize: 12 }}>
@@ -325,7 +360,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                             {e.definition}
                           </span>
                           <button
-                            onClick={() => handleLexiconDelete(e.term)}
+                            onClick={(ev) => { ev.stopPropagation(); handleLexiconDelete(e.term); }}
                             style={{ background: "none", border: "none", color: "var(--c4-sidebar-muted)", cursor: "pointer", fontSize: 14, lineHeight: 1, padding: 0 }}
                           >
                             ×
@@ -348,24 +383,34 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                   rows={2}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", marginBottom: 6 }}
                 />
-                <button
-                  onClick={handleLexiconSave}
-                  disabled={lexSaving || !lexTerm.trim() || !lexDef.trim()}
-                  style={{
-                    width: "100%",
-                    background: "#3b82f6",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 0",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: lexSaving || !lexTerm.trim() || !lexDef.trim() ? "not-allowed" : "pointer",
-                    opacity: lexSaving || !lexTerm.trim() || !lexDef.trim() ? 0.6 : 1,
-                  }}
-                >
-                  {lexSaving ? "Saving…" : "Add to lexique"}
-                </button>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    onClick={handleLexiconSave}
+                    disabled={lexSaving || !lexTerm.trim() || !lexDef.trim()}
+                    style={{
+                      flex: 1,
+                      background: "#3b82f6",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "6px 0",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: lexSaving || !lexTerm.trim() || !lexDef.trim() ? "not-allowed" : "pointer",
+                      opacity: lexSaving || !lexTerm.trim() || !lexDef.trim() ? 0.6 : 1,
+                    }}
+                  >
+                    {lexSaving ? "Saving…" : editingLexTerm ? "Update term" : "Add to lexique"}
+                  </button>
+                  {editingLexTerm && (
+                    <button
+                      onClick={cancelLexEdit}
+                      style={{ background: "none", color: "var(--c4-sidebar-muted)", border: "1px solid var(--c4-sidebar-border)", borderRadius: 6, padding: "6px 10px", fontSize: 12, cursor: "pointer" }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </Section>
             )}
           </>
