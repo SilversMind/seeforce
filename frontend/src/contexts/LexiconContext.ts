@@ -2,7 +2,7 @@
 @c3:component
 name: Lexicon
 container: Frontend
-description: Provides per-project glossary to the graph — loads terms via SWR, distributes them through React context, highlights matching terms in blue within node descriptions, and shows the definition in a slide-up bottom panel on click.
+description: Provides per-project glossary to the graph — loads terms via SWR, distributes them through React context, highlights matching terms in blue within node descriptions and edge relationship labels, and shows the definition in a slide-up bottom panel on click.
 uses:
 - Edit API: "fetches and mutates lexicon entries"
   technology: REST

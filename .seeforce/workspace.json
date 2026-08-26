@@ -38,7 +38,7 @@
               {
                 "id": "seeforce-frontend-lexicon",
                 "name": "Lexicon",
-                "description": "Provides per-project glossary to the graph — loads terms via SWR, distributes them through React context, highlights matching terms in blue within node descriptions, and shows the definition in a slide-up bottom panel on click.",
+                "description": "Provides per-project glossary to the graph — loads terms via SWR, distributes them through React context, highlights matching terms in blue within node descriptions and edge relationship labels, and shows the definition in a slide-up bottom panel on click.",
                 "technology": "",
                 "source_file": "frontend/src/contexts/LexiconContext.ts",
                 "tags": "Element,Component",
@@ -143,11 +143,19 @@
               {
                 "id": "seeforce-frontend-edge-manager",
                 "name": "Edge manager",
-                "description": "Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node",
+                "description": "Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node.",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/edges/FloatingEdge.tsx",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-edge-manager-seeforce-frontend-lexicon",
+                    "destinationId": "seeforce-frontend-lexicon",
+                    "description": "highlights and links glossary terms found in edge relationship labels, same as node descriptions",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
               }
             ]
           },

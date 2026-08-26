@@ -2,11 +2,14 @@
 @c3:component
 name: Edge manager
 container: Frontend
-description: Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node
+description: Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node.
+uses:
+- Lexicon: "highlights and links glossary terms found in edge relationship labels, same as node descriptions"
 */
 import { useStore, getBezierPath, Position, EdgeLabelRenderer, BaseEdge, type EdgeProps } from "@xyflow/react";
 import type { InternalNode } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
+import { DescriptionWithHighlights } from "../nodes/DescriptionWithHighlights";
 
 function getCenter(node: InternalNode) {
   const pos = node.internals.positionAbsolute;
@@ -60,7 +63,8 @@ export function FloatingEdge({ id, source, target, label, data }: EdgeProps) {
       <BaseEdge id={id} path={edgePath} markerEnd="url(#c4-arrow)" style={{ stroke: "var(--c4-edge-stroke)", strokeWidth: 1.5 }} />
       {displayLabel && (
         <EdgeLabelRenderer>
-          <div
+          <DescriptionWithHighlights
+            text={displayLabel}
             style={{
               position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
@@ -69,9 +73,7 @@ export function FloatingEdge({ id, source, target, label, data }: EdgeProps) {
               padding: "1px 4px",
               pointerEvents: "all",
             }}
-          >
-            {displayLabel}
-          </div>
+          />
         </EdgeLabelRenderer>
       )}
     </>
