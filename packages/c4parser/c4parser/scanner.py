@@ -1,3 +1,9 @@
+"""
+@c3:component
+name: Annotation Scanner
+container: Backend
+description: Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.
+"""
 import fnmatch
 import os
 import re
@@ -23,7 +29,7 @@ _SKIP_KINDS = {("1", "person")}
 _DEFAULT_EXTENSIONS = {".py", ".java", ".ts", ".tsx", ".js", ".go", ".cs", ".rb", ".rs"}
 _DEFAULT_EXCLUDES = {
     "node_modules", "__pycache__", ".git", "dist", "build", "vendor",
-    ".venv", "venv", ".env", "tests",
+    ".venv", "venv", ".env", "tests", ".claude",
 }
 
 

@@ -7,6 +7,7 @@ description: Display architecture and manage user interaction such as drilling d
 uses:
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"
 - Edge manager: "Renders directional relationship edges between nodes"
+- Overlay Editor: "opens the detail/edit panel for the clicked node or edge"
 */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";

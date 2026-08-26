@@ -1,3 +1,13 @@
+"""
+@c3:component
+name: Local Scan Command
+container: Backend
+description: The manage.py scan command — scans one or more local repo paths and upserts the resulting ProjectMap. This is the direct-CLI ingestion path; it does not go through GitHub, so github_repo/github_branch are left unset.
+uses:
+- Annotation Scanner: "parses annotation blocks from the target repo path(s)"
+- Workspace Builder: "resolves relationships and assembles the parsed elements into workspace.json"
+- Database: "creates or updates the ProjectMap row for the scanned project"
+"""
 import json
 import uuid
 from pathlib import Path

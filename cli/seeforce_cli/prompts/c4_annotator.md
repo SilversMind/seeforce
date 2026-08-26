@@ -101,6 +101,8 @@ Use the comment style appropriate for the language:
 - Python: `""" ... """`
 - Java, TypeScript, JS, Go, C#, Rust, C/C++: `/* ... */`
 
+Every field value is parsed as YAML — never start a `description:`/`term:`/`definition:` value with a `"` character (e.g. `description: "python manage.py scan" — does X`). YAML treats a leading quote as the start of a flow scalar and fails to parse anything after the matching closing quote on the same line. Quoting a command or literal mid-sentence is fine; starting the value with one is not.
+
 ### C1 — System
 ```python
 """

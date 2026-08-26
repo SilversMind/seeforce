@@ -1,10 +1,3 @@
-"""
-@c3:component
-name: Architecture Scanner
-container: Backend
-description: Scans source files for C4 annotations and generates workspace.json
-"""
-
 from .builder import build, find_orphans
 from .exceptions import C4ParseError, C4ValidationError
 from .exporter import export_workspace

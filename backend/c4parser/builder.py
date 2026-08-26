@@ -1,3 +1,9 @@
+"""
+@c3:component
+name: Workspace Builder
+container: Backend
+description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id (validating level-mixing, ambiguity, and orphans along the way), and assembles the final workspace.json structure — systems, containers, components, relationships, and views.
+"""
 import re
 from .types import C4System, C4Container, C4Component, C4Lexicon, C4Element
 from .exceptions import C4ValidationError

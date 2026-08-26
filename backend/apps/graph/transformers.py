@@ -2,10 +2,7 @@
 @c3:component
 name: Graph transformer
 container: Backend
-description: Convert architecture scan data into graph data usable by ReactFlow
-uses:
-  - Architecture Scanner: "Calls scan() to extract C4 elements from annotated source files"
-
+description: Takes an already-built workspace.json (read from ProjectMap.source_json — never re-parses source files itself) and converts the requested C1/C2/C3 view into ReactFlow-ready nodes and edges, including placeholder nodes for out-of-view relationship targets.
 """
 
 _GRID_COLS = 4

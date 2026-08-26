@@ -1,5 +1,6 @@
 {
   "name": "SeeForce",
+  "lexicon": [],
   "model": {
     "people": [],
     "softwareSystems": [
@@ -76,6 +77,30 @@
                 ]
               },
               {
+                "id": "seeforce-frontend-overlay-editor",
+                "name": "Overlay Editor",
+                "description": "Sliding detail panel for the selected node or edge — shows name, description, tags, and source-file link; in edit mode, saves overlay edits and manages the lexicon terms relevant to the node's description (add, edit, delete).",
+                "technology": "",
+                "source_file": "frontend/src/components/Graph/OverlaySidebar.tsx",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-overlay-editor-seeforce-frontend-lexicon",
+                    "destinationId": "seeforce-frontend-lexicon",
+                    "description": "reads the shared glossary via context to find terms relevant to the node being edited",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-overlay-editor-seeforce-backend-edit-api",
+                    "destinationId": "seeforce-backend-edit-api",
+                    "description": "saves node/edge overlay edits and lexicon entry changes",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
                 "id": "seeforce-frontend-architecture-visualizer",
                 "name": "Architecture Visualizer",
                 "description": "Display architecture and manage user interaction such as drilling down on specific component",
@@ -94,6 +119,13 @@
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-edge-manager",
                     "destinationId": "seeforce-frontend-edge-manager",
                     "description": "Renders directional relationship edges between nodes",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-overlay-editor",
+                    "destinationId": "seeforce-frontend-overlay-editor",
+                    "description": "opens the detail/edit panel for the clicked node or edge",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -144,26 +176,58 @@
             ],
             "components": [
               {
-                "id": "seeforce-backend-architecture-scanner",
-                "name": "Architecture Scanner",
-                "description": "Scans source files for C4 annotations and generates workspace.json",
+                "id": "seeforce-backend-annotation-scanner",
+                "name": "Annotation Scanner",
+                "description": "Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.",
                 "technology": "",
-                "source_file": "backend/c4parser/__init__.py",
+                "source_file": "packages/c4parser/c4parser/scanner.py",
+                "tags": "Element,Component",
+                "relationships": []
+              },
+              {
+                "id": "seeforce-backend-workspace-builder",
+                "name": "Workspace Builder",
+                "description": "Takes the flat element list from Annotation Scanner, resolves every \"uses:\" reference into a concrete element id (validating level-mixing, ambiguity, and orphans along the way), and assembles the final workspace.json structure — systems, containers, components, relationships, and views.",
+                "technology": "",
+                "source_file": "packages/c4parser/c4parser/builder.py",
                 "tags": "Element,Component",
                 "relationships": []
               },
               {
                 "id": "seeforce-backend-graph-transformer",
                 "name": "Graph transformer",
-                "description": "Convert architecture scan data into graph data usable by ReactFlow",
+                "description": "Takes an already-built workspace.json (read from ProjectMap.source_json — never re-parses source files itself) and converts the requested C1/C2/C3 view into ReactFlow-ready nodes and edges, including placeholder nodes for out-of-view relationship targets.",
                 "technology": "",
                 "source_file": "backend/apps/graph/transformers.py",
                 "tags": "Element,Component",
+                "relationships": []
+              },
+              {
+                "id": "seeforce-backend-local-scan-command",
+                "name": "Local Scan Command",
+                "description": "The manage.py scan command — scans one or more local repo paths and upserts the resulting ProjectMap. This is the direct-CLI ingestion path; it does not go through GitHub, so github_repo/github_branch are left unset.",
+                "technology": "",
+                "source_file": "backend/apps/graph/management/commands/scan.py",
+                "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-backend-graph-transformer-seeforce-backend-architecture-scanner",
-                    "destinationId": "seeforce-backend-architecture-scanner",
-                    "description": "Calls scan() to extract C4 elements from annotated source files",
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-backend-annotation-scanner",
+                    "destinationId": "seeforce-backend-annotation-scanner",
+                    "description": "parses annotation blocks from the target repo path(s)",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-backend-workspace-builder",
+                    "destinationId": "seeforce-backend-workspace-builder",
+                    "description": "resolves relationships and assembles the parsed elements into workspace.json",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-database",
+                    "destinationId": "seeforce-database",
+                    "description": "creates or updates the ProjectMap row for the scanned project",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -189,7 +253,7 @@
               {
                 "id": "seeforce-backend-edit-api",
                 "name": "Edit API",
-                "description": "Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete).",
+                "description": "Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level.",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/graph.py",
                 "tags": "Element,Component",
@@ -197,7 +261,14 @@
                   {
                     "id": "rel-seeforce-backend-edit-api-seeforce-database",
                     "destinationId": "seeforce-database",
-                    "description": "reads and writes NodeOverlay, EdgeOverlay, and LexiconEntry rows",
+                    "description": "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-edit-api-seeforce-backend-graph-transformer",
+                    "destinationId": "seeforce-backend-graph-transformer",
+                    "description": "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -206,7 +277,7 @@
               {
                 "id": "seeforce-backend-github-import",
                 "name": "GitHub Import",
-                "description": "Imports and re-syncs project architecture from GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using the user's stored OAuth token and stores it as a ProjectMap; also resolves source file paths to clickable GitHub blob links.",
+                "description": "Imports, re-syncs, and links project architecture to GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using the user's stored OAuth token and stores it as a ProjectMap. The clickable GitHub blob links themselves are built client-side from github_repo/github_branch, not here.",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
                 "tags": "Element,Component",
@@ -216,6 +287,13 @@
                     "destinationId": "github",
                     "description": "Fetches .seeforce/workspace.json via GitHub Contents API using stored OAuth token",
                     "technology": "HTTPS",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-github-import-seeforce-database",
+                    "destinationId": "seeforce-database",
+                    "description": "creates or updates the ProjectMap row for the imported, synced, or linked repo",
+                    "technology": "",
                     "tags": "Relationship"
                   }
                 ]
