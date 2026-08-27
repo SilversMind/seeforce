@@ -59,6 +59,22 @@ def find_orphans(workspace: dict) -> list[str]:
     return warnings
 
 
+def find_empty_containers(workspace: dict) -> list[str]:
+    """Return warnings for C2 containers with zero C3 components. A container
+    worth its own @c2 is worth breaking into at least one @c3 — even a single
+    component that just restates the container in more detail. If there's
+    nothing to say at the component level, the container likely shouldn't
+    have been split out as its own @c2 in the first place."""
+    warnings: list[str] = []
+    for sys_node in workspace["model"]["softwareSystems"]:
+        if "External" in sys_node.get("tags", ""):
+            continue
+        for cont in sys_node.get("containers", []):
+            if not cont.get("components"):
+                warnings.append(f"Container '{cont['name']}' has no components — every @c2 needs at least one @c3")
+    return warnings
+
+
 def build(elements: list[C4Element]) -> dict:
     # --- Phase 1: Collect elements ---
     # Systems keyed by name

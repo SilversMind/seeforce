@@ -12,13 +12,22 @@ from c4parser.exceptions import C4ParseError, C4ValidationError
 @click.argument("path", default=".", type=click.Path(exists=True, file_okay=False))
 @click.option("--dry-run", is_flag=True, help="Print workspace JSON without writing file.")
 @click.option("--output", "-o", default=None, help="Output file path (default: <path>/workspace.json).")
-def scan(path: str, dry_run: bool, output: Optional[str]):
+@click.option(
+    "--ext", "-e", "extra_extensions", multiple=True,
+    help=f"Additional file extension to scan, e.g. -e .mjs (defaults: {', '.join(sorted(c4parser.DEFAULT_EXTENSIONS))}).",
+)
+def scan(path: str, dry_run: bool, output: Optional[str], extra_extensions: tuple[str, ...]):
     """Scan PATH for C4 annotations and validate the workspace."""
     root = Path(path).resolve()
 
+    extensions = None
+    if extra_extensions:
+        normalized = {e if e.startswith(".") else f".{e}" for e in extra_extensions}
+        extensions = list(c4parser.DEFAULT_EXTENSIONS | normalized)
+
     click.echo(f"Scanning {root}...")
     try:
-        elements = c4parser.scan(str(root))
+        elements = c4parser.scan(str(root), extensions=extensions)
     except C4ParseError as exc:
         raise click.ClickException(str(exc))
 
@@ -47,6 +56,8 @@ def scan(path: str, dry_run: bool, output: Optional[str]):
     )
 
     for warning in c4parser.find_orphans(workspace):
+        click.echo(f"Warning: {warning}", err=True)
+    for warning in c4parser.find_empty_containers(workspace):
         click.echo(f"Warning: {warning}", err=True)
     click.echo(f"Workspace: {workspace['name']}")
 

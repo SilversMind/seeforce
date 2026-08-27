@@ -5,16 +5,18 @@ system: SeeForce
 technology: Python
 description: Standalone library (published as seeforce-c4parser) that parses @c1/@c2/@c3/@lexicon annotations from a repo's source files and assembles the resulting workspace.json. Independently packaged and shared by the Backend and the SeeForce CLI, not owned by either.
 """
-from .builder import build, find_orphans
+from .builder import build, find_orphans, find_empty_containers
 from .exceptions import C4ParseError, C4ValidationError
 from .exporter import export_workspace
-from .scanner import scan
+from .scanner import scan, DEFAULT_EXTENSIONS
 from .types import C4Component, C4Container, C4System
 
 __all__ = [
     "scan",
+    "DEFAULT_EXTENSIONS",
     "build",
     "find_orphans",
+    "find_empty_containers",
     "export_workspace",
     "C4System",
     "C4Container",

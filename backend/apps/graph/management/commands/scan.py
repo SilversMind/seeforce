@@ -15,7 +15,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.graph.models import ProjectMap, sync_lexicon_entries
-from c4parser import scan, build, export_workspace, find_orphans
+from c4parser import scan, build, export_workspace, find_orphans, find_empty_containers
 from c4parser.exceptions import C4ParseError, C4ValidationError
 
 _SEEFORCE_DIR = ".seeforce"
@@ -109,6 +109,8 @@ class Command(BaseCommand):
             )
         )
         for warning in find_orphans(workspace):
+            self.stderr.write(self.style.WARNING(warning))
+        for warning in find_empty_containers(workspace):
             self.stderr.write(self.style.WARNING(warning))
 
         source_json = json.loads(json_str)

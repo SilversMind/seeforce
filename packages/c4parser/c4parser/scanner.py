@@ -26,7 +26,8 @@ _EXPECTED_KIND = {"1": "system", "2": "container", "3": "component"}
 _VALID_KINDS = {"1": {"system", "person", "external"}, "2": {"container"}, "3": {"component"}}
 _SKIP_KINDS = {("1", "person")}
 
-_DEFAULT_EXTENSIONS = {".py", ".java", ".ts", ".tsx", ".js", ".go", ".cs", ".rb", ".rs"}
+_DEFAULT_EXTENSIONS = {".py", ".java", ".ts", ".tsx", ".js", ".mjs", ".go", ".cs", ".rb", ".rs"}
+DEFAULT_EXTENSIONS = _DEFAULT_EXTENSIONS
 _DEFAULT_EXCLUDES = {
     "node_modules", "__pycache__", ".git", "dist", "build", "vendor",
     ".venv", "venv", ".env", "tests", ".claude",

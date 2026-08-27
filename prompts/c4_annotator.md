@@ -165,6 +165,9 @@ uses:
 - Every C3 component must have at least one edge (either via its own `uses:` or by being referenced in another component's `uses:`). Orphan components with no edges indicate a missing relationship — find and annotate it.
 - External services mentioned in descriptions must appear as `@c1:external` annotations and be referenced in `uses:` fields, not buried in prose.
 
+**Completeness rule:**
+- Every `@c2:container` you create must have at least one `@c3:component`. This is checked mechanically (`find_empty_containers` — every `seeforce scan` run reports a warning for any container with zero components). If a container is genuinely too light to split into multiple components, write exactly one `@c3` that's just a more detailed restatement of the container's own responsibility — don't leave it componentless. The corollary is upstream, not here: decide at C2-mapping time (step 3) whether something deserves its own container at all. Don't create a `@c2:container` for something trivial in the first place; but once you've decided it earns one, it must have a `@c3`.
+
 ---
 
 ## Edge Technology Field
@@ -204,9 +207,9 @@ Follow these steps in order:
 2. **Identify the system** — name, purpose, tech stack, user roles (persons), external services
 3. **Map C2 containers** — apply the type-specific C2 definition above; list them before writing any annotation
 4. **Identify persons and externals** — annotate all person roles and external services at C1
-5. **For each C2 container**: read its source directory and entry points — identify C3 component boundaries (skip if < 3 concerns)
+5. **For each C2 container**: read its source directory and entry points, and identify C3 component boundaries. Every container gets at least one C3 — if it's genuinely too light to split into multiple, write one C3 that restates it in more detail rather than leaving it empty. (If a container would only ever justify a single, near-duplicate C3, that's a signal it shouldn't have been its own C2 — reconsider at step 3 instead of forcing a placeholder component here.)
 6. **Infer relations** from imports, function calls, channel sends, HTTP clients, DB queries — runtime flow only
-7. **Verify connectivity**: every C3 must have at least one edge; every external system must have at least one `uses:` pointing to it
+7. **Verify connectivity and completeness**: every C3 must have at least one edge; every C2 must have at least one C3; every external system must have at least one `uses:` pointing to it
 8. **Write annotations** — one annotation per architectural element, no duplicates
 
 ---
