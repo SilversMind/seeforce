@@ -1,7 +1,6 @@
 """
-@c1:system
+@c1:external
 name: GitHub
-type: external
 description: Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph
 """
 
