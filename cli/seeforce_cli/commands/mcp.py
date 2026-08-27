@@ -35,6 +35,61 @@ def _save_claude_json(path: Path, data: dict) -> None:
         raise
 
 
+_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+_HOOK_COMMAND = "bash .claude/hooks/arch-sync-check.sh"
+_CLAUDE_MD_MARKER = "<!-- seeforce:arch-sync-section -->"
+
+
+def _install_arch_sync(proj: Path) -> None:
+    """Write the architecture-sync-check hook, skill, and CLAUDE.md rule into
+    the target repo, so ongoing code generation there keeps C4 annotations in
+    sync — not just the one-time annotate_codebase pass."""
+    # Hook script — managed file, always overwritten to match the shipped version.
+    hooks_dir = proj / ".claude" / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    hook_dest = hooks_dir / "arch-sync-check.sh"
+    hook_dest.write_text((_TEMPLATES_DIR / "arch-sync-check.sh").read_text())
+    hook_dest.chmod(0o755)
+    click.echo(f"Written {hook_dest.relative_to(proj)}")
+
+    # Skill file — managed file, always overwritten.
+    skills_dir = proj / ".claude" / "skills"
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    skill_dest = skills_dir / "seeforce-arch-check.md"
+    skill_dest.write_text((_TEMPLATES_DIR / "seeforce-arch-check.md").read_text())
+    click.echo(f"Written {skill_dest.relative_to(proj)}")
+
+    # settings.json — merge the Stop hook entry, never overwrite existing config.
+    settings_path = proj / ".claude" / "settings.json"
+    settings = _load_claude_json(settings_path)
+    stop_hooks = settings.setdefault("hooks", {}).setdefault("Stop", [])
+    already_wired = any(
+        h.get("command") == _HOOK_COMMAND
+        for entry in stop_hooks
+        for h in entry.get("hooks", [])
+    )
+    if not already_wired:
+        stop_hooks.append({"hooks": [{"type": "command", "command": _HOOK_COMMAND, "timeout": 15}]})
+        _save_claude_json(settings_path, settings)
+        click.echo(f"Wired Stop hook in {settings_path.relative_to(proj)}")
+    else:
+        click.echo(f"Stop hook already wired in {settings_path.relative_to(proj)}")
+
+    # CLAUDE.md — append our section once; never touch existing content.
+    claude_md_path = proj / "CLAUDE.md"
+    snippet = (_TEMPLATES_DIR / "claude-md-snippet.md").read_text()
+    if claude_md_path.exists():
+        existing = claude_md_path.read_text()
+        if _CLAUDE_MD_MARKER in existing:
+            click.echo(f"{claude_md_path.relative_to(proj)} already has the architecture-sync section")
+        else:
+            claude_md_path.write_text(existing.rstrip("\n") + "\n\n" + snippet)
+            click.echo(f"Appended architecture-sync section to {claude_md_path.relative_to(proj)}")
+    else:
+        claude_md_path.write_text(snippet)
+        click.echo(f"Created {claude_md_path.relative_to(proj)}")
+
+
 @click.group()
 def mcp():
     """Manage SeeForce MCP server integration."""
@@ -42,10 +97,12 @@ def mcp():
 
 @mcp.command("install")
 @click.option("--project-path", default=".", type=click.Path(exists=True, file_okay=False),
-              help="Project repo path — .c4project written here if absent.")
+              help="Project repo path — .c4project and the architecture-sync setup are written here.")
 @click.option("--skip-project-id", is_flag=True, hidden=True,
               help="Skip .c4project fetch (for tests).")
-def install(project_path: str, skip_project_id: bool):
+@click.option("--skip-claude-setup", is_flag=True,
+              help="Don't write the architecture-sync hook/skill/CLAUDE.md rule into the project.")
+def install(project_path: str, skip_project_id: bool, skip_claude_setup: bool):
     """Install SeeForce MCP server into ~/.claude.json."""
     cfg = load_config()
     if not cfg["token"]:
@@ -70,8 +127,12 @@ def install(project_path: str, skip_project_id: bool):
     _save_claude_json(claude_path, data)
     click.echo(f"Written MCP entry 'seeforce' to {claude_path}")
 
+    proj = Path(project_path).resolve()
+
+    if not skip_claude_setup:
+        _install_arch_sync(proj)
+
     if not skip_project_id:
-        proj = Path(project_path).resolve()
         c4file = proj / ".c4project"
         if c4file.exists():
             click.echo(f".c4project already exists: {c4file.read_text().strip()}")
