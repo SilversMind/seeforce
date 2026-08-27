@@ -91,8 +91,8 @@ export function GraphView() {
   const [shareOpen, setShareOpen] = useState(false);
 
   const { data: meta } = useSWR(
-    !isNaN(projectMapId) ? projectMapId : null,
-    fetchProjectMap,
+    !isNaN(projectMapId) ? [projectMapId] : null,
+    ([projectMapId]) => fetchProjectMap(projectMapId),
   );
 
   useEffect(() => {
