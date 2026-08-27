@@ -3,6 +3,9 @@
 name: Node manager
 container: Frontend
 description: Handles node management
+uses:
+- Lexicon: "highlights and links glossary terms found in node description"
+
 */
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";

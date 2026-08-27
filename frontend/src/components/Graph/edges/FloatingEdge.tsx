@@ -4,7 +4,7 @@ name: Edge manager
 container: Frontend
 description: Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node.
 uses:
-- Lexicon: "highlights and links glossary terms found in edge relationship labels, same as node descriptions"
+- Lexicon: "highlights and links glossary terms found in edge relationship labels"
 */
 import { useState } from "react";
 import { useStore, getBezierPath, Position, EdgeLabelRenderer, BaseEdge, type EdgeProps } from "@xyflow/react";

@@ -138,7 +138,15 @@
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/nodes/ComponentNode.tsx",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-node-manager-seeforce-frontend-lexicon",
+                    "destinationId": "seeforce-frontend-lexicon",
+                    "description": "highlights and links glossary terms found in node description",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
               },
               {
                 "id": "seeforce-frontend-edge-manager",
@@ -151,7 +159,7 @@
                   {
                     "id": "rel-seeforce-frontend-edge-manager-seeforce-frontend-lexicon",
                     "destinationId": "seeforce-frontend-lexicon",
-                    "description": "highlights and links glossary terms found in edge relationship labels, same as node descriptions",
+                    "description": "highlights and links glossary terms found in edge relationship labels",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -360,7 +368,7 @@
         "id": "github",
         "name": "GitHub",
         "description": "Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph",
-        "tags": "Element,Software System",
+        "tags": "Element,Software System,External",
         "relationships": [],
         "containers": []
       }
