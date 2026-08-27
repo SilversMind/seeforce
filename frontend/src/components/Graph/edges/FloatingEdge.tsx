@@ -6,6 +6,7 @@ description: Renders directional relationship edges between nodes using floating
 uses:
 - Lexicon: "highlights and links glossary terms found in edge relationship labels, same as node descriptions"
 */
+import { useState } from "react";
 import { useStore, getBezierPath, Position, EdgeLabelRenderer, BaseEdge, type EdgeProps } from "@xyflow/react";
 import type { InternalNode } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
@@ -38,10 +39,11 @@ function getBorderIntersection(node: InternalNode, toward: { x: number; y: numbe
   return { x: center.x + dx * scale, y: center.y + dy * scale, position };
 }
 
-export function FloatingEdge({ id, source, target, label, data }: EdgeProps) {
+export function FloatingEdge({ id, source, target, label, data, selected }: EdgeProps) {
   const sourceNode = useStore((s) => s.nodeLookup.get(source));
   const targetNode = useStore((s) => s.nodeLookup.get(target));
   const mode = useGraphMode();
+  const [hovered, setHovered] = useState(false);
 
   if (!sourceNode || !targetNode) return null;
 
@@ -60,20 +62,45 @@ export function FloatingEdge({ id, source, target, label, data }: EdgeProps) {
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} markerEnd="url(#c4-arrow)" style={{ stroke: "var(--c4-edge-stroke)", strokeWidth: 1.5 }} />
+      {/* Wider transparent path so hover isn't limited to the 1.5px visible stroke */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={16}
+        style={{ pointerEvents: "stroke", cursor: "pointer" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      />
+      {/* interactionWidth=0: BaseEdge's own invisible hit-path would otherwise
+          paint on top of ours and swallow the hover events before they reach it. */}
+      <BaseEdge id={id} path={edgePath} markerEnd="url(#c4-arrow)" interactionWidth={0} style={{ stroke: "var(--c4-edge-stroke)", strokeWidth: 1.5 }} />
       {displayLabel && (
         <EdgeLabelRenderer>
-          <DescriptionWithHighlights
-            text={displayLabel}
+          {/* Stays mounted always — toggling mount/unmount on hover makes the
+              label (painted above the SVG) cover the hit-path right under the
+              cursor, firing mouseleave and flickering the label in and out.
+              Toggle visibility/pointerEvents instead so a hidden label never
+              intercepts the pointer. */}
+          <div
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
             style={{
               position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              fontSize: 11,
-              color: "var(--c4-edge-label-text)",
-              padding: "1px 4px",
-              pointerEvents: "all",
+              opacity: hovered || selected ? 1 : 0,
+              pointerEvents: hovered || selected ? "all" : "none",
             }}
-          />
+          >
+            <DescriptionWithHighlights
+              text={displayLabel}
+              style={{
+                fontSize: 11,
+                color: "var(--c4-edge-label-text)",
+                padding: "1px 4px",
+              }}
+            />
+          </div>
         </EdgeLabelRenderer>
       )}
     </>

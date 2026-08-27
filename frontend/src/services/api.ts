@@ -64,6 +64,9 @@ export interface RFNode {
   type: string;
   position: { x: number; y: number };
   data: RFNodeData;
+  // Populated by React Flow itself after a node mounts and its real
+  // content-driven DOM size is measured — absent until then.
+  measured?: { width?: number; height?: number };
 }
 
 export interface RFEdge {

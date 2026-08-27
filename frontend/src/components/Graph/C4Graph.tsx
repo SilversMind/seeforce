@@ -13,12 +13,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
   MiniMap,
   ConnectionMode,
   useNodesState,
   useEdgesState,
+  useNodesInitialized,
   type NodeMouseHandler,
   type EdgeMouseHandler,
   type OnNodeDrag,
@@ -61,6 +63,17 @@ type SidebarTarget =
   | { kind: "edge"; edge: RFEdge };
 
 export function C4Graph() {
+  return (
+    <ReactFlowProvider>
+      <C4GraphInner />
+    </ReactFlowProvider>
+  );
+}
+
+// useNodesInitialized needs a ReactFlowProvider ancestor — it can't be
+// called in the same component that renders <ReactFlow>, since that
+// element's own provider doesn't exist yet when this component's hooks run.
+function C4GraphInner() {
   const viewState = useViewStore();
   const {
     drillToC2,
@@ -82,6 +95,11 @@ export function C4Graph() {
   const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
   const [isLayouting, setIsLayouting] = useState(false);
+  // True while nodes are mounted unpositioned so React Flow can measure
+  // their real content-driven size (long descriptions wrap past the
+  // fallback box) before ELK lays them out with those real dimensions.
+  const [awaitingMeasurement, setAwaitingMeasurement] = useState(false);
+  const nodesInitialized = useNodesInitialized();
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
   const [mode, setMode] = useState<GraphMode>("enriched");
   const [activeTerm, setActiveTerm] = useState<LexiconEntry | null>(null);
@@ -122,6 +140,7 @@ export function C4Graph() {
     if (fetchedNodes.length === 0) {
       setNodes([]);
       setEdges([]);
+      setAwaitingMeasurement(false);
       return;
     }
 
@@ -134,12 +153,26 @@ export function C4Graph() {
       );
       setNodes(positioned);
       setEdges(fetchedEdges);
+      setAwaitingMeasurement(false);
       fitAll();
       return;
     }
 
+    // Mount at a neutral position first — node boxes are content-sized
+    // (minWidth/maxWidth + wrapping description text), so ELK needs their
+    // real measured size, not an estimate, or boxes with long content
+    // overlap their neighbors. The measurement pass below picks up once
+    // React Flow has rendered and measured every node.
     setIsLayouting(true);
-    applyElkLayout(fetchedNodes, fetchedEdges)
+    setNodes(fetchedNodes.map((n) => ({ ...n, position: { x: 0, y: 0 } })));
+    setEdges(fetchedEdges);
+    setAwaitingMeasurement(true);
+  }, [fetchedNodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, fitAll]);
+
+  useEffect(() => {
+    if (!awaitingMeasurement || !nodesInitialized) return;
+
+    applyElkLayout(nodes, fetchedEdges)
       .then(({ nodes: laidOut, edges: routedEdges }) => {
         setNodes(laidOut);
         setEdges(routedEdges);
@@ -152,18 +185,11 @@ export function C4Graph() {
           savePositions(projectMapId, level, positions, systemId, containerId);
         }
       })
-      .finally(() => setIsLayouting(false));
-  }, [
-    fetchedNodes,
-    fetchedEdges,
-    setNodes,
-    setEdges,
-    projectMapId,
-    level,
-    systemId,
-    containerId,
-    fitAll,
-  ]);
+      .finally(() => {
+        setIsLayouting(false);
+        setAwaitingMeasurement(false);
+      });
+  }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, fitAll]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
     if (!projectMapId) return;
