@@ -7,7 +7,7 @@
       {
         "id": "seeforce",
         "name": "SeeForce",
-        "description": "Architecture visualization tool",
+        "description": "Turns C4 annotations embedded in a codebase's own source files into an interactive architecture diagram. Used to answer \"what does this codebase actually do, and how do its pieces talk to each other?\"",
         "tags": "Element,Software System",
         "relationships": [
           {
@@ -162,7 +162,7 @@
           {
             "id": "seeforce-backend",
             "name": "Backend",
-            "description": "Parse codebase, generate architecture data",
+            "description": "Serves the REST API for project CRUD, node/edge overlays, lexicon entries, sharing, and GitHub import/sync/link. Persists everything to the Database and delegates codebase parsing to Annotation Parser — it does not parse source files itself.",
             "technology": "Python Django",
             "source_file": "backend/c4_project/__init__.py",
             "tags": "Element,Container",
