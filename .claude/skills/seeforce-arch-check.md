@@ -1,8 +1,8 @@
 ---
 name: seeforce-arch-check
-description: After implementing a feature or fix in the SeeForce codebase, check whether the changed files justify architecture annotation updates using the SeeForce MCP server.
+description: After implementing a feature or fix in this codebase, check whether the changed files justify architecture annotation updates using the SeeForce MCP server.
 triggers:
-  - after implementing a feature, fix, or refactor that touches backend or frontend source files
+  - after implementing a feature, fix, or refactor that touches source files
   - when the user asks to check architecture or annotations
 ---
 
@@ -36,11 +36,11 @@ Do NOT invoke for: pure UI styling, test-only changes, config tweaks with no new
 
 5. **Ask the user** which proposals to apply.
 
-6. **After applying**, run `just scan` to push updated workspace to backend, then call `mcp__seeforce__get_context` to confirm the change is visible.
+6. **After applying**, run `seeforce scan .` to regenerate and validate workspace.json, then call `mcp__seeforce__get_context` to confirm the change is visible.
 
 ## Rules
 
-- Never annotate config files (settings.py, pyproject.toml, .env, Justfile).
+- Never annotate config files (settings, pyproject.toml/package.json, .env, CI config).
 - Never annotate test files.
 - Never annotate migration files.
 - A new file that fits an existing component's responsibility does NOT need its own annotation — only add one if it introduces a distinct named concern.
