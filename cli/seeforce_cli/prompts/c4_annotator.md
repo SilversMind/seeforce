@@ -103,6 +103,24 @@ Use the comment style appropriate for the language:
 
 Every field value is parsed as YAML — never start a `description:`/`term:`/`definition:` value with a `"` character (e.g. `description: "python manage.py scan" — does X`). YAML treats a leading quote as the start of a flow scalar and fails to parse anything after the matching closing quote on the same line. Quoting a command or literal mid-sentence is fine; starting the value with one is not.
 
+## Description Skeleton
+
+Every description is built from up to three slots. Write them as flowing prose — fold slots into one sentence when they fit naturally — not as a rigid template with visible labels.
+
+**1. Responsibility (required, every level).** One verb-first clause naming the single thing this element is for. No lists, no "and" stacking multiple unrelated jobs — if stating the job needs a list, that's usually a sign the element should be split into separate C2/C3 elements instead.
+
+**2. Context (required at C1/C2; skip at C3 unless the name+container leave real ambiguity).** Why this exists relative to its parent — not what *category* of thing it is (that's the `technology:` field's job), and not a restatement of a fact the graph already shows. Don't write "shared by X and Y" when the diagram already draws incoming edges from both X and Y — the structure says that, the prose doesn't need to repeat it. At C1 specifically, context takes a fixed, separate form: a standalone closing sentence, `Used to answer "..."`, phrased as the question a stakeholder would actually ask (see the C1 rule below) — never fold this one into the responsibility sentence.
+
+**3. Boundary (optional, every level — use sparingly).** Only include it when its absence would let a reader assume something false — a real misattribution risk, not padding. Can be a full trailing sentence, or a short parenthetical when brief (`(never re-parses source files itself)`).
+
+**Never include mechanism, at any level.** *How* something works internally — algorithms, call sequences, specific functions — belongs in the code, not in any annotation. This applies even to the responsibility sentence: "parses annotations embedded in a repo's source files" describes an *approach*; "shows an interactive map of your architecture" describes the *outcome*. Prefer the outcome framing; if a reader wants the *how*, that's what the source-file link is for.
+
+**Entity lists are fine; feature/operation lists are not.** Naming what something *persists* or *owns* — "projects, overlays, lexicon entries, share links" — is one coherent concern and stays fine as a list. Naming the *operations* it performs — "handles CRUD, overlays, lexicon, sharing, and sync" — is the anti-pattern: it's a list of distinct responsibilities in disguise. Each one with real architectural weight should either be its own C3 component, or is already covered by that component's own description one level down — don't pre-summarize it here.
+
+**Length stays 1–2 sentences**, plus the mandatory `Used to answer "..."` sentence at C1 and the optional boundary clause. If it doesn't fit, the description is trying to say too much — cut, don't run on.
+
+Before finalizing any description, check it against this list: does it name a mechanism instead of an outcome? Does it restate the `technology:` field or an obvious category fact? Does it restate something already visible from the element's own edges? Does it enumerate operations instead of entities? Rewrite anything that does.
+
 ### C1 — System
 ```python
 """
@@ -239,7 +257,8 @@ Follow these steps in order:
 6. **Infer relations** from imports, function calls, channel sends, HTTP clients, DB queries — runtime flow only
 7. **Verify connectivity**: every C2 and C3 must have at least one edge in either direction; every external system must have at least one `uses:` pointing to it
 8. **Scan every description you're about to write for jargon** — domain terms, acronyms, internal conventions, protocol/format names a newcomer wouldn't know — and add a `@lexicon` entry for each
-9. **Write annotations** — one annotation per architectural element, no duplicates
+9. **Check every description against the Description Skeleton** (see above) — mechanism instead of outcome, restated `technology:`/graph-visible facts, operation-lists instead of entity-lists, missing or superfluous context/boundary. Rewrite anything that fails before moving on.
+10. **Write annotations** — one annotation per architectural element, no duplicates
 
 ---
 
@@ -247,7 +266,7 @@ Follow these steps in order:
 
 - Output only the modified file contents, one file at a time
 - Do not annotate files that have no architectural significance (migrations, tests, config boilerplate)
-- Descriptions must state *responsibility* ("Processes incoming webhook events from Stripe"), not just restate the name ("Webhook handler")
+- Descriptions must follow the Description Skeleton — responsibility as outcome not mechanism, not just a restated name ("Webhook handler" → "Processes incoming webhook events from Stripe")
 - Keep descriptions to 1–2 sentences maximum, except the `@c1:system` description, which gets one extra sentence for its closing "used to answer ..." question — never omit that question
 - Technology field in C3: omit if it would just repeat the parent C2 language
 - All external services named in descriptions must have corresponding `@c1:external` annotations
