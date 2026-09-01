@@ -66,7 +66,9 @@ Applied after resolution, before the facts leave `static_facts`:
 
 ### MCP exposure
 
-New tool in `mcp/server.py`:
+**Correction (found while planning implementation):** `mcp/server.py` (repo root) and `cli/seeforce_cli/mcp_server.py` are two live, independently-deployed copies, not a canonical + stale pair — the root copy is what this repo's own Claude Code session dogfoods against (wired by direct file path), the CLI copy is what ships inside the `seeforce-cli` pip package and runs for real users via the `seeforce-mcp` entry point. They've already drifted (the CLI copy has a 5th tool, `annotate_codebase`, the root copy lacks). The new tool is added to **both**: `cli/seeforce_cli/mcp_server.py` because that's required for any real user to get this feature, and `mcp/server.py` because otherwise this repo's own dogfooding session — the whole motivating use case — never sees it. Same treatment applies to their `ownership.py`/`mcp_ownership.py` siblings, which stay logic-identical (same function signatures) and only differ in import paths (`from workspace import ...` vs `from seeforce_cli.mcp_workspace import ...`).
+
+New tool (added to both `mcp/server.py` and `cli/seeforce_cli/mcp_server.py`):
 
 ```python
 @server.tool()
@@ -91,10 +93,11 @@ Same call-time, per-file-list shape as `get_architecture_for_files` — no new l
 
 `cli/seeforce_cli/prompts/c4_annotator.md` (the canonical, runtime-used copy — see stale-file note below) Step 6 gets an added paragraph instructing the LLM to cross-check candidate edges from `get_static_facts_for_files` before annotating, treating them as a recall aid and never as sufficient evidence on their own — dynamic wiring must still be searched for independently.
 
-### Known stale/duplicate files (not touched by this change, flagged for later)
+### Known stale/duplicate files
 
-- `backend/c4parser/` is a manually vendored copy of `packages/c4parser/c4parser/` — this change lands only in the canonical `packages/c4parser/c4parser/` location; `backend/c4parser/` is left as-is (already drifting before this change, pre-existing tech debt).
-- `prompts/c4_annotator.md` (repo root) is stale and not used at runtime; the prompt edit in this change targets `cli/seeforce_cli/prompts/c4_annotator.md` only.
+- `backend/c4parser/` is a manually vendored copy of `packages/c4parser/c4parser/` — this change lands only in the canonical `packages/c4parser/c4parser/` location; `backend/c4parser/` is left as-is (already drifting before this change, pre-existing tech debt, not touched by this change).
+- `prompts/c4_annotator.md` (repo root) is stale and not used at runtime; the prompt edit in this change targets `cli/seeforce_cli/prompts/c4_annotator.md` only, not touched by this change.
+- `mcp/server.py` + `mcp/ownership.py` vs `cli/seeforce_cli/mcp_server.py` + `mcp_ownership.py` — both live (dogfooding vs shipped product, see MCP exposure section above) — **this change touches both**, unlike the two duplicates above.
 
 ## Error handling
 
