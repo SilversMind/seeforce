@@ -49,9 +49,11 @@ from pathlib import Path
 import httpx
 from mcp.server.mcpserver import MCPServer
 
+from c4parser.static_facts import extract_facts
 from seeforce_cli.mcp_client import fetch_workspace
 from seeforce_cli.mcp_config import API_URL
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
+from seeforce_cli.mcp_static_facts import collapse_to_components
 from seeforce_cli.mcp_workspace import all_components, all_containers, all_systems, external_systems, format_rel
 
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "c4_annotator.md"
@@ -229,6 +231,45 @@ async def get_architecture_for_files(file_paths: list[str]) -> str:
         sections.append(f"Known external systems in this project: {', '.join(known_externals)}")
 
     return "\n\n".join(sections) if sections else "No files provided."
+
+
+@server.tool()
+async def get_static_facts_for_files(file_paths: list[str]) -> str:
+    """
+    Given a list of files, returns a statically-extracted CANDIDATE signal:
+    imports observed in the code, resolved to components where possible, plus
+    docstrings for any functions/classes defined in those files.
+
+    This is NOT verified truth — it is a recall aid to catch relations you
+    might otherwise miss. It cannot see dynamic wiring (DI, reflection,
+    config-driven routes, message-bus subscriptions), and an edge here may be
+    import-only with no real call site. Confirm each candidate against actual
+    usage in the code before treating it as an architectural relation.
+    """
+    ws = await fetch_workspace()
+    facts = extract_facts(os.getcwd(), file_paths)
+    if not facts:
+        return "Static analysis unavailable (tree-sitter not installed, or no facts extracted for these files)."
+
+    edges = collapse_to_components(facts, ws, infer_owner)
+
+    lines: list[str] = ["⚠ CANDIDATE signal, not verified truth — confirm before annotating.\n"]
+    for file_facts in facts:
+        lines.append(f"=== {file_facts.file} ===")
+        if file_facts.defines:
+            lines.append("Definitions:")
+            for d in file_facts.defines:
+                doc = f" — {d.docstring}" if d.docstring else ""
+                lines.append(f"  {d.kind} {d.name}{doc}")
+        file_edges = [e for e in edges if e["from_file"] == file_facts.file]
+        if file_edges:
+            lines.append("Candidate edges:")
+            for e in file_edges:
+                dest = e["to_component"] or e["to_file"] or e["raw_import"]
+                lines.append(f"  → {dest} (import: {e['raw_import']})")
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 @server.tool()
