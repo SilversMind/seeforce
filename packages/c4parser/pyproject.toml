@@ -11,7 +11,11 @@ dependencies = ["pyyaml>=6.0"]
 
 [project.optional-dependencies]
 static-facts = [
-    "tree-sitter>=0.23",
+    # 0.25 is the floor: backend.py uses tree_sitter.Query + tree_sitter.QueryCursor,
+    # which only exist from 0.25 onward. On 0.23/0.24 every extraction would fail
+    # silently through extract_facts()'s per-file except and report "tree-sitter not
+    # installed" even though it is.
+    "tree-sitter>=0.25",
     "tree-sitter-language-pack>=0.24",
 ]
 dev = [
