@@ -10,16 +10,42 @@ def detect_package_roots(root: str) -> set[Path]:
     roots: set[Path] = set()
     for marker in ("pyproject.toml", "package.json"):
         for f in root_path.rglob(marker):
-            if any(part in _SKIP_DIRS for part in f.parent.parts):
+            # Only check path components *below* root_path, not the entire absolute path.
+            # This avoids false positives when the repo is nested under a dir like /ci/build/.
+            try:
+                rel_parts = f.parent.relative_to(root_path).parts
+                if any(part in _SKIP_DIRS for part in rel_parts):
+                    continue
+            except ValueError:
+                # f.parent is outside root_path (shouldn't happen with rglob, but be safe)
                 continue
             roots.add(f.parent.resolve())
     return roots
 
 
 def resolve_python_import(raw: str, source_file: str, package_roots: set[Path]) -> str | None:
-    """raw is a dotted module path, e.g. 'apps.subscriptions.manager'."""
+    """raw is a dotted module path, e.g. 'apps.subscriptions.manager'.
+    Resolves deterministically: prefers the root that contains source_file,
+    then falls back to roots sorted by path length (most specific first)."""
     parts = raw.split(".")
+    source_path = Path(source_file).resolve()
+
+    # Partition roots: ones that are ancestors of source_file first, then others.
+    ancestor_roots = []
+    other_roots = []
     for pkg_root in package_roots:
+        try:
+            source_path.relative_to(pkg_root)
+            ancestor_roots.append(pkg_root)
+        except ValueError:
+            other_roots.append(pkg_root)
+
+    # Sort by specificity: ancestor roots by depth (deeper first), others by path length (longer first).
+    ancestor_roots.sort(key=lambda p: len(p.parts), reverse=True)
+    other_roots.sort(key=lambda p: len(p.parts), reverse=True)
+    sorted_roots = ancestor_roots + other_roots
+
+    for pkg_root in sorted_roots:
         candidate = pkg_root.joinpath(*parts)
         module_file = candidate.with_suffix(".py")
         if module_file.is_file():
