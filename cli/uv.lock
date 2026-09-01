@@ -858,7 +858,7 @@ static-facts = [
 requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.1.1" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "tree-sitter", marker = "extra == 'static-facts'", specifier = ">=0.23" },
+    { name = "tree-sitter", marker = "extra == 'static-facts'", specifier = ">=0.25" },
     { name = "tree-sitter-language-pack", marker = "extra == 'static-facts'", specifier = ">=0.24" },
 ]
 provides-extras = ["static-facts", "dev"]
