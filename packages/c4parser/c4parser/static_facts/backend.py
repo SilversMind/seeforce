@@ -7,6 +7,7 @@ from .types import DefFact
 
 _QUERIES_DIR = Path(__file__).parent / "queries"
 _PYTHON_QUERY = (_QUERIES_DIR / "python.scm").read_text()
+_TYPESCRIPT_QUERY = (_QUERIES_DIR / "typescript.scm").read_text()
 
 
 def _node_text(node, source_bytes: bytes) -> str:
@@ -49,5 +50,36 @@ def extract_python(file_path: str, source: str) -> tuple[list[str], list[DefFact
         name = _node_text(name_node, source_bytes) if name_node else ""
         kind = "class" if node.type == "class_definition" else "function"
         defines.append(DefFact(name=name, kind=kind, docstring=_python_docstring(node, source_bytes)))
+
+    return imports, defines
+
+
+def _typescript_docstring(def_node, source_bytes: bytes) -> str:
+    prev = def_node.prev_sibling
+    if prev is not None and prev.type == "comment":
+        text = _node_text(prev, source_bytes)
+        if text.startswith("/**"):
+            return text.strip("/* \n\t")
+    return ""
+
+
+def extract_typescript(file_path: str, source: str) -> tuple[list[str], list[DefFact]]:
+    parser = get_parser("typescript")
+    language = get_language("typescript")
+    source_bytes = source.encode("utf-8")
+    tree = parser.parse(source_bytes)
+
+    query = tree_sitter.Query(language, _TYPESCRIPT_QUERY)
+    cursor = tree_sitter.QueryCursor(query)
+    captures = cursor.captures(tree.root_node)
+
+    imports = [_node_text(n, source_bytes).strip("'\"") for n in captures.get("import", [])]
+
+    defines: list[DefFact] = []
+    for node in captures.get("def", []):
+        name_node = node.child_by_field_name("name")
+        name = _node_text(name_node, source_bytes) if name_node else ""
+        kind = "class" if node.type == "class_declaration" else "function"
+        defines.append(DefFact(name=name, kind=kind, docstring=_typescript_docstring(node, source_bytes)))
 
     return imports, defines
