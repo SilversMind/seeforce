@@ -64,3 +64,41 @@ def test_extract_facts_unknown_extension_skipped(tmp_path):
     caller = _write(tmp_path / "README.md", "# hello\n")
     facts = extract_facts(str(tmp_path), [str(caller)])
     assert facts == []
+
+
+def test_extract_facts_captures_relative_imports(tmp_path):
+    """`from . import x` / `from .mod import y` produce a relative_import node, not a
+    dotted_name — they were invisible to the query and never captured."""
+    (tmp_path / "pyproject.toml").write_text("[project]\nname='x'\n")
+    pkg = tmp_path / "apps" / "subscriptions"
+    init_file = _write(pkg / "__init__.py", "")
+    sibling = _write(pkg / "types.py", "")
+    parent_mod = _write(tmp_path / "apps" / "shared.py", "")
+    caller = _write(
+        pkg / "manager.py",
+        "from . import helpers\nfrom .types import Thing\nfrom ..shared import Base\n",
+    )
+
+    facts = extract_facts(str(tmp_path), [str(caller)])
+    by_raw = {imp.raw: imp for imp in facts[0].imports}
+    assert set(by_raw) == {".", ".types", "..shared"}
+    assert by_raw["."].resolved_path == str(init_file)
+    assert by_raw[".types"].resolved_path == str(sibling)
+    assert by_raw["..shared"].resolved_path == str(parent_mod)
+    assert all(imp.kind == "internal" for imp in by_raw.values())
+
+
+def test_extract_facts_resolves_flat_sibling_without_package_root(tmp_path):
+    """Scripts in a directory with no pyproject.toml above them (this repo's own
+    mcp/*.py) must still surface their same-directory imports."""
+    scripts = tmp_path / "mcp"
+    client = _write(scripts / "client.py", "")
+    caller = _write(
+        scripts / "server.py",
+        "from client import fetch_workspace\n\ndef run():\n    pass\n",
+    )
+    facts = extract_facts(str(tmp_path), [str(caller)])
+    imp = facts[0].imports[0]
+    assert imp.raw == "client"
+    assert imp.kind == "internal"
+    assert imp.resolved_path == str(client)
