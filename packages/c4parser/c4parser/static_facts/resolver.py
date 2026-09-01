@@ -40,9 +40,10 @@ def resolve_python_import(raw: str, source_file: str, package_roots: set[Path]) 
         except ValueError:
             other_roots.append(pkg_root)
 
-    # Sort by specificity: ancestor roots by depth (deeper first), others by path length (longer first).
-    ancestor_roots.sort(key=lambda p: len(p.parts), reverse=True)
-    other_roots.sort(key=lambda p: len(p.parts), reverse=True)
+    # Sort by specificity: ancestor roots by depth (deeper first), others by path length (longer first),
+    # with alphabetical path tiebreak to ensure full determinism regardless of hash seed.
+    ancestor_roots.sort(key=lambda p: (-len(p.parts), str(p)))
+    other_roots.sort(key=lambda p: (-len(p.parts), str(p)))
     sorted_roots = ancestor_roots + other_roots
 
     for pkg_root in sorted_roots:
