@@ -102,3 +102,28 @@ def test_resolve_python_import_multi_root_deterministic(tmp_path):
     assert all(r == results[0] for r in results)
     # Should prefer root1 since source_file is in root1
     assert results[0] == str(root1 / "shared" / "utils.py")
+
+
+def test_resolve_python_import_equal_depth_roots_deterministic(tmp_path):
+    """Verify that resolve_python_import returns deterministically when two
+    non-ancestor roots have equal depth and both contain the matching module.
+    Should sort alphabetically by path as tiebreaker (not by hash order)."""
+    # Create two sibling package roots at same depth
+    root_a = tmp_path / "services" / "auth"
+    root_b = tmp_path / "services" / "billing"
+    root_a.mkdir(parents=True)
+    root_b.mkdir(parents=True)
+
+    # Both have the same module
+    for root in [root_a, root_b]:
+        (root / "config").mkdir()
+        (root / "config" / "settings.py").write_text("")
+
+    # Source file is outside both roots
+    source_file = str(tmp_path / "outside" / "caller.py")
+    roots = {root_a, root_b}
+
+    # Both roots have same depth (len(parts)), so tiebreak should be alphabetical.
+    # root_a comes before root_b alphabetically, so should always win.
+    result = resolver.resolve_python_import("config.settings", source_file, roots)
+    assert result == str(root_a / "config" / "settings.py")
