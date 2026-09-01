@@ -54,12 +54,44 @@ def extract_python(file_path: str, source: str) -> tuple[list[str], list[DefFact
     return imports, defines
 
 
+# `export function f() {}` / `export default class C {}` nest the declaration inside
+# a wrapper node, so the preceding comment is the *wrapper's* previous sibling, not
+# the declaration's. Without walking up, every exported symbol loses its docstring.
+_TS_DECL_WRAPPERS = {"export_statement", "ambient_declaration"}
+
+
+def _clean_jsdoc(text: str) -> str:
+    """Flatten a /** ... */ block to a single line: drop the delimiters and each
+    line's leading `*` gutter, then join the remaining lines with spaces. Kept to
+    one line on purpose — this feeds the MCP tool's one-line-per-definition output."""
+    body = text
+    if body.startswith("/**"):
+        body = body[3:]
+    elif body.startswith("/*"):
+        body = body[2:]
+    if body.endswith("*/"):
+        body = body[:-2]
+
+    lines: list[str] = []
+    for line in body.splitlines():
+        line = line.strip()
+        if line.startswith("*"):
+            line = line[1:].strip()
+        if line:
+            lines.append(line)
+    return " ".join(lines)
+
+
 def _typescript_docstring(def_node, source_bytes: bytes) -> str:
-    prev = def_node.prev_sibling
+    node = def_node
+    while node.parent is not None and node.parent.type in _TS_DECL_WRAPPERS:
+        node = node.parent
+
+    prev = node.prev_sibling
     if prev is not None and prev.type == "comment":
         text = _node_text(prev, source_bytes)
         if text.startswith("/**"):
-            return text.strip("/* \n\t")
+            return _clean_jsdoc(text)
     return ""
 
 
