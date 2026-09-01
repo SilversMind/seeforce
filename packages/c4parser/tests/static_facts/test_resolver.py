@@ -127,3 +127,111 @@ def test_resolve_python_import_equal_depth_roots_deterministic(tmp_path):
     # root_a comes before root_b alphabetically, so should always win.
     result = resolver.resolve_python_import("config.settings", source_file, roots)
     assert result == str(root_a / "config" / "settings.py")
+
+
+# --- relative imports (from . import x / from .mod import y / from ..pkg import z) ---
+
+
+def test_resolve_python_relative_import_bare_dot_finds_own_package_init(tmp_path):
+    """`from . import x` targets the source file's own package __init__.py."""
+    pkg = tmp_path / "apps" / "subscriptions"
+    pkg.mkdir(parents=True)
+    init_file = pkg / "__init__.py"
+    init_file.write_text("")
+    resolved = resolver.resolve_python_import(".", str(pkg / "manager.py"), {tmp_path})
+    assert resolved == str(init_file)
+
+
+def test_resolve_python_relative_import_sibling_module(tmp_path):
+    """`from .sibling import y` targets sibling.py next to the source file."""
+    pkg = tmp_path / "apps" / "subscriptions"
+    pkg.mkdir(parents=True)
+    sibling = pkg / "sibling.py"
+    sibling.write_text("")
+    resolved = resolver.resolve_python_import(
+        ".sibling", str(pkg / "manager.py"), {tmp_path}
+    )
+    assert resolved == str(sibling)
+
+
+def test_resolve_python_relative_import_parent_package_dotted(tmp_path):
+    """`from ..pkg.mod import z` walks one directory up, then down pkg/mod.py."""
+    base = tmp_path / "apps"
+    (base / "subscriptions").mkdir(parents=True)
+    (base / "pkg").mkdir()
+    target = base / "pkg" / "mod.py"
+    target.write_text("")
+    resolved = resolver.resolve_python_import(
+        "..pkg.mod", str(base / "subscriptions" / "manager.py"), {tmp_path}
+    )
+    assert resolved == str(target)
+
+
+def test_resolve_python_relative_import_sibling_package_init(tmp_path):
+    """`from ..sibling import z` resolves a sibling *package* via its __init__.py."""
+    base = tmp_path / "apps"
+    (base / "subscriptions").mkdir(parents=True)
+    (base / "sibling").mkdir()
+    init_file = base / "sibling" / "__init__.py"
+    init_file.write_text("")
+    resolved = resolver.resolve_python_import(
+        "..sibling", str(base / "subscriptions" / "manager.py"), {tmp_path}
+    )
+    assert resolved == str(init_file)
+
+
+def test_resolve_python_relative_import_unresolvable_returns_none(tmp_path):
+    pkg = tmp_path / "apps"
+    pkg.mkdir()
+    resolved = resolver.resolve_python_import(
+        ".nope", str(pkg / "manager.py"), {tmp_path}
+    )
+    assert resolved is None
+
+
+# --- same-directory flat sibling imports (no pyproject.toml anywhere above) ---
+
+
+def test_resolve_python_import_flat_sibling_without_package_root(tmp_path):
+    """A script directory with no pyproject.toml above it (this repo's own mcp/*.py)
+    still resolves `from client import x` against its own directory."""
+    scripts = tmp_path / "mcp"
+    scripts.mkdir()
+    sibling = scripts / "client.py"
+    sibling.write_text("")
+    resolved = resolver.resolve_python_import(
+        "client", str(scripts / "server.py"), set()
+    )
+    assert resolved == str(sibling)
+
+
+def test_resolve_python_import_flat_sibling_package_dir(tmp_path):
+    """Same fallback resolves a sibling package directory via its __init__.py."""
+    scripts = tmp_path / "mcp"
+    (scripts / "static_facts").mkdir(parents=True)
+    init_file = scripts / "static_facts" / "__init__.py"
+    init_file.write_text("")
+    resolved = resolver.resolve_python_import(
+        "static_facts", str(scripts / "server.py"), set()
+    )
+    assert resolved == str(init_file)
+
+
+def test_resolve_python_import_own_dir_fallback_loses_to_package_roots(tmp_path):
+    """The own-directory fallback is a last resort: a real package root that also
+    matches still wins, so the Task 3 ancestor-preference ordering is unchanged."""
+    root = tmp_path / "repo"
+    (root / "shared").mkdir(parents=True)
+    root_target = root / "shared" / "utils.py"
+    root_target.write_text("")
+
+    caller_dir = root / "apps"
+    caller_dir.mkdir()
+    # A same-named decoy right next to the caller — must NOT win over the package root.
+    (caller_dir / "shared").mkdir()
+    (caller_dir / "shared" / "utils.py").write_text("")
+
+    resolved = resolver.resolve_python_import(
+        "shared.utils", str(caller_dir / "service.py"), {root}
+    )
+    assert resolved == str(root_target)
