@@ -233,6 +233,21 @@ async def get_architecture_for_files(file_paths: list[str]) -> str:
     return "\n\n".join(sections) if sections else "No files provided."
 
 
+_MAX_DOC_CHARS = 150
+
+
+def _summarize_docstring(docstring: str) -> str:
+    """One definition must stay one output line. A multi-line docstring dumped raw
+    turns a cheap recall signal into a context flood, so keep only the first line,
+    truncated."""
+    if not docstring:
+        return ""
+    first = next((line.strip() for line in docstring.splitlines() if line.strip()), "")
+    if len(first) > _MAX_DOC_CHARS:
+        return first[:_MAX_DOC_CHARS].rstrip() + "…"
+    return first
+
+
 @server.tool()
 async def get_static_facts_for_files(file_paths: list[str]) -> str:
     """
@@ -259,7 +274,8 @@ async def get_static_facts_for_files(file_paths: list[str]) -> str:
         if file_facts.defines:
             lines.append("Definitions:")
             for d in file_facts.defines:
-                doc = f" — {d.docstring}" if d.docstring else ""
+                summary = _summarize_docstring(d.docstring)
+                doc = f" — {summary}" if summary else ""
                 lines.append(f"  {d.kind} {d.name}{doc}")
         file_edges = [e for e in edges if e["from_file"] == file_facts.file]
         if file_edges:
