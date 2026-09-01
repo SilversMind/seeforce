@@ -160,7 +160,7 @@ git commit -m "feat(c4parser): scaffold static_facts package with degrade guard"
 
 **Interfaces:**
 - Consumes: nothing from other tasks.
-- Produces: `top_level_name(raw: str, language: str) -> str`, `is_known_external(top_name: str, language: str) -> bool`, `is_stdlib(top_name: str, language: str) -> bool` — all consumed by Task 6 (`__init__.py` orchestration).
+- Produces: `top_level_name(raw: str, language: str) -> str`, `is_known_external(top_name: str, language: str) -> bool` — both consumed by Task 6 (`__init__.py` orchestration). No `is_stdlib` — Task 6's drop-branch treats stdlib and unknown-generic imports identically (neither internal nor on the allowlist), so a separate stdlib check would be unused; the spec's "stdlib and generic libraries are noise" is satisfied by the single allowlist check.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -195,14 +195,6 @@ def test_is_known_external_typescript():
     assert noise.is_known_external("lodash", "typescript") is False
 
 
-def test_is_stdlib_python():
-    assert noise.is_stdlib("os", "python") is True
-    assert noise.is_stdlib("stripe", "python") is False
-
-
-def test_is_stdlib_typescript_node_builtin():
-    assert noise.is_stdlib("fs", "typescript") is True
-    assert noise.is_stdlib("axios", "typescript") is False
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -214,7 +206,6 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'c4parser.static_facts.
 
 ```python
 # packages/c4parser/c4parser/static_facts/noise.py
-import sys
 
 # Starting allowlists — extend as real annotation runs surface more.
 KNOWN_EXTERNAL_PY = {
@@ -226,11 +217,6 @@ KNOWN_EXTERNAL_PY = {
 KNOWN_EXTERNAL_TS = {
     "axios", "stripe", "aws-sdk", "pg", "mongoose", "ioredis",
     "amqplib", "kafkajs", "express", "@aws-sdk",
-}
-
-_NODE_BUILTINS = {
-    "fs", "path", "http", "https", "os", "crypto", "util", "events",
-    "stream", "url", "child_process", "net", "querystring", "assert",
 }
 
 
@@ -250,12 +236,6 @@ def is_known_external(top_name: str, language: str) -> bool:
     if language == "python":
         return top_name in KNOWN_EXTERNAL_PY
     return top_name in KNOWN_EXTERNAL_TS
-
-
-def is_stdlib(top_name: str, language: str) -> bool:
-    if language == "python":
-        return top_name in sys.stdlib_module_names
-    return top_name in _NODE_BUILTINS
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
