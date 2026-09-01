@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "click>=8.1",
     "httpx>=0.27",
-    "seeforce-c4parser>=0.1.0",
+    "seeforce-c4parser[static-facts]>=0.1.0",
     "mcp>=2.0",
 ]
 
@@ -22,7 +22,10 @@ seeforce-mcp = "seeforce_cli.mcp_server:main"
 packages = ["seeforce_cli"]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.24"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.uv.sources]
 seeforce-c4parser = { path = "../packages/c4parser", editable = true }
