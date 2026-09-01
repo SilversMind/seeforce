@@ -53,3 +53,52 @@ def test_resolve_typescript_import_relative(tmp_path):
 def test_resolve_typescript_import_bare_specifier_unresolved():
     resolved = resolver.resolve_typescript_import("axios", "index.ts", set())
     assert resolved is None
+
+
+def test_detect_package_roots_skips_only_relative_skip_dirs(tmp_path):
+    """Verify that detect_package_roots skips skip-dirs only below root_path,
+    not in parent directories. E.g., /ci/build/repo/ should still find packages."""
+    # Simulate a root path containing a skip-dir-like name
+    root_with_skip_name = tmp_path / "build" / "dist" / "src"
+    root_with_skip_name.mkdir(parents=True)
+    (root_with_skip_name / "app").mkdir()
+    (root_with_skip_name / "app" / "pyproject.toml").write_text("[project]\nname='x'\n")
+
+    # Also add a skip-dir below the root that should be skipped
+    (root_with_skip_name / ".venv" / "lib").mkdir(parents=True)
+    (root_with_skip_name / ".venv" / "lib" / "pyproject.toml").write_text("[project]\nname='y'\n")
+
+    roots = resolver.detect_package_roots(str(root_with_skip_name))
+    # Should find the app package (not skipped even though root has "build" and "dist")
+    assert (root_with_skip_name / "app").resolve() in roots
+    # Should NOT find the .venv package (skipped)
+    assert not any(".venv" in str(r) for r in roots)
+
+
+def test_resolve_python_import_multi_root_deterministic(tmp_path):
+    """Verify that resolve_python_import returns deterministically when multiple
+    roots match, preferring the root that contains source_file."""
+    # Create two package roots
+    root1 = tmp_path / "monorepo1"
+    root2 = tmp_path / "monorepo2"
+    root1.mkdir()
+    root2.mkdir()
+
+    # Both have the same module
+    for root in [root1, root2]:
+        (root / "shared").mkdir()
+        (root / "shared" / "utils.py").write_text("")
+
+    # Source file is in root1, so resolution should prefer root1
+    source_file = str(root1 / "caller.py")
+    roots = {root1, root2}
+
+    # Call multiple times to verify deterministic order (would fail randomly with set order)
+    results = [
+        resolver.resolve_python_import("shared.utils", source_file, roots)
+        for _ in range(5)
+    ]
+    # All results should be the same
+    assert all(r == results[0] for r in results)
+    # Should prefer root1 since source_file is in root1
+    assert results[0] == str(root1 / "shared" / "utils.py")
