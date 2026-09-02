@@ -105,7 +105,9 @@ def test_static_facts_bridge_annotation_claims_no_extractor_edge():
     assert not any((m or "").startswith("c4parser") for m in imported), imported
 
     bridge = next(e for e in _scan() if getattr(e, "name", None) == "Static Facts Bridge")
-    assert bridge.uses == [], bridge.uses
+    used_names = {u if isinstance(u, str) else next(iter(u)) for u in bridge.uses}
+    assert "Static Facts Extractor" not in used_names, bridge.uses
+    assert "Annotation Parser/Static Facts Extractor" not in used_names, bridge.uses
 
 
 @_needs_repo

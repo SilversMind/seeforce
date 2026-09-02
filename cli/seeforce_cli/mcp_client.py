@@ -1,3 +1,14 @@
+"""
+@c3:component
+name: Workspace API Client
+container: MCP Server
+technology: Python / httpx
+description: Fetches the current project's workspace.json from the Backend over REST, resolving which project to fetch via a configured project UUID or falling back to the most recently updated one.
+uses:
+- Backend: "fetches workspace architecture data via REST API"
+  technology: REST
+"""
+
 import httpx
 
 from seeforce_cli.mcp_config import API_URL, http_headers, resolve_project_id

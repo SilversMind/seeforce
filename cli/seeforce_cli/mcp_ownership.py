@@ -1,3 +1,12 @@
+"""
+@c3:component
+name: Ownership Inference
+container: MCP Server
+technology: Python
+description: Infers which C4 component or container owns a given file path — via exact source_file match, same-directory proximity, or nearest-parent-directory fallback when nothing is annotated yet.
+uses:
+- Workspace Navigation Helpers: "looks up known components and containers to match a file path against"
+"""
 """File → C4 component/container ownership inference."""
 
 from pathlib import Path
