@@ -248,7 +248,18 @@ def _summarize_docstring(docstring: str) -> str:
     return first
 
 
+"""
+@c3:component
+name: Static Facts Query Handler
+container: MCP Server
+technology: Python
+description: Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges via Static Facts Bridge, formatting both as tool output for the calling AI assistant.
+uses:
+- Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
+- Static Facts Bridge: "collapses extracted facts into component-level candidate edges via ownership inference"
+"""
 @server.tool()
+@_diagnosable
 async def get_static_facts_for_files(file_paths: list[str]) -> str:
     """
     Given a list of files, returns a statically-extracted CANDIDATE signal:
