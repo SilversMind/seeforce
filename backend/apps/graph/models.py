@@ -104,6 +104,20 @@ class LexiconEntry(models.Model):
         return f"{self.term} ({self.project_map})"
 
 
+class GitHubAppInstallation(models.Model):
+    installation_id = models.CharField(max_length=32, unique=True, db_index=True)
+    account_login = models.CharField(max_length=255, blank=True, default="")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="github_app_installations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"installation:{self.installation_id} ({self.user})"
+
+
 def sync_lexicon_entries(project_map: "ProjectMap", workspace: dict) -> None:
     """Upsert LexiconEntry rows from a scanned workspace's "lexicon" list
     (populated by @lexicon annotations). Never deletes — entries added

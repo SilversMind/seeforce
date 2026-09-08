@@ -2,6 +2,8 @@ export interface AuthUser {
   id: number;
   username: string;
   avatar_url: string;
+  github_app_installed: boolean;
+  github_app_install_url: string | null;
 }
 
 export interface ProjectMapMeta {

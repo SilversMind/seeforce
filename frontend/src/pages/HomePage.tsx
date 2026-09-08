@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { fetchProjectMaps, fetchSharedProjects, renameProjectMap, importFromGitHub, syncFromGitHub, uploadProjectMap, linkProjectToGithub, type ProjectMapMeta } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
+function GitHubAppLink({ url, children }: { url: string; children: React.ReactNode }) {
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none" }}>
+      {children}
+    </a>
+  );
+}
+
 function relativeDate(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diff / 86400000);
@@ -108,6 +116,7 @@ async function deleteProject(id: number) {
 type NewProjectTab = "github" | "upload";
 
 function NewProjectSidebar({ open, initialTab, onClose, onDone }: { open: boolean; initialTab: NewProjectTab; onClose: () => void; onDone: (id: number) => void }) {
+  const { user } = useAuth();
   const [tab, setTab] = useState<NewProjectTab>("github");
   const [repo, setRepo] = useState("");
   const [branch, setBranch] = useState("main");
@@ -194,6 +203,12 @@ function NewProjectSidebar({ open, initialTab, onClose, onDone }: { open: boolea
       <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
         {tab === "github" && (
           <>
+            {user && !user.github_app_installed && user.github_app_install_url && (
+              <div style={{ fontSize: 12, color: "var(--c4-sidebar-text)", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", borderRadius: 6, padding: "8px 10px" }}>
+                Public repos work as-is. To import a private repo, install the GitHub App first —{" "}
+                <GitHubAppLink url={user.github_app_install_url}>Install GitHub App ↗</GitHubAppLink>
+              </div>
+            )}
             <div>
               <label style={{ display: "block", fontSize: 11, color: "var(--c4-sidebar-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
                 Repository
@@ -206,6 +221,11 @@ function NewProjectSidebar({ open, initialTab, onClose, onDone }: { open: boolea
               />
               <div style={{ fontSize: 11, color: "var(--c4-sidebar-muted)", marginTop: 4 }}>
                 Repo must contain <code style={{ fontFamily: "monospace" }}>.seeforce/workspace.json</code> — run <code style={{ fontFamily: "monospace" }}>seeforce scan .</code> first.
+                {user?.github_app_install_url && (
+                  <>
+                    {" "}Private repo not showing up? <GitHubAppLink url={user.github_app_install_url}>Manage GitHub App access ↗</GitHubAppLink>
+                  </>
+                )}
               </div>
             </div>
             <div>

@@ -89,7 +89,7 @@ AUTHENTICATION_BACKENDS = [
 
 SOCIALACCOUNT_PROVIDERS = {
     "github": {
-        "SCOPE": ["user:email", "repo"],
+        "SCOPE": ["user:email"],
         "APP": {
             "client_id": os.environ.get("GITHUB_CLIENT_ID", ""),
             "secret": os.environ.get("GITHUB_CLIENT_SECRET", ""),
@@ -102,6 +102,6 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_STORE_TOKENS = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
