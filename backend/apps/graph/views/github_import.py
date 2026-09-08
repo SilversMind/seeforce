@@ -2,10 +2,11 @@
 @c3:component
 name: GitHub Import
 container: Backend
-description: Imports, re-syncs, and links project architecture to GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using the user's stored OAuth token and stores it as a ProjectMap. The clickable GitHub blob links themselves are built client-side from github_repo/github_branch, not here.
+description: Imports, re-syncs, and links project architecture to GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using an installation access token minted by the GitHub App Token Manager, and stores it as a ProjectMap. The clickable GitHub blob links themselves are built client-side from github_repo/github_branch, not here.
 uses:
-  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API using stored OAuth token"
+  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API using an installation access token"
     technology: HTTPS
+  - GitHub App Token Manager: "Requests a fresh installation token before each Contents API call"
   - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
 """
 
@@ -21,9 +22,11 @@ from ._permissions import _require_auth, _require_owner
 
 
 def _github_token(user):
-    from allauth.socialaccount.models import SocialToken
-    token = SocialToken.objects.filter(account__user=user, account__provider="github").first()
-    return token.token if token else None
+    from ..github_app import GitHubAppTokenManager
+    installation = user.github_app_installations.order_by("-created_at").first()
+    if installation is None:
+        return None
+    return GitHubAppTokenManager().installation_token(installation.installation_id)
 
 
 def _fetch_workspace_json(token: str, repo: str, branch: str) -> dict:
@@ -46,10 +49,10 @@ def _fetch_workspace_json(token: str, repo: str, branch: str) -> dict:
             "Run 'just scan' in that repo first to generate it."
         )
     if resp.status_code == 401:
-        raise ValueError("GitHub token expired or lacks repo access. Log out and log back in.")
+        raise ValueError("GitHub App installation token expired or invalid. Reinstall the GitHub App.")
     if resp.status_code == 403:
         raise ValueError(
-            f"Access denied to {repo}. For private repos, make sure you granted repo access during login."
+            f"Access denied to {repo}. Make sure this repo is included in your GitHub App installation."
         )
     if not resp.ok:
         raise ValueError(f"GitHub API error {resp.status_code}.")
@@ -75,7 +78,7 @@ def import_from_github(request):
     token = _github_token(request.user)
     if not token:
         return Response(
-            {"error": "GitHub account not connected. Log out and log back in with GitHub."},
+            {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -138,7 +141,7 @@ def link_to_github(request, project_map_id):
     token = _github_token(request.user)
     if not token:
         return Response(
-            {"error": "GitHub account not connected. Log out and log back in with GitHub."},
+            {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -177,7 +180,7 @@ def sync_from_github(request, project_map_id):
     token = _github_token(request.user)
     if not token:
         return Response(
-            {"error": "GitHub account not connected. Log out and log back in with GitHub."},
+            {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 

@@ -55,12 +55,19 @@ class ImportFromGitHubTest(TestCase):
         self.client.force_login(self.user)
 
     def _make_token(self):
-        from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
-        from django.contrib.sites.models import Site
-        app = SocialApp.objects.create(provider="github", name="gh", client_id="id", secret="s")
-        app.sites.add(Site.objects.get_current())
-        account = SocialAccount.objects.create(user=self.user, provider="github", uid="123")
-        SocialToken.objects.create(app=app, account=account, token="gh-token-abc")
+        from apps.graph.models import GitHubAppInstallation
+        GitHubAppInstallation.objects.create(installation_id="999", user=self.user)
+        # Patch at apps.graph.github_app, not apps.graph.views.github_import:
+        # _github_token() does `from ..github_app import GitHubAppTokenManager`
+        # *inside* the function (matches this file's existing local-import style),
+        # so the class is never a module-level attribute of github_import — patch
+        # it where it's actually defined instead.
+        patcher = patch(
+            "apps.graph.github_app.GitHubAppTokenManager.installation_token",
+            return_value="ghs-installation-token-abc",
+        )
+        self.addCleanup(patcher.stop)
+        patcher.start()
 
     def _post(self, data):
         return self.client.post(
@@ -88,7 +95,7 @@ class ImportFromGitHubTest(TestCase):
     def test_no_github_token_returns_400(self):
         resp = self._post({"repo": "owner/repo"})
         self.assertEqual(resp.status_code, 400)
-        self.assertIn("GitHub account not connected", resp.json()["error"])
+        self.assertIn("No GitHub App installation found", resp.json()["error"])
 
     @patch("apps.graph.views.github_import.http_requests.get")
     def test_workspace_not_found_returns_clear_error(self, mock_get):
@@ -105,7 +112,7 @@ class ImportFromGitHubTest(TestCase):
         mock_get.return_value = _mock_github_403()
         resp = self._post({"repo": "owner/private-repo"})
         self.assertEqual(resp.status_code, 400)
-        self.assertIn("private repos", resp.json()["error"])
+        self.assertIn("GitHub App installation", resp.json()["error"])
 
     @patch("apps.graph.views.github_import.http_requests.get")
     def test_expired_token_returns_clear_error(self, mock_get):
@@ -167,12 +174,19 @@ class SyncFromGitHubTest(TestCase):
         )
 
     def _make_token(self):
-        from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
-        from django.contrib.sites.models import Site
-        app = SocialApp.objects.create(provider="github", name="gh", client_id="id", secret="s")
-        app.sites.add(Site.objects.get_current())
-        account = SocialAccount.objects.create(user=self.user, provider="github", uid="456")
-        SocialToken.objects.create(app=app, account=account, token="gh-sync-token")
+        from apps.graph.models import GitHubAppInstallation
+        GitHubAppInstallation.objects.create(installation_id="999", user=self.user)
+        # Patch at apps.graph.github_app, not apps.graph.views.github_import:
+        # _github_token() does `from ..github_app import GitHubAppTokenManager`
+        # *inside* the function (matches this file's existing local-import style),
+        # so the class is never a module-level attribute of github_import — patch
+        # it where it's actually defined instead.
+        patcher = patch(
+            "apps.graph.github_app.GitHubAppTokenManager.installation_token",
+            return_value="ghs-installation-token-abc",
+        )
+        self.addCleanup(patcher.stop)
+        patcher.start()
 
     def _sync(self):
         return self.client.post(f"/api/graph/{self.pm.id}/sync-github/")
@@ -226,12 +240,19 @@ class LinkToGithubTest(TestCase):
         )
 
     def _make_token(self):
-        from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
-        from django.contrib.sites.models import Site
-        app = SocialApp.objects.create(provider="github", name="gh", client_id="id", secret="s")
-        app.sites.add(Site.objects.get_current())
-        account = SocialAccount.objects.create(user=self.user, provider="github", uid="789")
-        SocialToken.objects.create(app=app, account=account, token="gh-link-token")
+        from apps.graph.models import GitHubAppInstallation
+        GitHubAppInstallation.objects.create(installation_id="999", user=self.user)
+        # Patch at apps.graph.github_app, not apps.graph.views.github_import:
+        # _github_token() does `from ..github_app import GitHubAppTokenManager`
+        # *inside* the function (matches this file's existing local-import style),
+        # so the class is never a module-level attribute of github_import — patch
+        # it where it's actually defined instead.
+        patcher = patch(
+            "apps.graph.github_app.GitHubAppTokenManager.installation_token",
+            return_value="ghs-installation-token-abc",
+        )
+        self.addCleanup(patcher.stop)
+        patcher.start()
 
     def _link(self, data):
         return self.client.post(
