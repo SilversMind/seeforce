@@ -427,8 +427,13 @@ In `backend/tests/graph/test_github_import.py`, replace the `_make_token` helper
 def _make_token(self):
     from apps.graph.models import GitHubAppInstallation
     GitHubAppInstallation.objects.create(installation_id="999", user=self.user)
+    # Patch at apps.graph.github_app, not apps.graph.views.github_import:
+    # _github_token() does `from ..github_app import GitHubAppTokenManager`
+    # *inside* the function (matches this file's existing local-import style),
+    # so the class is never a module-level attribute of github_import — patch
+    # it where it's actually defined instead.
     patcher = patch(
-        "apps.graph.views.github_import.GitHubAppTokenManager.installation_token",
+        "apps.graph.github_app.GitHubAppTokenManager.installation_token",
         return_value="ghs-installation-token-abc",
     )
     self.addCleanup(patcher.stop)
