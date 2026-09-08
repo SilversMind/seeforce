@@ -12,9 +12,7 @@ technology: Python Django
 description: Serves the REST API for project CRUD, node/edge overlays, lexicon entries, sharing, and GitHub import/sync/link. Persists everything to the Database and delegates codebase parsing to Annotation Parser — it does not parse source files itself.
 uses:
     - Database: "Reads and writes architecture graph data via Django ORM"
-    - GitHub: "Delegates user authentication via GitHub OAuth 2.0 (django-allauth)"
-      technology: HTTPS
-    - GitHub: "Mints short-lived GitHub App installation tokens (JWT-signed) to fetch repo content for import/sync, replacing per-user OAuth tokens for repo access"
+    - GitHub: "Delegates user authentication via GitHub OAuth 2.0 (django-allauth); also mints short-lived GitHub App installation tokens (JWT-signed) to fetch repo content for import/sync"
       technology: HTTPS
     - Annotation Parser: "parses and builds workspace.json when scanning a repo locally via manage.py scan"
 """

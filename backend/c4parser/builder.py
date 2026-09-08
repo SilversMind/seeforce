@@ -112,6 +112,22 @@ def build(elements: list[C4Element]) -> dict:
                 element_name=comp.name,
             )
 
+    # --- Phase 2.5: Validate no duplicate uses targets ---
+    # Two "uses: SameThing" entries mean two relationships to one node in the
+    # diagram — the roles belong together in one description, not one edge each.
+    for el in list(containers.values()) + list(components.values()):
+        seen: dict[str, int] = {}
+        for use in el.uses:
+            name = _use_name(use)
+            seen[name] = seen.get(name, 0) + 1
+        dupes = [name for name, count in seen.items() if count > 1]
+        if dupes:
+            raise C4ValidationError(
+                f"'{el.name}' uses '{dupes[0]}' more than once in uses: — "
+                f"merge into a single entry describing both roles",
+                element_name=el.name,
+            )
+
     # --- Phase 3: Build element ID registry ---
     # system_ids: name -> id
     system_ids: dict[str, str] = {}
