@@ -2,9 +2,9 @@
 @c3:component
 name: GitHub Import
 container: Backend
-description: Imports, re-syncs, and links project architecture to GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using an installation access token minted by the GitHub App Token Manager, and stores it as a ProjectMap. The clickable GitHub blob links themselves are built client-side from github_repo/github_branch, not here.
+description: Imports, re-syncs, and links project architecture to GitHub repositories — fetches .seeforce/workspace.json via the GitHub Contents API using an installation access token minted by the GitHub App Token Manager, falling back to an unauthenticated request when no installation covers the repo (public repos still work without an install). The clickable GitHub blob links themselves are built client-side from github_repo/github_branch, not here.
 uses:
-  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API using an installation access token"
+  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise"
     technology: HTTPS
   - GitHub App Token Manager: "Requests a fresh installation token before each Contents API call"
   - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
@@ -41,25 +41,36 @@ def _github_token(user, repo: str = ""):
         )
 
 
-def _fetch_workspace_json(token: str, repo: str, branch: str) -> dict:
+def _get_contents(url: str, token: str | None) -> "http_requests.Response":
+    headers = {"Accept": "application/vnd.github.v3.raw"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+    try:
+        return http_requests.get(url, headers=headers, timeout=10)
+    except http_requests.RequestException as exc:
+        raise ValueError(f"Could not reach GitHub: {exc}")
+
+
+def _fetch_workspace_json(token: str | None, repo: str, branch: str) -> dict:
     """
     Fetch .seeforce/workspace.json from a GitHub repo.
     Raises ValueError with a user-facing message on any failure.
     """
     url = f"https://api.github.com/repos/{repo}/contents/.seeforce/workspace.json?ref={branch}"
-    try:
-        resp = http_requests.get(url, headers={
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3.raw",
-        }, timeout=10)
-    except http_requests.RequestException as exc:
-        raise ValueError(f"Could not reach GitHub: {exc}")
+    resp = _get_contents(url, token)
+
+    # No installation covers this repo, or the installation doesn't include it —
+    # it might still be a public repo, which GitHub serves without auth.
+    # ponytail: unauthenticated fallback shares this server's IP rate limit
+    # (60 req/h) across every user; swap in a low-privilege PAT if that bites.
+    if token and resp.status_code in (401, 403, 404):
+        resp = _get_contents(url, None)
 
     if resp.status_code == 404:
         raise ValueError(
-            f"No .seeforce/workspace.json found in {repo}@{branch}. "
-            "Either run 'just scan' in that repo, or check that this repo is "
-            "included in your GitHub App installation."
+            f"No .seeforce/workspace.json found in {repo}@{branch}, or {repo} is private "
+            "and not accessible. Either run 'just scan' in that repo, or check that this "
+            "repo is included in your GitHub App installation."
         )
     if resp.status_code == 401:
         raise ValueError("GitHub App installation token expired or invalid. Reinstall the GitHub App.")
@@ -92,11 +103,6 @@ def import_from_github(request):
         token = _github_token(request.user, repo)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    if not token:
-        return Response(
-            {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
 
     try:
         workspace = _fetch_workspace_json(token, repo, branch)
@@ -158,11 +164,6 @@ def link_to_github(request, project_map_id):
         token = _github_token(request.user, repo)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    if not token:
-        return Response(
-            {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
 
     try:
         workspace = _fetch_workspace_json(token, repo, branch)
@@ -200,11 +201,6 @@ def sync_from_github(request, project_map_id):
         token = _github_token(request.user, pm.github_repo)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    if not token:
-        return Response(
-            {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
 
     try:
         workspace = _fetch_workspace_json(token, pm.github_repo, pm.github_branch)

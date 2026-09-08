@@ -93,10 +93,36 @@ class ImportFromGitHubTest(TestCase):
         resp = self._post({"repo": "noslash"})
         self.assertEqual(resp.status_code, 400)
 
-    def test_no_github_token_returns_400(self):
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_no_github_token_falls_back_to_unauthenticated_fetch(self, mock_get):
+        # No installation at all — repo isn't found unauthenticated either
+        # (private and inaccessible, or genuinely doesn't exist).
+        mock_get.return_value = _mock_github_404()
         resp = self._post({"repo": "owner/repo"})
         self.assertEqual(resp.status_code, 400)
-        self.assertIn("No GitHub App installation found", resp.json()["error"])
+        self.assertIn("private and not accessible", resp.json()["error"])
+        self.assertNotIn("Authorization", mock_get.call_args.kwargs["headers"])
+
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_no_github_token_still_imports_public_repo(self, mock_get):
+        # No installation covers this repo, but it's public — GitHub serves
+        # it without auth, so import should still succeed.
+        mock_get.return_value = _mock_github_ok()
+        resp = self._post({"repo": "someoneelse/public-repo"})
+        self.assertEqual(resp.status_code, 201)
+        self.assertNotIn("Authorization", mock_get.call_args.kwargs["headers"])
+
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_installation_not_covering_repo_falls_back_to_unauthenticated(self, mock_get):
+        # Installation exists but for a different account than this repo's
+        # owner — first (authenticated) call 404s, retry unauthenticated succeeds.
+        self._make_token()
+        mock_get.side_effect = [_mock_github_404(), _mock_github_ok()]
+        resp = self._post({"repo": "someoneelse/public-repo"})
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(mock_get.call_count, 2)
+        self.assertIn("Authorization", mock_get.call_args_list[0].kwargs["headers"])
+        self.assertNotIn("Authorization", mock_get.call_args_list[1].kwargs["headers"])
 
     def test_token_minting_failure_returns_400(self):
         # Installation row exists locally, but GitHub rejects the token-mint
