@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch, MagicMock
 
+import requests
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -96,6 +97,19 @@ class ImportFromGitHubTest(TestCase):
         resp = self._post({"repo": "owner/repo"})
         self.assertEqual(resp.status_code, 400)
         self.assertIn("No GitHub App installation found", resp.json()["error"])
+
+    def test_token_minting_failure_returns_400(self):
+        # Installation row exists locally, but GitHub rejects the token-mint
+        # call (e.g. the installation was revoked on GitHub's side).
+        from apps.graph.models import GitHubAppInstallation
+        GitHubAppInstallation.objects.create(installation_id="999", user=self.user)
+        with patch(
+            "apps.graph.github_app.GitHubAppTokenManager.installation_token",
+            side_effect=requests.HTTPError("401 Client Error"),
+        ):
+            resp = self._post({"repo": "owner/repo"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("could not be minted", resp.json()["error"])
 
     @patch("apps.graph.views.github_import.http_requests.get")
     def test_workspace_not_found_returns_clear_error(self, mock_get):

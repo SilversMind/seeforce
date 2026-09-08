@@ -26,7 +26,13 @@ def _github_token(user):
     installation = user.github_app_installations.order_by("-created_at").first()
     if installation is None:
         return None
-    return GitHubAppTokenManager().installation_token(installation.installation_id)
+    try:
+        return GitHubAppTokenManager().installation_token(installation.installation_id)
+    except http_requests.RequestException:
+        raise ValueError(
+            "GitHub App installation token could not be minted — the installation "
+            "may have been revoked. Reinstall the GitHub App."
+        )
 
 
 def _fetch_workspace_json(token: str, repo: str, branch: str) -> dict:
@@ -75,7 +81,10 @@ def import_from_github(request):
     if not repo or repo.count("/") != 1:
         return Response({"error": "repo must be 'owner/repo'"}, status=status.HTTP_400_BAD_REQUEST)
 
-    token = _github_token(request.user)
+    try:
+        token = _github_token(request.user)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if not token:
         return Response(
             {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
@@ -138,7 +147,10 @@ def link_to_github(request, project_map_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    token = _github_token(request.user)
+    try:
+        token = _github_token(request.user)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if not token:
         return Response(
             {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
@@ -177,7 +189,10 @@ def sync_from_github(request, project_map_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    token = _github_token(request.user)
+    try:
+        token = _github_token(request.user)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if not token:
         return Response(
             {"error": "No GitHub App installation found. Install the GitHub App to grant repo access."},
