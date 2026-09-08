@@ -2,10 +2,11 @@
 @c3:component
 name: Auth API
 container: Backend
-description: Exposes /api/auth/me/ and /api/auth/logout/; delegates GitHub OAuth flow to django-allauth
+description: Exposes /api/auth/me/ and /api/auth/logout/; delegates GitHub OAuth flow to django-allauth and reports whether the user has a GitHub App installation
 uses:
   - GitHub: "OAuth 2.0 login and identity resolution"
     technology: HTTPS
+  - Database: "reads the user's GitHub SocialAccount and GitHubAppInstallation rows"
 """
 
 from django.contrib.auth import logout as django_logout
@@ -20,15 +21,12 @@ def auth_me(request):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
     social = request.user.socialaccount_set.filter(provider="github").first()
     avatar_url = social.extra_data.get("avatar_url", "") if social else ""
-    from allauth.socialaccount.models import SocialToken
-    has_token = SocialToken.objects.filter(
-        account__user=request.user, account__provider="github"
-    ).exists()
     return Response({
         "id": request.user.id,
         "username": request.user.username,
         "avatar_url": avatar_url,
-        "github_token_stored": has_token,
+        # Repo access comes from a GitHub App installation, not the login token.
+        "github_app_installed": request.user.github_app_installations.exists(),
     })
 
 

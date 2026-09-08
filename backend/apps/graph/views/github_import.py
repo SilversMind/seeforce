@@ -21,9 +21,15 @@ from ..models import ProjectMap, sync_lexicon_entries
 from ._permissions import _require_auth, _require_owner
 
 
-def _github_token(user):
+def _github_token(user, repo: str = ""):
     from ..github_app import GitHubAppTokenManager
-    installation = user.github_app_installations.order_by("-created_at").first()
+    installations = user.github_app_installations
+    # A user can have several installations (personal + org); pick the one owning
+    # this repo, falling back to the newest for the single-installation case.
+    installation = None
+    if repo:
+        installation = installations.filter(account_login__iexact=repo.split("/")[0]).first()
+    installation = installation or installations.order_by("-created_at").first()
     if installation is None:
         return None
     try:
@@ -52,7 +58,8 @@ def _fetch_workspace_json(token: str, repo: str, branch: str) -> dict:
     if resp.status_code == 404:
         raise ValueError(
             f"No .seeforce/workspace.json found in {repo}@{branch}. "
-            "Run 'just scan' in that repo first to generate it."
+            "Either run 'just scan' in that repo, or check that this repo is "
+            "included in your GitHub App installation."
         )
     if resp.status_code == 401:
         raise ValueError("GitHub App installation token expired or invalid. Reinstall the GitHub App.")
@@ -82,7 +89,7 @@ def import_from_github(request):
         return Response({"error": "repo must be 'owner/repo'"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        token = _github_token(request.user)
+        token = _github_token(request.user, repo)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if not token:
@@ -148,7 +155,7 @@ def link_to_github(request, project_map_id):
         )
 
     try:
-        token = _github_token(request.user)
+        token = _github_token(request.user, repo)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if not token:
@@ -190,7 +197,7 @@ def sync_from_github(request, project_map_id):
         )
 
     try:
-        token = _github_token(request.user)
+        token = _github_token(request.user, pm.github_repo)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if not token:

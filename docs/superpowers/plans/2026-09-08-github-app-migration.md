@@ -13,7 +13,7 @@
 ## Background
 
 - GitHub App already created: name `SeeForceApp`, App ID `4869602`, installable on "Any account", Repository permissions Contents:Read + Metadata:Read, webhook inactive, Setup URL set to `https://seeforce.onrender.com/github-app/setup/`.
-- Secrets already in place: `backend/.env` has `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_APP_PRIVATE_KEY_PATH` (local: `~/.config/seeforce/seeforceapp-private-key.pem`, Render: Secret File path). `*.pem` and `backend/.env` are gitignored.
+- Secrets already in place: `backend/.env` has `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_APP_PRIVATE_KEY_PATH` (local: `~/.config/seeforce/seeforceapp-private-key.pem`, Render: Secret File path). `backend/.env` is gitignored; `*.pem` was **not** (added to `.gitignore` in the final fix wave — the private key path is outside the repo, so nothing was ever committed).
 - CLI (`cli/seeforce_cli/commands/login.py`) needs **no changes** — it only ever exchanges the browser callback for a SeeForce-issued DRF `Token`, never a raw GitHub token. Confirmed by reading `cli_auth.py`, which this plan's new setup endpoint mirrors.
 - Existing OAuth App must be revoked/deleted on GitHub once this ships — out of scope for this plan (manual GitHub-side step, not code).
 
