@@ -21,3 +21,15 @@ class ProjectMapOwnerTest(TestCase):
         pm = ProjectMap.objects.create(name="Test", source_json={})
         pm.refresh_from_db()
         self.assertEqual(pm.visibility, "public")
+
+
+def test_github_app_installation_str_and_uniqueness(db):
+    from apps.graph.models import GitHubAppInstallation
+
+    user = User.objects.create_user(username="installer", password="pass")
+
+    install = GitHubAppInstallation.objects.create(
+        installation_id="12345", user=user, account_login="SilversMind"
+    )
+    assert str(install) == "installation:12345 (installer)"
+    assert user.github_app_installations.count() == 1
