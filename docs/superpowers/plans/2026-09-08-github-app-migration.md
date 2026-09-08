@@ -60,7 +60,9 @@ In `backend/pyproject.toml`, add to `dependencies`:
     "pyjwt[crypto]>=2.8",
 ```
 
-Run: `cd backend && uv sync` (repo uses `uv` — see `backend/uv.lock` and `justfile`'s `uv run` commands)
+Run: `cd backend && uv sync --extra dev` (repo uses `uv`; `--extra dev` is required to get `pytest`/`pytest-django` — `uv sync` alone won't install them, confirmed by running the baseline suite in this worktree)
+
+Note: `pyjwt[crypto]==2.13.0` is already present in `backend/uv.lock` as a transitive dependency (of `mcp`), so this step won't download anything new — it just promotes it to a direct, explicit dependency, which is the right call regardless (don't rely on another package's transitive dep for something we use directly and permanently).
 
 - [ ] **Step 2: Write the failing test for `_app_jwt`**
 
