@@ -3,6 +3,7 @@
 name: Node manager
 container: Frontend
 description: Handles node management
+short_desc: Renders System/Container/Component nodes on the graph canvas
 uses:
 - Lexicon: "highlights and links glossary terms found in node description"
 
@@ -14,7 +15,7 @@ import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 export function ComponentNode({ data }: NodeProps) {
   const mode = useGraphMode();
   const label = mode === "enriched" ? ((data.overlay_label as string) || (data.label as string)) : (data.label as string);
-  const desc = mode === "enriched" ? ((data.overlay_description as string) || (data.description as string)) : (data.description as string);
+  const desc = mode === "enriched" ? ((data.overlay_description as string) || (data.short_desc as string) || (data.description as string)) : ((data.short_desc as string) || (data.description as string));
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
   const nav = data.nav as { containerName?: string } | undefined;
 

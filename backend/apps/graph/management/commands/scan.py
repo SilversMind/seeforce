@@ -3,6 +3,7 @@
 name: Local Scan Command
 container: Backend
 description: The manage.py scan command — scans one or more local repo paths and upserts the resulting ProjectMap. This is the direct-CLI ingestion path; it does not go through GitHub, so github_repo/github_branch are left unset.
+short_desc: Scans local repo paths and upserts the resulting ProjectMap
 uses:
 - Annotation Scanner: "parses annotation blocks from the target repo path(s)"
 - Workspace Builder: "resolves relationships and assembles the parsed elements into workspace.json"
@@ -15,7 +16,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.graph.models import ProjectMap, sync_lexicon_entries
-from c4parser import scan, build, export_workspace, find_orphans, find_empty_containers
+from c4parser import scan, build, export_workspace, find_orphans, find_empty_containers, find_long_short_descriptions
 from c4parser.exceptions import C4ParseError, C4ValidationError
 
 _SEEFORCE_DIR = ".seeforce"
@@ -111,6 +112,8 @@ class Command(BaseCommand):
         for warning in find_orphans(workspace):
             self.stderr.write(self.style.WARNING(warning))
         for warning in find_empty_containers(workspace):
+            self.stderr.write(self.style.WARNING(warning))
+        for warning in find_long_short_descriptions(workspace):
             self.stderr.write(self.style.WARNING(warning))
 
         source_json = json.loads(json_str)

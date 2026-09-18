@@ -2,6 +2,7 @@
 @c1:external
 name: GitHub
 description: Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph
+short_desc: Source of truth for architecture data and OAuth identity provider
 """
 
 import os

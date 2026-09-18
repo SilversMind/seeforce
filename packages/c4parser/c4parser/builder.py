@@ -2,7 +2,8 @@
 @c3:component
 name: Workspace Builder
 container: Annotation Parser
-description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id (validating level-mixing, ambiguity, and orphans along the way), and assembles the final workspace.json structure — systems, containers, components, relationships, and views.
+description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id, and assembles the final workspace.json structure — systems, containers, components, relationships, and views. Also the structural drift gate — find_orphans and find_empty_containers catch level-mixing, ambiguous refs, orphan elements, and C2s with zero C3s before the workspace is written.
+short_desc: Resolves relationships into workspace.json; the structural drift gate
 """
 import re
 from .types import C4System, C4Container, C4Component, C4Lexicon, C4Element
@@ -72,6 +73,29 @@ def find_empty_containers(workspace: dict) -> list[str]:
         for cont in sys_node.get("containers", []):
             if not cont.get("components"):
                 warnings.append(f"Container '{cont['name']}' has no components — every @c2 needs at least one @c3")
+    return warnings
+
+
+SHORT_DESC_LIMIT = 80
+
+
+def find_long_short_descriptions(workspace: dict, limit: int = SHORT_DESC_LIMIT) -> list[str]:
+    """Return warnings for short_desc values over `limit` chars — short_desc is
+    meant for the node card and sidebar header, not a second full description."""
+    warnings: list[str] = []
+
+    def _check(kind: str, name: str, short_desc: str) -> None:
+        if short_desc and len(short_desc) > limit:
+            warnings.append(
+                f"{kind} '{name}' short_desc is {len(short_desc)} chars (limit {limit}) — trim it"
+            )
+
+    for sys_node in workspace["model"]["softwareSystems"]:
+        _check("System", sys_node["name"], sys_node.get("short_desc", ""))
+        for cont in sys_node.get("containers", []):
+            _check("Container", cont["name"], cont.get("short_desc", ""))
+            for comp in cont.get("components", []):
+                _check("Component", comp["name"], comp.get("short_desc", ""))
     return warnings
 
 
@@ -322,6 +346,7 @@ def build(elements: list[C4Element]) -> dict:
                     "id": comp_id,
                     "name": comp.name,
                     "description": comp.description,
+                    "short_desc": comp.short_desc,
                     "technology": comp.technology,
                     "source_file": comp.source_file,
                     "tags": "Element,Component",
@@ -332,6 +357,7 @@ def build(elements: list[C4Element]) -> dict:
                 "id": cont_id,
                 "name": cont.name,
                 "description": cont.description,
+                "short_desc": cont.short_desc,
                 "technology": cont.technology,
                 "source_file": cont.source_file,
                 "tags": "Element,Container",
@@ -349,6 +375,7 @@ def build(elements: list[C4Element]) -> dict:
             "id": sys_id,
             "name": sys.name,
             "description": sys.description,
+            "short_desc": sys.short_desc,
             "tags": "Element,Software System" + (",External" if sys.external else ""),
             "relationships": [],
             "containers": sys_containers,

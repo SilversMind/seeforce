@@ -4,6 +4,7 @@ name: Frontend
 system: SeeForce
 technology: React
 description: Display architecture data as a comprehensive graph; handles auth-gated routing
+short_desc: Renders the architecture graph and handles auth-gated routing
 uses:
   - Backend: "Fetches graph data and manages user session (auth)"
     technology: REST

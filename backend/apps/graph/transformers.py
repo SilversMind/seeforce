@@ -3,6 +3,7 @@
 name: Graph transformer
 container: Backend
 description: Takes an already-built workspace.json (read from ProjectMap.source_json — never re-parses source files itself) and converts the requested C1/C2/C3 view into ReactFlow-ready nodes and edges, including placeholder nodes for out-of-view relationship targets.
+short_desc: Converts workspace.json into ReactFlow nodes and edges per view
 """
 
 _GRID_COLS = 4
@@ -19,6 +20,7 @@ def _node(
     label: str,
     technology: str = "",
     description: str = "",
+    short_desc: str = "",
     code_ref: str = "",
     *,
     overlay_key: OverlayKey | None = None,
@@ -35,6 +37,7 @@ def _node(
             "label": label,
             "technology": technology,
             "description": description,
+            "short_desc": short_desc,
             "code_ref": code_ref,
             "overlay_label": ov.get("display_name", "") if ov else "",
             "overlay_description": ov.get("description", "") if ov else "",
@@ -223,6 +226,7 @@ def _c1_view(
                 "person",
                 person["name"],
                 description=person.get("description", ""),
+                short_desc=person.get("short_desc", ""),
                 overlay_key=okey,
                 node_overlay=node_overlay,
             )
@@ -240,6 +244,7 @@ def _c1_view(
                 node_type,
                 system["name"],
                 description=system.get("description", ""),
+                short_desc=system.get("short_desc", ""),
                 overlay_key=okey,
                 node_overlay=node_overlay,
             )
@@ -280,6 +285,7 @@ def _c2_view(
                 container["name"],
                 technology=container.get("technology", ""),
                 description=container.get("description", ""),
+                short_desc=container.get("short_desc", ""),
                 code_ref=container.get("source_file", ""),
                 overlay_key=okey,
                 node_overlay=node_overlay,
@@ -319,6 +325,7 @@ def _c3_view(
                         comp["name"],
                         technology=comp.get("technology", ""),
                         description=comp.get("description", ""),
+                        short_desc=comp.get("short_desc", ""),
                         code_ref=comp.get("source_file", ""),
                         overlay_key=okey,
                         node_overlay=node_overlay,

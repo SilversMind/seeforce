@@ -59,6 +59,8 @@ def scan(path: str, dry_run: bool, output: Optional[str], extra_extensions: tupl
         click.echo(f"Warning: {warning}", err=True)
     for warning in c4parser.find_empty_containers(workspace):
         click.echo(f"Warning: {warning}", err=True)
+    for warning in c4parser.find_long_short_descriptions(workspace):
+        click.echo(f"Warning: {warning}", err=True)
     click.echo(f"Workspace: {workspace['name']}")
 
     if dry_run:

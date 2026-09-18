@@ -3,6 +3,7 @@
 name: GitHub App Setup Endpoint
 container: Backend
 description: Receives GitHub's post-install/post-update redirect, verifies with GitHub that the installation belongs to the logged-in user's own GitHub account, and links the installation_id to that SeeForce user.
+short_desc: Handles GitHub's post-install redirect and links the installation
 uses:
   - GitHub App Token Manager: "Reads the installation's owning GitHub account to verify the caller actually performed this installation"
   - Database: "creates or updates the GitHubAppInstallation row for the logged-in user"

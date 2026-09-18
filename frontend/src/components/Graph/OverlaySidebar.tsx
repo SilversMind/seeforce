@@ -3,6 +3,7 @@
 name: Overlay Editor
 container: Frontend
 description: Sliding detail panel for the selected node or edge — shows name, description, tags, and source-file link; in edit mode, saves overlay edits and manages the lexicon terms relevant to the node's description (add, edit, delete).
+short_desc: Sidebar panel to view and edit a node or edge's overlay details
 uses:
 - Lexicon: "reads the shared glossary via context to find terms relevant to the node being edited"
 - Edit API: "saves node/edge overlay edits and lexicon entry changes"
@@ -244,6 +245,11 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                 <ReadValue>{target!.node.data.overlay_label || target!.node.data.label}</ReadValue>
               )}
             </Section>
+            {!editing && (target!.node.data.short_desc as string) && (
+              <Section label="Summary">
+                <ReadValue>{target!.node.data.short_desc}</ReadValue>
+              </Section>
+            )}
             <Section label="Description">
               {editing ? (
                 <textarea

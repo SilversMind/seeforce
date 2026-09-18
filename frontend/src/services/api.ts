@@ -40,6 +40,7 @@ export interface RFNodeData extends Record<string, unknown> {
   label: string;
   technology: string;
   description: string;
+  short_desc: string;
   code_ref: string;
   overlay_label: string;
   overlay_description: string;

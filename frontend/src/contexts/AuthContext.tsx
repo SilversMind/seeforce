@@ -3,6 +3,7 @@
 name: Auth Context
 container: Frontend
 description: React context that manages authentication state; checks session on load and exposes logout
+short_desc: React auth state — checks session on load, exposes logout
 uses:
   - Auth API: "GET /api/auth/me/ to check session, POST /api/auth/logout/ to sign out"
     technology: REST

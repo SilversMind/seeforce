@@ -22,6 +22,8 @@ Do NOT invoke for: pure UI styling, test-only changes, config tweaks with no new
 
 2. **Call `mcp__seeforce__get_architecture_for_files`** with those file paths.
 
+   **If the call errors:** stop and report the failure to the user as a failed check — do not fall back to a manual/from-memory review and report it as if it were equivalent. A silently-degraded check that still says "no gaps found" is worse than no check at all. (As of 2026-09, tool errors return a diagnosable message — e.g. which backend URL/token was used and which file the MCP server actually ran from — instead of an opaque failure; read it, it usually says exactly what's misconfigured.)
+
 3. **Analyze each file's result**:
    - `annotation present: yes` + confidence `exact` → no action needed
    - `annotation present: no` + wrong container inferred → new component or container candidate

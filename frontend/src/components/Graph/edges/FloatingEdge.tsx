@@ -3,6 +3,7 @@
 name: Edge manager
 container: Frontend
 description: Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node.
+short_desc: Renders relationship edges between nodes with floating geometry
 uses:
 - Lexicon: "highlights and links glossary terms found in edge relationship labels"
 */
