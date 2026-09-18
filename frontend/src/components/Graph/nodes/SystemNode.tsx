@@ -5,7 +5,7 @@ import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 export function SystemNode({ data }: NodeProps) {
   const mode = useGraphMode();
   const label = mode === "enriched" ? ((data.overlay_label as string) || (data.label as string)) : (data.label as string);
-  const desc = mode === "enriched" ? ((data.overlay_description as string) || (data.description as string)) : (data.description as string);
+  const desc = mode === "enriched" ? ((data.overlay_description as string) || (data.short_desc as string) || (data.description as string)) : ((data.short_desc as string) || (data.description as string));
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
 
   return (

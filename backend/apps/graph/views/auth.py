@@ -3,6 +3,7 @@
 name: Auth API
 container: Backend
 description: Exposes /api/auth/me/ and /api/auth/logout/; delegates GitHub OAuth flow to django-allauth, reports whether the user has a GitHub App installation, and hands back the GitHub App's install/configure URL
+short_desc: Session check, logout, and GitHub App install status/URL
 uses:
   - GitHub: "OAuth 2.0 login and identity resolution"
     technology: HTTPS

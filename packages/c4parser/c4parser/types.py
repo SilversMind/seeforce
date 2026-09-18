@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 class C4System:
     name: str
     description: str = ""
+    short_desc: str = ""
     external: bool = False
     source_file: str = ""
 
@@ -15,6 +16,7 @@ class C4Container:
     system: str
     technology: str = ""
     description: str = ""
+    short_desc: str = ""
     uses: list[str | dict[str, str]] = field(default_factory=list)
     source_file: str = ""
 
@@ -25,6 +27,7 @@ class C4Component:
     container: str
     technology: str = ""
     description: str = ""
+    short_desc: str = ""
     uses: list[str | dict[str, str]] = field(default_factory=list)
     source_file: str = ""
 

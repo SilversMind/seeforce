@@ -1,4 +1,27 @@
 """
+@c2:container
+name: MCP Server
+system: SeeForce
+technology: Python / MCP stdio
+description: Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, and annotate_codebase let assistants query containers, components, and file ownership without reading source files. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.
+short_desc: Exposes SeeForce architecture context to AI coding assistants via MCP
+uses:
+    - Backend: "Fetches workspace architecture data via REST API"
+      technology: REST
+"""
+
+"""
+@c3:component
+name: Tool Handlers
+container: MCP Server
+description: Answers the 5 architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), and annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass).
+short_desc: Implements the 5 MCP tools assistants call to query architecture
+uses:
+    - Backend: "Fetches workspace architecture data via REST API"
+      technology: REST
+"""
+
+"""
 SeeForce MCP Server — exposes architecture context to Claude Code and other AI assistants.
 
 Configuration (env vars):
@@ -19,12 +42,15 @@ Each project repo should contain a .c4project file with its project UUID.
 """
 
 import asyncio
+import functools
 import os
 from pathlib import Path
 
+import httpx
 from mcp.server.mcpserver import MCPServer
 
 from seeforce_cli.mcp_client import fetch_workspace
+from seeforce_cli.mcp_config import API_URL
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
 from seeforce_cli.mcp_workspace import all_components, all_containers, all_systems, external_systems, format_rel
 
@@ -35,7 +61,36 @@ _EXCLUDE_DIRS = {"node_modules", "__pycache__", ".git", "dist", "build", "vendor
 server = MCPServer("SeeForce")
 
 
+def _diagnosable(fn):
+    """Turn a connection/auth failure into an error the calling agent can act
+    on, instead of an opaque transport-level "Error executing tool" that
+    swallows the actual reason (wrong URL, expired token, backend down).
+    Runs at every tool call, so it also catches drift between which
+    mcp_server.py is actually running and which repo the agent thinks it's
+    talking to — the __file__ line below is what exposes that."""
+
+    @functools.wraps(fn)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await fn(*args, **kwargs)
+        except httpx.HTTPStatusError as exc:
+            return (
+                f"SeeForce backend returned {exc.response.status_code} from {exc.request.url}. "
+                f"Check SEEFORCE_API_URL ({API_URL}) and SEEFORCE_API_TOKEN — this MCP server may be "
+                f"pointed at the wrong environment or using an expired token.\n"
+                f"Running from: {__file__}"
+            )
+        except httpx.HTTPError as exc:
+            return (
+                f"SeeForce backend unreachable at {API_URL}: {exc}. Is it running, and is "
+                f"SEEFORCE_API_URL pointed at the right place?\nRunning from: {__file__}"
+            )
+
+    return wrapper
+
+
 @server.tool()
+@_diagnosable
 async def get_context() -> str:
     """
     Returns a high-level overview of the project architecture: systems, containers,
@@ -71,6 +126,7 @@ async def get_context() -> str:
 
 
 @server.tool()
+@_diagnosable
 async def find_component(query: str) -> str:
     """
     Search for a C4 component or container by name or keyword.
@@ -128,6 +184,7 @@ async def find_component(query: str) -> str:
 
 
 @server.tool()
+@_diagnosable
 async def get_file_owner(file_path: str) -> str:
     """
     Given a file path, returns which C4 component or container owns it.
@@ -140,6 +197,7 @@ async def get_file_owner(file_path: str) -> str:
 
 
 @server.tool()
+@_diagnosable
 async def get_architecture_for_files(file_paths: list[str]) -> str:
     """
     Given a list of modified or created files, returns architectural context for each:

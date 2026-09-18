@@ -3,6 +3,7 @@
 name: GitHub App Token Manager
 container: Backend
 description: Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token.
+short_desc: Mints short-lived GitHub App installation tokens for API calls
 uses:
   - GitHub: "Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens"
     technology: HTTPS

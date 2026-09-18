@@ -3,6 +3,7 @@
 name: Annotation Scanner
 container: Annotation Parser
 description: Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.
+short_desc: Walks source files and extracts @c1/@c2/@c3/@lexicon blocks
 """
 import fnmatch
 import os
