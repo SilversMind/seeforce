@@ -9,15 +9,6 @@
             "timeout": 15
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/arch-sync-check.sh",
-            "timeout": 15
-          }
-        ]
       }
     ]
   }
