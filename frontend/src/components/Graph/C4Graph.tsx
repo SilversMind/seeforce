@@ -4,6 +4,7 @@ name: Architecture Visualizer
 container: Frontend
 technology: ReactFlow
 description: Display architecture and manage user interaction such as drilling down on specific component
+short_desc: Renders the graph and handles drill-down between C1/C2/C3 views
 uses:
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"
 - Edge manager: "Renders directional relationship edges between nodes"
