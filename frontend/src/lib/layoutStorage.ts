@@ -1,7 +1,13 @@
 type PositionMap = Record<string, { x: number; y: number }>;
 
+// Bump this whenever applyElkLayout's algorithm or options change in a way
+// that would make previously-saved positions look wrong (e.g. switching
+// algorithms). Old cached positions under a stale version are simply never
+// looked up again — no manual "clear cache" step needed for the fix to show.
+const LAYOUT_VERSION = 2;
+
 function key(workspaceId: string, level: string, systemId?: string | null, containerId?: string | null): string {
-  return `c4:layout:${workspaceId}:${level}:${systemId ?? ""}:${containerId ?? ""}`;
+  return `c4:layout:v${LAYOUT_VERSION}:${workspaceId}:${level}:${systemId ?? ""}:${containerId ?? ""}`;
 }
 
 export function loadPositions(
