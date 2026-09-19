@@ -2,14 +2,15 @@ import ELK from "elkjs/lib/elk.bundled.js";
 
 const elk = new ELK();
 
-// Fallback only — used when a node hasn't been measured yet (e.g. no DOM
-// mount pass happened). Real layout should always pass measured dimensions,
-// since node boxes are content-sized (minWidth/maxWidth + wrapping text) and
-// can run well past this estimate, which is what let nodes overlap before.
+/**
+ * Fallback size for an unmeasured node. Real layout should always pass
+ * measured dimensions — node boxes are content-sized (minWidth/maxWidth +
+ * wrapping text) and can run past this estimate, which is what let nodes
+ * overlap before.
+ */
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 64;
-// Minimum visual gap enforced on top of ELK's own spacing so two node
-// boxes can never touch, even at the edges of ELK's spacing tolerance.
+/** Minimum visual gap enforced between any two node boxes after layout. */
 const MIN_GAP = 24;
 
 type WithPosition = {
@@ -19,25 +20,24 @@ type WithPosition = {
 };
 type WithSourceTarget = { id: string; source: string; target: string };
 
-// The "stress" algorithm minimizes edge-length tension instead of assigning
-// nodes to strict layers — it can pull a source-only node (no incoming edges,
-// e.g. an API component that only calls out to a shared DB) toward its
-// targets instead of stranding it in a fixed leftmost column with every
-// other source node, which is what "layered" always does by construction
-// and no amount of crossing-minimization/layering-strategy tuning changes:
-// verified by reproducing the Backend C3 view's fan-in pattern standalone
-// with elkjs (stress: 0 crossings vs layered: 6). Trade-off: stress has no
-// built-in box-overlap guarantee (layered reserves per-node slot space,
-// stress only optimizes point positions), so enforceMinSpacing() below is
-// required, not optional.
+/**
+ * ELK's "layered" algorithm assigns every zero-incoming-edge node to the
+ * same leftmost column by construction — no crossing-minimization or
+ * layering-strategy tuning can move a source-only component closer to its
+ * targets. "stress" optimizes by edge-length tension instead of fixed
+ * layers, verified against layered on a real fan-in view (0 crossings vs
+ * 6). Trade-off: stress has no built-in box-overlap guarantee like layered
+ * does, hence enforceMinSpacing() below.
+ */
 const STRESS_DESIRED_EDGE_LENGTH = 260;
 
 type Rect = { id: string; x: number; y: number; w: number; h: number };
 
-// Simple iterative separating-axis push-apart: while any two boxes overlap
-// OR sit closer than `gap`, shove them apart along whichever axis has the
-// smaller (or more negative) overlap. Converges fast for graphs this size
-// (tens of nodes, not hundreds).
+/**
+ * Iterative separating-axis push-apart: while two boxes overlap or sit
+ * closer than `gap`, shove them apart along the axis with the smaller (or
+ * more negative) overlap. Converges fast for graphs this size.
+ */
 function enforceMinSpacing(rects: Rect[], gap = MIN_GAP, iterations = 50): Rect[] {
   const out = rects.map((r) => ({ ...r }));
   for (let iter = 0; iter < iterations; iter++) {
@@ -48,9 +48,7 @@ function enforceMinSpacing(rects: Rect[], gap = MIN_GAP, iterations = 50): Rect[
         const b = out[j];
         const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
         const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
-        // ox/oy are the signed overlap on each axis — negative means a real
-        // gap of that many px on that axis alone. Below -gap on either axis
-        // means the boxes already clear the minimum, so skip them.
+        // Negative ox/oy = a real gap that big; below -gap already clears the minimum.
         if (ox <= -gap || oy <= -gap) continue;
         moved = true;
         const acx = a.x + a.w / 2;
@@ -99,8 +97,7 @@ export async function applyElkLayout<N extends WithPosition, E extends WithSourc
     },
     children: nodes.map((n) => ({
       id: n.id,
-      // Real measured size when available; an under-reported box is what
-      // let neighbors sit close enough to visually touch before.
+      // Real measured size when available — an under-reported box is what let neighbors touch.
       width: n.measured?.width ?? NODE_WIDTH,
       height: n.measured?.height ?? NODE_HEIGHT,
     })),

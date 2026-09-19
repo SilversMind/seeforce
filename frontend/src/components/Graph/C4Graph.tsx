@@ -71,9 +71,11 @@ export function C4Graph() {
   );
 }
 
-// useNodesInitialized needs a ReactFlowProvider ancestor — it can't be
-// called in the same component that renders <ReactFlow>, since that
-// element's own provider doesn't exist yet when this component's hooks run.
+/**
+ * Split from the outer component because useNodesInitialized needs a
+ * ReactFlowProvider ancestor — the <ReactFlow> element's own provider
+ * doesn't exist yet when a sibling's hooks run.
+ */
 function C4GraphInner() {
   const viewState = useViewStore();
   const {
@@ -96,9 +98,10 @@ function C4GraphInner() {
   const [nodes, setNodes, onNodesChange] = useNodesState(fetchedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(fetchedEdges);
   const [isLayouting, setIsLayouting] = useState(false);
-  // True while nodes are mounted unpositioned so React Flow can measure
-  // their real content-driven size (long descriptions wrap past the
-  // fallback box) before ELK lays them out with those real dimensions.
+  /**
+   * True while nodes are mounted unpositioned so React Flow can measure
+   * their real content-driven size before ELK lays them out with it.
+   */
   const [awaitingMeasurement, setAwaitingMeasurement] = useState(false);
   const nodesInitialized = useNodesInitialized();
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
@@ -148,10 +151,18 @@ function C4GraphInner() {
     const saved = projectMapId
       ? loadPositions(projectMapId, level, systemId, containerId)
       : null;
-    if (saved) {
-      const positioned = fetchedNodes.map((n) =>
-        saved[n.id] ? { ...n, position: saved[n.id] } : n,
-      );
+    /**
+     * A cache is only trustworthy if it covers exactly the current node
+     * set — an annotation edit that adds/removes a component means the old
+     * positions were computed for a different graph shape and can overlap
+     * the new one.
+     */
+    const savedMatchesCurrentNodes =
+      saved !== null &&
+      fetchedNodes.length === Object.keys(saved).length &&
+      fetchedNodes.every((n) => saved[n.id] !== undefined);
+    if (savedMatchesCurrentNodes) {
+      const positioned = fetchedNodes.map((n) => ({ ...n, position: saved![n.id] }));
       setNodes(positioned);
       setEdges(fetchedEdges);
       setAwaitingMeasurement(false);
@@ -159,11 +170,11 @@ function C4GraphInner() {
       return;
     }
 
-    // Mount at a neutral position first — node boxes are content-sized
-    // (minWidth/maxWidth + wrapping description text), so ELK needs their
-    // real measured size, not an estimate, or boxes with long content
-    // overlap their neighbors. The measurement pass below picks up once
-    // React Flow has rendered and measured every node.
+    /**
+     * Mount at a neutral position first so the measurement pass below can
+     * pick up real content-driven box sizes once React Flow has rendered
+     * every node — ELK needs those, not an estimate.
+     */
     setIsLayouting(true);
     setNodes(fetchedNodes.map((n) => ({ ...n, position: { x: 0, y: 0 } })));
     setEdges(fetchedEdges);

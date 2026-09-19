@@ -111,12 +111,14 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
     }
   }
 
+  /**
+   * Starts from the existing overlay if there is one, otherwise from the
+   * AI-generated name/description — editable directly, not a greyed-out
+   * placeholder the user has to retype from scratch.
+   */
   function startEdit() {
     if (!target) return;
     if (target.kind === "node") {
-      // Start from the existing overlay if there is one, otherwise from the
-      // AI-generated name/description — editable directly, not just a
-      // greyed-out placeholder the user has to retype from scratch.
       setName((target.node.data.overlay_label as string) || (target.node.data.label as string) || "");
       setDescription((target.node.data.overlay_description as string) || (target.node.data.description as string) || "");
       setTags(target.node.data.tags ?? []);

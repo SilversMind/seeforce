@@ -1,9 +1,10 @@
 type PositionMap = Record<string, { x: number; y: number }>;
 
-// Bump this whenever applyElkLayout's algorithm or options change in a way
-// that would make previously-saved positions look wrong (e.g. switching
-// algorithms). Old cached positions under a stale version are simply never
-// looked up again — no manual "clear cache" step needed for the fix to show.
+/**
+ * Bump whenever applyElkLayout's algorithm/options change in a way that
+ * makes previously-saved positions look wrong. Old positions under a stale
+ * version are never looked up again — no manual cache-clear needed.
+ */
 const LAYOUT_VERSION = 2;
 
 function key(workspaceId: string, level: string, systemId?: string | null, containerId?: string | null): string {
