@@ -493,34 +493,6 @@
             ],
             "components": [
               {
-                "id": "seeforce-mcp-server-workspace-navigation-helpers",
-                "name": "Workspace Navigation Helpers",
-                "description": "Pure lookup helpers over the fetched workspace dict — enumerating systems, containers, components, and external systems, and rendering a relationship as a human-readable line for tool output.",
-                "short_desc": "",
-                "technology": "Python",
-                "source_file": "cli/seeforce_cli/mcp_workspace.py",
-                "tags": "Element,Component",
-                "relationships": []
-              },
-              {
-                "id": "seeforce-mcp-server-static-facts-bridge",
-                "name": "Static Facts Bridge",
-                "description": "Collapses the file-level import graph from Static Facts Extractor into component-level candidate edges by resolving each endpoint through file ownership inference, dropping intra-component pairs so only cross-component candidates reach the LLM. Receives already-extracted facts as a parameter — it never calls the extractor itself.",
-                "short_desc": "",
-                "technology": "Python",
-                "source_file": "cli/seeforce_cli/mcp_static_facts.py",
-                "tags": "Element,Component",
-                "relationships": [
-                  {
-                    "id": "rel-seeforce-mcp-server-static-facts-bridge-seeforce-mcp-server-ownership-inference",
-                    "destinationId": "seeforce-mcp-server-ownership-inference",
-                    "description": "resolves each edge endpoint's owning component",
-                    "technology": "",
-                    "tags": "Relationship"
-                  }
-                ]
-              },
-              {
                 "id": "seeforce-mcp-server-ownership-inference",
                 "name": "Ownership Inference",
                 "description": "Infers which C4 component or container owns a given file path — via exact source_file match, same-directory proximity, or nearest-parent-directory fallback when nothing is annotated yet.",
@@ -528,15 +500,7 @@
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_ownership.py",
                 "tags": "Element,Component",
-                "relationships": [
-                  {
-                    "id": "rel-seeforce-mcp-server-ownership-inference-seeforce-mcp-server-workspace-navigation-helpers",
-                    "destinationId": "seeforce-mcp-server-workspace-navigation-helpers",
-                    "description": "looks up known components and containers to match a file path against",
-                    "technology": "",
-                    "tags": "Relationship"
-                  }
-                ]
+                "relationships": []
               },
               {
                 "id": "seeforce-mcp-server-workspace-api-client",
@@ -577,12 +541,19 @@
               {
                 "id": "seeforce-mcp-server-static-facts-query-handler",
                 "name": "Static Facts Query Handler",
-                "description": "Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges via Static Facts Bridge, formatting both as tool output for the calling AI assistant.",
+                "description": "Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, formatting both as tool output for the calling AI assistant.",
                 "short_desc": "",
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
                 "tags": "Element,Component",
                 "relationships": [
+                  {
+                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend",
+                    "destinationId": "seeforce-backend",
+                    "description": "Fetches workspace architecture data via REST API, needed to resolve candidate edges to known components",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
                   {
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-annotation-parser-static-facts-extractor",
                     "destinationId": "seeforce-annotation-parser-static-facts-extractor",
@@ -591,9 +562,9 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-mcp-server-static-facts-bridge",
-                    "destinationId": "seeforce-mcp-server-static-facts-bridge",
-                    "description": "collapses extracted facts into component-level candidate edges via ownership inference",
+                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-mcp-server-ownership-inference",
+                    "destinationId": "seeforce-mcp-server-ownership-inference",
+                    "description": "resolves each candidate edge endpoint's owning component",
                     "technology": "",
                     "tags": "Relationship"
                   }

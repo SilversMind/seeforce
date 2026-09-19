@@ -1,10 +1,3 @@
-"""
-@c3:component
-name: Workspace Navigation Helpers
-container: MCP Server
-technology: Python
-description: Pure lookup helpers over the fetched workspace dict — enumerating systems, containers, components, and external systems, and rendering a relationship as a human-readable line for tool output.
-"""
 """Helpers for navigating a SeeForce workspace dict."""
 
 

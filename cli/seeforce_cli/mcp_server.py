@@ -253,10 +253,12 @@ def _summarize_docstring(docstring: str) -> str:
 name: Static Facts Query Handler
 container: MCP Server
 technology: Python
-description: Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges via Static Facts Bridge, formatting both as tool output for the calling AI assistant.
+description: Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, formatting both as tool output for the calling AI assistant.
 uses:
+- Backend: "Fetches workspace architecture data via REST API, needed to resolve candidate edges to known components"
+  technology: REST
 - Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
-- Static Facts Bridge: "collapses extracted facts into component-level candidate edges via ownership inference"
+- Ownership Inference: "resolves each candidate edge endpoint's owning component"
 """
 @server.tool()
 @_diagnosable

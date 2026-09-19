@@ -1,14 +1,3 @@
-"""
-@c3:component
-name: Static Facts Bridge
-container: MCP Server
-technology: Python
-description: Collapses the file-level import graph from Static Facts Extractor into component-level candidate edges by resolving each endpoint through file ownership inference, dropping intra-component pairs so only cross-component candidates reach the LLM. Receives already-extracted facts as a parameter — it never calls the extractor itself.
-uses:
-- Ownership Inference: "resolves each edge endpoint's owning component"
-"""
-
-
 def collapse_to_components(facts: list, ws: dict, infer_owner) -> list[dict]:
     """
     facts: list of FileFacts-shaped objects (from c4parser.static_facts.extract_facts)
