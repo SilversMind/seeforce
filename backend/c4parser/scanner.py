@@ -8,6 +8,7 @@ short_desc: Walks source files and extracts @c1/@c2/@c3/@lexicon blocks
 import fnmatch
 import os
 import re
+import subprocess
 import sys
 import textwrap
 import yaml
@@ -163,15 +164,24 @@ def scan(
     ignore = _load_c4ignore(root_path)
     elements: list[C4Element] = []
 
-    try:
-        import subprocess
-        result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            cwd=root_path, capture_output=True, text=True, timeout=5,
-        )
-        git_root: str | None = result.stdout.strip() if result.returncode == 0 else None
-    except Exception:
-        git_root = None
+    # Per-directory, not once for root_path — root_path itself may not be a
+    # git repo (e.g. a shared parent of several independently-cloned repos),
+    # in which case a single root-level lookup finds nothing and every
+    # source_file silently degrades to a bare filename, colliding across
+    # files and breaking ownership inference that depends on real paths.
+    git_root_cache: dict[str, str | None] = {}
+
+    def _git_root_for(dirpath: str) -> str | None:
+        if dirpath not in git_root_cache:
+            try:
+                result = subprocess.run(
+                    ["git", "rev-parse", "--show-toplevel"],
+                    cwd=dirpath, capture_output=True, text=True, timeout=5,
+                )
+                git_root_cache[dirpath] = result.stdout.strip() if result.returncode == 0 else None
+            except Exception:
+                git_root_cache[dirpath] = None
+        return git_root_cache[dirpath]
 
     for dirpath, dirnames, filenames in os.walk(root_path):
         # Prune excluded dirs in-place so os.walk skips them.
@@ -205,7 +215,7 @@ def scan(
                 if "@c" not in block and "@lexicon" not in block:
                     continue
                 try:
-                    element = _parse_block(block, file_path, line, git_root=git_root)
+                    element = _parse_block(block, file_path, line, git_root=_git_root_for(dirpath))
                 except C4ParseError as exc:
                     print(f"Warning: {exc}", file=sys.stderr)
                     continue
