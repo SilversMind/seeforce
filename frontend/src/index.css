@@ -5,6 +5,9 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
 
 :root {
   --c4-page-bg: #ffffff;
+  --c4-text-primary: #0f172a;
+  --c4-text-muted: #64748b;
+  --c4-border: #e2e8f0;
 
   --c4-system-bg: #dbeafe;
   --c4-system-border: #3b82f6;
@@ -43,9 +46,47 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
   --c4-sidebar-input-bg: #ffffff;
 }
 
+.login-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--c4-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c4-border) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 0.5;
+}
+
+.login-bg-sweep {
+  position: absolute;
+  top: -160vmax;
+  left: 50%;
+  width: 300vmax;
+  height: 300vmax;
+  margin-left: -150vmax;
+  background: conic-gradient(from 0deg at 50% 50%,
+    transparent 0deg,
+    color-mix(in srgb, var(--c4-system-border) 20%, transparent) 20deg,
+    transparent 55deg,
+    transparent 360deg);
+  filter: blur(28px);
+  animation: login-sweep-rotate 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes login-sweep-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-bg-sweep { animation: none; }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --c4-page-bg: #0f172a;
+    --c4-text-primary: #f0f6fc;
+    --c4-text-muted: #8b949e;
+    --c4-border: #30363d;
 
     --c4-system-bg: #0d1f38;
     --c4-system-border: #4a9eff;
