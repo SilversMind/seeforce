@@ -29,6 +29,10 @@ Quand il détecte un changement potentiellement significatif, il injecte un rapp
 
 Le hook est une passe heuristique volontairement simple (aucun jugement sémantique) — elle ne remplace pas la question "avant tout changement important" ci-dessus, elle rattrape ce qui y échappe.
 
+## Commentaires — 2 lignes maximum
+
+Un commentaire de code (`#`, `//`) ne doit jamais dépasser 2 lignes — les docstrings (`"""..."""`, `/** ... */`) n'entrent pas dans cette règle, elles peuvent rester plus longues. Si une explication a besoin de plus de 2 lignes, c'est un signal qu'il faut soit simplifier le code pour qu'il se suffise à lui-même, soit déplacer le contexte dans la docstring du composant/de la fonction plutôt que dans un commentaire inline.
+
 <!-- seeforce:arch-sync-section -->
 ## Keeping C4 architecture annotations in sync
 
