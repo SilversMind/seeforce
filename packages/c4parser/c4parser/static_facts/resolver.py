@@ -4,11 +4,20 @@ _SKIP_DIRS = {"node_modules", ".venv", "venv", "__pycache__", ".git", "dist", "b
 
 
 def detect_package_roots(root: str) -> set[Path]:
-    """Return absolute directories containing pyproject.toml or package.json,
-    used to anchor import resolution — skips build/dependency directories."""
+    """Return absolute directories containing a Python or JS/TS package marker,
+    used to anchor import resolution — skips build/dependency directories.
+    Pipfile and setup.py are here because pyproject.toml alone missed real
+    Python projects (Pipenv-based Django apps, older setuptools layouts).
+    manage.py is separate and Django-specific: a Django project commonly
+    nests the actual importable root (where `core`, `api`, etc. live) one
+    level below the dependency-manifest file (`backend/Pipfile` vs
+    `backend/signalstickers/manage.py`) — without this, imports like
+    `core.services` never resolve even though Pipfile was found, because
+    Pipfile's directory is the wrong root. Found running this against
+    signalstickers' backend, which has exactly this layout."""
     root_path = Path(root).resolve()
     roots: set[Path] = set()
-    for marker in ("pyproject.toml", "package.json"):
+    for marker in ("pyproject.toml", "package.json", "Pipfile", "setup.py", "manage.py"):
         for f in root_path.rglob(marker):
             # Only check path components *below* root_path, not the entire absolute path.
             # This avoids false positives when the repo is nested under a dir like /ci/build/.
