@@ -140,11 +140,11 @@ def build(elements: list[C4Element]) -> dict:
     # Two "uses: SameThing" entries mean two relationships to one node in the
     # diagram — the roles belong together in one description, not one edge each.
     for el in list(containers.values()) + list(components.values()):
-        seen: dict[str, int] = {}
+        seen: dict[tuple[str, str], int] = {}
         for use in el.uses:
-            name = _use_name(use)
-            seen[name] = seen.get(name, 0) + 1
-        dupes = [name for name, count in seen.items() if count > 1]
+            key = (_use_name(use), _use_technology(use))
+            seen[key] = seen.get(key, 0) + 1
+        dupes = [name for (name, _technology), count in seen.items() if count > 1]
         if dupes:
             raise C4ValidationError(
                 f"'{el.name}' uses '{dupes[0]}' more than once in uses: — "
@@ -390,7 +390,13 @@ def build(elements: list[C4Element]) -> dict:
             })
 
     all_systems = system_nodes + list(external_systems.values())
-    first_system_name = next(iter(systems)) if systems else None
+    # The primary/workspace-naming system should be the product under
+    # documentation, not whichever @c1:system happened to be scanned first —
+    # prefer the first non-external system, falling back to scan order only
+    # when every declared system is external (unusual, but not invalid).
+    non_external_names = [name for name, sys in systems.items() if not sys.external]
+    primary_candidates = non_external_names or list(systems.keys())
+    first_system_name = primary_candidates[0] if primary_candidates else None
     primary_system_id = system_ids[first_system_name] if first_system_name else ""
 
     return {

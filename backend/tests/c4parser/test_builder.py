@@ -196,3 +196,51 @@ def test_build_qualified_reference_missing_raises():
     ]
     with pytest.raises(C4ValidationError):
         build(elements)
+
+
+def test_build_names_workspace_after_non_external_system():
+    """The primary/workspace-naming system must be the product under
+    documentation, not whichever @c1:system happened to be scanned first."""
+    elements = [
+        C4System(name="Stripe", external=True),
+        C4System(name="Shop"),
+        C4Container(name="API Backend", system="Shop"),
+    ]
+    workspace = build(elements)
+    assert workspace["name"] == "Shop"
+    assert workspace["views"]["systemContextViews"][0]["softwareSystemId"] == "shop"
+
+
+def test_build_allows_same_target_with_different_technology():
+    """Two uses: entries naming the same target are fine when a technology:
+    field distinguishes them (e.g. REST vs WebSocket, per the documented
+    Edge Technology Field pattern) -- only a true same-name-same-technology
+    duplicate should raise."""
+    elements = [
+        C4System(name="Shop"),
+        C4Container(name="API Server", system="Shop"),
+        C4Container(
+            name="Web App",
+            system="Shop",
+            uses=[
+                {"API Server": "authenticates users", "technology": "REST"},
+                {"API Server": "receives live events", "technology": "WebSocket"},
+            ],
+        ),
+    ]
+    workspace = build(elements)
+    web_app = next(c for c in workspace["model"]["softwareSystems"][0]["containers"] if c["name"] == "Web App")
+    assert len(web_app["relationships"]) == 2
+    technologies = {r["technology"] for r in web_app["relationships"]}
+    assert technologies == {"REST", "WebSocket"}
+
+
+def test_build_rejects_true_duplicate_uses_target():
+    """Same target, same (empty) technology, listed twice -- still an error."""
+    elements = [
+        C4System(name="Shop"),
+        C4Container(name="API Backend", system="Shop", uses=["Database", "Database"]),
+        C4Container(name="Database", system="Shop"),
+    ]
+    with pytest.raises(C4ValidationError):
+        build(elements)
