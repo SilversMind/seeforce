@@ -185,6 +185,28 @@ def test_build_rollup_deduplicates_and_skips_intra_system_uses():
     assert destinations == ["kafka-order-events"]
 
 
+def test_build_rollup_carries_description_from_child_relationship():
+    """The C1 edge shouldn't be left blank -- it should say how the systems
+    interact, using the description(s) from the crossing container/component
+    uses:, joined when more than one container gives a distinct reason."""
+    elements = [
+        C4System(name="Shop"),
+        C4System(name="Warehouse", external=True),
+        C4Container(
+            name="API Backend", system="Shop",
+            uses=[{"Warehouse": "pulls stock levels"}],
+        ),
+        C4Container(
+            name="Fulfillment Worker", system="Shop",
+            uses=[{"Warehouse": "pushes shipped order events"}],
+        ),
+    ]
+    workspace = build(elements)
+    shop = next(s for s in workspace["model"]["softwareSystems"] if s["id"] == "shop")
+    rel = next(r for r in shop["relationships"] if r["destinationId"] == "warehouse")
+    assert rel["description"] == "pulls stock levels; pushes shipped order events"
+
+
 def test_build_qualified_reference_missing_raises():
     """Qualified ContainerName/ComponentName where component doesn't exist raises C4ValidationError."""
     elements = [

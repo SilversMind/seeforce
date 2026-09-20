@@ -303,25 +303,35 @@ def build(elements: list[C4Element]) -> dict:
 
     def _rollup_system_relationships(sys_node: dict) -> list[dict]:
         """Derive system-level relationships from container/component uses that
-        cross system boundaries (including external broker systems)."""
+        cross system boundaries (including external broker systems), carrying
+        forward the underlying uses: description(s) so the C1 edge still says
+        how the two systems interact instead of being left blank."""
         sys_id = sys_node["id"]
-        rels = []
-        seen: set[str] = set()
+        order: list[str] = []
+        descriptions: dict[str, list[str]] = {}
         for cont in sys_node["containers"]:
             child_rels = cont["relationships"] + [
                 r for comp in cont["components"] for r in comp["relationships"]
             ]
             for rel in child_rels:
                 dest_sys = element_system.get(rel["destinationId"])
-                if dest_sys and dest_sys != sys_id and dest_sys not in seen:
-                    seen.add(dest_sys)
-                    rels.append({
-                        "id": f"rel-{sys_id}-{dest_sys}",
-                        "destinationId": dest_sys,
-                        "description": "",
-                        "tags": "Relationship",
-                    })
-        return rels
+                if not dest_sys or dest_sys == sys_id:
+                    continue
+                if dest_sys not in descriptions:
+                    descriptions[dest_sys] = []
+                    order.append(dest_sys)
+                desc = (rel.get("description") or "").strip()
+                if desc and desc not in descriptions[dest_sys]:
+                    descriptions[dest_sys].append(desc)
+        return [
+            {
+                "id": f"rel-{sys_id}-{dest_sys}",
+                "destinationId": dest_sys,
+                "description": "; ".join(descriptions[dest_sys]),
+                "tags": "Relationship",
+            }
+            for dest_sys in order
+        ]
 
     # --- Phase 6: Assemble workspace ---
     system_nodes = []
