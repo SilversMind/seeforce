@@ -18,6 +18,7 @@ dependencies = [
     "httpx>=0.28.1",
     "python-dotenv>=1.0.0",
     "pyjwt[crypto]>=2.8",
+    "seeforce-c4parser>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -32,8 +33,11 @@ DJANGO_SETTINGS_MODULE = "c4_project.settings.dev"
 pythonpath = ["."]
 
 [tool.hatch.build.targets.wheel]
-packages = ["c4_project", "apps", "c4parser"]
+packages = ["c4_project", "apps"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv.sources]
+seeforce-c4parser = { path = "../packages/c4parser", editable = true }
