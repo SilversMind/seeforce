@@ -6,7 +6,6 @@ from .graph import (
     upsert_node_overlay,
     upsert_edge_overlay,
     project_tags,
-    scan_events,
 )
 from .lexicon import lexicon_collection, delete_lexicon_entry
 from .github_import import import_from_github, sync_from_github, link_to_github
@@ -21,7 +20,6 @@ __all__ = [
     "upsert_node_overlay",
     "upsert_edge_overlay",
     "project_tags",
-    "scan_events",
     "lexicon_collection",
     "delete_lexicon_entry",
     "import_from_github",

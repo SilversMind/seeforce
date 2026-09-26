@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { mutate } from "swr";
 import useSWR from "swr";
 import { useViewStore } from "../store/viewStore";
 import { C4Graph } from "../components/Graph/C4Graph";
@@ -108,21 +107,6 @@ export function GraphView() {
       setGithubMeta(meta.github_repo ?? "", meta.github_branch ?? "");
     }
   }, [meta, setGithubMeta]);
-
-  useEffect(() => {
-    const es = new EventSource("/api/graph/events/");
-
-    es.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === "scan_complete") {
-        mutate((key) => typeof key === "string" && key.includes("/api/graph/"));
-        navigate(`/project/${data.id}`);
-      }
-    };
-
-    es.onerror = () => es.close();
-    return () => es.close();
-  }, [navigate]);
 
   if (isNaN(projectMapId)) {
     return null;
