@@ -81,6 +81,12 @@ REST_FRAMEWORK = {
         "apps.graph.authentication.CsrfExemptSessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
+    # Deny by default: a view that forgets its own check is closed, not open.
+    # Public endpoints opt out with @permission_classes([AllowAny]).
+    "DEFAULT_PERMISSION_CLASSES": [
+        "apps.graph.views._permissions.IsAuthenticatedOrReturn401",
+    ],
+    "EXCEPTION_HANDLER": "apps.graph.views._permissions.not_authenticated_as_401",
 }
 
 AUTHENTICATION_BACKENDS = [

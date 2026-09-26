@@ -1,6 +1,7 @@
 import secrets
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -39,6 +40,7 @@ def manage_share(request, project_map_id):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])  # share links are public by design
 def use_share(request, token):
     """Public: returns project metadata. Registers access if user is authenticated."""
     try:
@@ -61,6 +63,7 @@ def use_share(request, token):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])  # share links are public by design
 def share_view(request, token, level):
     """Public: returns React Flow graph data for a shared project."""
     try:

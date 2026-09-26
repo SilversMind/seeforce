@@ -4,6 +4,21 @@ from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 
 
+def not_authenticated_as_401(exc, context):
+    """DRF downgrades NotAuthenticated to 403 when the first authenticator exposes no
+    WWW-Authenticate header, which session auth does not. Keep the 401 the frontend
+    relies on to send the user back to the login page.
+    """
+    # Imported here: rest_framework.views resolves DEFAULT_PERMISSION_CLASSES from this
+    # module while still initializing, so a module-level import would be circular.
+    from rest_framework.views import exception_handler
+
+    response = exception_handler(exc, context)
+    if response is not None and isinstance(exc, NotAuthenticated):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+    return response
+
+
 class IsAuthenticatedOrReturn401(BasePermission):
     """Like IsAuthenticated but raises 401 (not 403) for anonymous requests."""
     def has_permission(self, request, view):
