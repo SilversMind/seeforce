@@ -31,8 +31,9 @@ async def fetch_workspace() -> dict:
             r2.raise_for_status()
             data = r2.json()
         else:
-            r = await client.get("/api/graph/latest/")
-            r.raise_for_status()
-            data = r.json()
+            raise ValueError(
+                "No SeeForce project resolved for this directory. "
+                "Run `seeforce mcp install` here, or set SEEFORCE_PROJECT_ID."
+            )
 
     return data.get("source_json", {})
