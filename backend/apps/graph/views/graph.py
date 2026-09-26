@@ -9,11 +9,7 @@ uses:
 - Graph transformer: "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint"
 """
 
-import json
-import time
 
-from django.db import close_old_connections
-from django.http import StreamingHttpResponse
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -200,41 +196,3 @@ def project_tags(request, project_map_id):
     for ov in NodeOverlay.objects.filter(project_map=pm):
         all_tags.update(ov.tags or [])
     return Response({"tags": sorted(all_tags)})
-
-
-def scan_events(request):
-    """SSE endpoint — polls DB every 2s, emits scan_complete when updated_at changes."""
-    if not request.user.is_authenticated:
-        from django.http import HttpResponse
-        return HttpResponse(status=401)
-
-    user = request.user  # capture before generator runs to avoid request teardown issues
-
-    def event_stream():
-        yield "data: " + json.dumps({"type": "connected"}) + "\n\n"
-        last_updated = (
-            ProjectMap.objects.filter(owner=user)
-            .order_by("-updated_at")
-            .values_list("updated_at", flat=True)
-            .first()
-        )
-        while True:
-            time.sleep(2)
-            close_old_connections()  # force fresh DB read — SQLite caches stale reads otherwise
-            latest = (
-                ProjectMap.objects.filter(owner=user)
-                .order_by("-updated_at")
-                .values("id", "updated_at")
-                .first()
-            )
-            if latest and latest["updated_at"] != last_updated:
-                last_updated = latest["updated_at"]
-                yield "data: " + json.dumps({"type": "scan_complete", "id": latest["id"]}) + "\n\n"
-
-    response = StreamingHttpResponse(
-        streaming_content=event_stream(),
-        content_type="text/event-stream",
-    )
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-    return response
