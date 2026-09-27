@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: pytest (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: backend
+            extras: --extra dev
+          - package: cli
+            extras: --extra dev
+          - package: packages/c4parser
+            extras: --extra dev --extra static-facts
+    env:
+      # apps/graph/github_app.py reads these at request time with os.environ[...],
+      # so they must exist even though every GitHub call in the tests is mocked.
+      GITHUB_APP_ID: "12345"
+      GITHUB_APP_PRIVATE_KEY_PATH: /tmp/nonexistent.pem
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: ${{ matrix.package }}/uv.lock
+      - run: uv sync --locked ${{ matrix.extras }}
+        working-directory: ${{ matrix.package }}
+      - run: uv run pytest
+        working-directory: ${{ matrix.package }}
+
+  ruff:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      # Pinned: a ruff release that widens the default rule set must not turn
+      # this job red on code nobody touched. Bump it deliberately.
+      - run: uvx ruff@0.16.9 check .
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc -b
