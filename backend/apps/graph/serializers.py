@@ -6,8 +6,8 @@ from .models import ProjectMap
 class ProjectMapSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectMap
-        fields = ["id", "project_id", "name", "source_json", "created_at", "updated_at", "github_repo", "github_branch"]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        fields = ["id", "project_id", "name", "source_json", "created_at", "updated_at", "github_repo", "github_branch", "last_synced_at"]
+        read_only_fields = ["id", "created_at", "updated_at", "last_synced_at"]
 
 
 class ProjectMapUploadSerializer(serializers.Serializer):

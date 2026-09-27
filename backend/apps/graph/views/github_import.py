@@ -18,6 +18,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from django.utils import timezone
+
 from ..models import ProjectMap, sync_lexicon_entries
 from ._permissions import _require_auth, _require_owner
 
@@ -111,6 +113,10 @@ def import_from_github(request):
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     project_id = f"github:{repo}"
+    # GitHub owner/repo are case-insensitive, so reuse a row that only differs in case.
+    existing = ProjectMap.objects.filter(project_id__iexact=project_id).first()
+    if existing:
+        project_id = existing.project_id
     pm, created = ProjectMap.objects.update_or_create(
         project_id=project_id,
         defaults={
@@ -119,6 +125,7 @@ def import_from_github(request):
             "owner": request.user,
             "github_repo": repo,
             "github_branch": branch,
+            "last_synced_at": timezone.now(),
         },
     )
     sync_lexicon_entries(pm, workspace)
@@ -155,7 +162,7 @@ def link_to_github(request, project_map_id):
         return Response({"error": "repo must be 'owner/repo'"}, status=status.HTTP_400_BAD_REQUEST)
 
     project_id = f"github:{repo}"
-    if ProjectMap.objects.filter(project_id=project_id).exclude(id=pm.id).exists():
+    if ProjectMap.objects.filter(project_id__iexact=project_id).exclude(id=pm.id).exists():
         return Response(
             {"error": f"{repo} is already imported as a separate project."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -175,7 +182,8 @@ def link_to_github(request, project_map_id):
     pm.github_repo = repo
     pm.github_branch = branch
     pm.source_json = workspace
-    pm.save(update_fields=["project_id", "github_repo", "github_branch", "source_json", "updated_at"])
+    pm.last_synced_at = timezone.now()
+    pm.save(update_fields=["project_id", "github_repo", "github_branch", "source_json", "last_synced_at", "updated_at"])
     sync_lexicon_entries(pm, workspace)
 
     return Response({"id": pm.id, "name": pm.name, "linked": True})
@@ -209,7 +217,8 @@ def sync_from_github(request, project_map_id):
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     pm.source_json = workspace
-    pm.save(update_fields=["source_json", "updated_at"])
+    pm.last_synced_at = timezone.now()
+    pm.save(update_fields=["source_json", "last_synced_at", "updated_at"])
     sync_lexicon_entries(pm, workspace)
 
-    return Response({"id": pm.id, "name": pm.name, "synced": True})
+    return Response({"id": pm.id, "name": pm.name, "synced": True, "last_synced_at": pm.last_synced_at})
