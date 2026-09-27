@@ -88,6 +88,8 @@ def _diagnosable(fn):
                 f"pointed at the wrong environment or using an expired token.\n"
                 f"Running from: {__file__}"
             )
+        except ValueError as exc:
+            return f"SeeForce: {exc}\nRunning from: {__file__}"
         except httpx.HTTPError as exc:
             return (
                 f"SeeForce backend unreachable at {API_URL}: {exc}. Is it running, and is "

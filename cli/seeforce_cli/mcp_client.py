@@ -24,7 +24,9 @@ async def fetch_workspace() -> dict:
             projects = r.json()
             if not isinstance(projects, list):
                 projects = [projects]
-            match_meta = next((p for p in projects if p.get("project_id") == project_id), None)
+            # GitHub owner/repo are case-insensitive, so project ids can drift in case.
+            wanted = project_id.casefold()
+            match_meta = next((p for p in projects if (p.get("project_id") or "").casefold() == wanted), None)
             if not match_meta:
                 raise ValueError(f"No project found with id {project_id!r}")
             r2 = await client.get(f"/api/graph/{match_meta['id']}/")
