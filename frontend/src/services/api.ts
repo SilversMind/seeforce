@@ -14,6 +14,7 @@ export interface ProjectMapMeta {
   updated_at: string;
   github_repo?: string;
   github_branch?: string;
+  last_synced_at?: string | null;
   shared?: boolean;
   owner_username?: string;
 }

@@ -188,6 +188,26 @@ class ImportFromGitHubTest(TestCase):
         self.assertEqual(ProjectMap.objects.filter(project_id="github:owner/repo").count(), 1)
 
     @patch("apps.graph.views.github_import.http_requests.get")
+    def test_reimport_with_different_casing_reuses_the_same_project(self, mock_get):
+        # GitHub owner/repo are case-insensitive, so "Owner/Repo" is the same
+        # repo as "owner/repo" and must not create a second project.
+        self._make_token()
+        mock_get.return_value = _mock_github_ok()
+        self._post({"repo": "owner/repo"})
+        resp = self._post({"repo": "Owner/Repo"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.json()["created"])
+        self.assertEqual(ProjectMap.objects.count(), 1)
+        self.assertEqual(ProjectMap.objects.get().project_id, "github:owner/repo")
+
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_import_stamps_last_synced_at(self, mock_get):
+        self._make_token()
+        mock_get.return_value = _mock_github_ok()
+        self._post({"repo": "owner/repo"})
+        self.assertIsNotNone(ProjectMap.objects.get().last_synced_at)
+
+    @patch("apps.graph.views.github_import.http_requests.get")
     def test_custom_branch(self, mock_get):
         self._make_token()
         mock_get.return_value = _mock_github_ok()
@@ -266,6 +286,7 @@ class SyncFromGitHubTest(TestCase):
         self.assertTrue(resp.json()["synced"])
         self.pm.refresh_from_db()
         self.assertEqual(self.pm.source_json["name"], "refreshed")
+        self.assertIsNotNone(self.pm.last_synced_at)
 
 
 class LinkToGithubTest(TestCase):

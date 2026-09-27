@@ -27,7 +27,13 @@ function GitHubAppLink({ url, children }: { url: string; children: React.ReactNo
 function relativeDate(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diff / 86400000);
-  if (days === 0) return "today";
+  if (days === 0) {
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  }
   if (days === 1) return "yesterday";
   if (days < 30) return `${days} days ago`;
   const months = Math.floor(days / 30);
@@ -116,6 +122,14 @@ function ProjectCard({
       <div style={{ fontSize: 12, color: "var(--c4-sidebar-muted)" }}>
         Updated {relativeDate(project.updated_at)}
       </div>
+      {project.last_synced_at && (
+        <div
+          style={{ fontSize: 11, color: "var(--c4-sidebar-muted)", opacity: 0.7 }}
+          title={new Date(project.last_synced_at).toLocaleString()}
+        >
+          Synced from GitHub {relativeDate(project.last_synced_at)}
+        </div>
+      )}
     </div>
   );
 }
