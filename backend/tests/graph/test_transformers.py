@@ -1,4 +1,3 @@
-import pytest
 from apps.graph.transformers import to_react_flow
 
 WORKSPACE = {

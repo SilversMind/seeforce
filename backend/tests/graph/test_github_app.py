@@ -3,10 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
+from apps.graph.github_app import GitHubAppTokenManager
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-
-from apps.graph.github_app import GitHubAppTokenManager
 
 
 @pytest.fixture

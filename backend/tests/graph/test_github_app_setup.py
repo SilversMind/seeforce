@@ -2,9 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
-from django.contrib.auth import get_user_model
-
 from apps.graph.models import GitHubAppInstallation
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

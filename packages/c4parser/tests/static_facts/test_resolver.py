@@ -1,4 +1,3 @@
-from pathlib import Path
 
 from c4parser.static_facts import resolver
 

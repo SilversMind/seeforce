@@ -48,9 +48,7 @@ def _is_test_path(rel: str) -> bool:
     return (
         any(p in _TEST_DIR_NAMES for p in parts)
         or name.startswith("test_")
-        or name.endswith("_test.py")
-        or name.endswith(".spec.ts")
-        or name.endswith(".test.ts")
+        or name.endswith(("_test.py", ".spec.ts", ".test.ts"))
     )
 
 
@@ -91,16 +89,18 @@ def collect_files(paths: list[Path]) -> dict[str, str]:
 
 def build_user_message(files: dict[str, str]) -> str:
     parts = [
-        "Analyze the following codebase and produce C4 annotations.\n\n"
-        "Return a JSON object with EXACTLY this shape — no other text, no markdown wrapper:\n"
-        '{"annotations": [{"file": "/absolute/path/to/file", "annotation": "@c2:container\\nname: ..."}]}\n\n'
-        "Rules:\n"
-        "- Annotate only files that represent a C4 architectural boundary\n"
-        "- Prefer __init__.py or module entry points over individual class files\n"
-        "- The 'annotation' value is raw YAML starting with @cN:kind — no quotes, no comment markers\n"
-        "- Skip test files, migrations, utility helpers with no architectural significance\n"
-        "- One annotation per file maximum\n\n"
-        "Files:\n"
+        (
+            "Analyze the following codebase and produce C4 annotations.\n\n"
+            "Return a JSON object with EXACTLY this shape — no other text, no markdown wrapper:\n"
+            '{"annotations": [{"file": "/absolute/path/to/file", "annotation": "@c2:container\\nname: ..."}]}\n\n'
+            "Rules:\n"
+            "- Annotate only files that represent a C4 architectural boundary\n"
+            "- Prefer __init__.py or module entry points over individual class files\n"
+            "- The 'annotation' value is raw YAML starting with @cN:kind — no quotes, no comment markers\n"
+            "- Skip test files, migrations, utility helpers with no architectural significance\n"
+            "- One annotation per file maximum\n\n"
+            "Files:\n"
+        )
     ]
     for path, content in sorted(files.items()):
         parts.append(f"\n### {path}\n```\n{content}\n```\n")
@@ -194,9 +194,8 @@ def main() -> None:
         print(f"{prefix}→ {file_path}")
         print(f"  {first_line}")
 
-        if not args.dry_run:
-            if insert_annotation(file_path, annotation):
-                modified += 1
+        if not args.dry_run and insert_annotation(file_path, annotation):
+            modified += 1
 
     if args.dry_run:
         print(f"\n{len(annotations)} annotation(s) would be written (dry-run, no files changed)")

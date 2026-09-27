@@ -1,0 +1,9 @@
+# Lint config shared by backend/, cli/, packages/ and scripts/ (the frontend uses oxlint).
+target-version = "py311"
+
+[lint]
+# RUF012: Django Meta/field class attributes are mutable by design.
+# BLE001/S112: the scanners swallow per-file parse errors on purpose — one bad
+# source file must not abort a whole codebase scan.
+# EXE001: shebangs without +x are harmless here, the scripts run via `uv run`.
+ignore = ["RUF012", "BLE001", "S112", "EXE001"]

@@ -14,15 +14,21 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from ..models import ProjectMap, NodeOverlay, EdgeOverlay, sync_lexicon_entries
+from ..models import EdgeOverlay, NodeOverlay, ProjectMap, sync_lexicon_entries
 from ..serializers import (
+    EdgeOverlaySerializer,
+    NodeOverlaySerializer,
     ProjectMapSerializer,
     ProjectMapUploadSerializer,
-    NodeOverlaySerializer,
-    EdgeOverlaySerializer,
 )
 from ..transformers import to_react_flow
-from ._permissions import IsAuthenticatedOrReturn401, IsOwner, _require_auth, _require_owner, _require_access
+from ._permissions import (
+    IsAuthenticatedOrReturn401,
+    IsOwner,
+    _require_access,
+    _require_auth,
+    _require_owner,
+)
 
 
 class ProjectMapViewSet(viewsets.ModelViewSet):

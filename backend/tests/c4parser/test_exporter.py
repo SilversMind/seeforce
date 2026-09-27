@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from c4parser import scan, build, export_workspace
+
+from c4parser import build, export_workspace, scan
 
 FIXTURES = Path(__file__).parent / "fixtures" / "sample_project"
 

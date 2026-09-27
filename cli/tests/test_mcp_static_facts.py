@@ -2,7 +2,6 @@ import ast
 from pathlib import Path
 
 import pytest
-
 from seeforce_cli.mcp_static_facts import collapse_to_components
 
 

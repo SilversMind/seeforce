@@ -14,9 +14,9 @@ uses:
 import json
 
 import requests as http_requests
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from ..models import ProjectMap, sync_lexicon_entries
 from ._permissions import _require_auth, _require_owner

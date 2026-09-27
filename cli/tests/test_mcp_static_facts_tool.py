@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from seeforce_cli.mcp_server import get_static_facts_for_files
 
 _EMPTY_WS = {"model": {"softwareSystems": []}}

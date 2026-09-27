@@ -1,6 +1,6 @@
 from pathlib import Path
-from django.http import Http404, HttpResponse
 
+from django.http import Http404, HttpResponse
 
 _INSTALL_SH = Path(__file__).parents[4] / "install.sh"
 

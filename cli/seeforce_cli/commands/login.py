@@ -2,7 +2,6 @@ import http.server
 import secrets
 import threading
 import urllib.parse
-from typing import Optional
 
 import click
 
@@ -73,7 +72,7 @@ def _find_free_port() -> int:
 
 @click.command()
 @click.option("--api-url", default=None, help="SeeForce API base URL.")
-def login(api_url: Optional[str]):
+def login(api_url: str | None):
     """Authenticate with SeeForce via GitHub OAuth."""
     cfg = load_config()
     url = (api_url or cfg["api_url"]).rstrip("/")
@@ -106,4 +105,4 @@ def login(api_url: Optional[str]):
         raise click.ClickException("State mismatch — possible CSRF attempt. Aborting.")
 
     save_config(url, token)
-    click.echo(f"Logged in. Config saved to ~/.config/seeforce/config.toml")
+    click.echo("Logged in. Config saved to ~/.config/seeforce/config.toml")

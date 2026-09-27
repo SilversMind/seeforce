@@ -1,10 +1,9 @@
 import json
 import sys
 from pathlib import Path
-from typing import Optional
 
-import click
 import c4parser
+import click
 from c4parser.exceptions import C4ParseError, C4ValidationError
 
 
@@ -16,7 +15,7 @@ from c4parser.exceptions import C4ParseError, C4ValidationError
     "--ext", "-e", "extra_extensions", multiple=True,
     help=f"Additional file extension to scan, e.g. -e .mjs (defaults: {', '.join(sorted(c4parser.DEFAULT_EXTENSIONS))}).",
 )
-def scan(path: str, dry_run: bool, output: Optional[str], extra_extensions: tuple[str, ...]):
+def scan(path: str, dry_run: bool, output: str | None, extra_extensions: tuple[str, ...]):
     """Scan PATH for C4 annotations and validate the workspace."""
     root = Path(path).resolve()
 

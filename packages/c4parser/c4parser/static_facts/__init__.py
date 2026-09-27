@@ -11,7 +11,7 @@ from pathlib import Path
 from . import noise, resolver
 from .types import DefFact, FileFacts, ImportFact
 
-__all__ = ["extract_facts", "FileFacts", "ImportFact", "DefFact"]
+__all__ = ["DefFact", "FileFacts", "ImportFact", "extract_facts"]
 
 _EXT_LANGUAGE = {".py": "python", ".ts": "typescript", ".tsx": "typescript"}
 
@@ -30,7 +30,9 @@ def extract_facts(root: str, files: list[str]) -> list[FileFacts]:
     if not _backend_available() or not files:
         return []
 
-    from . import backend  # local import: only touches tree-sitter once we know it's installed
+    from . import (
+        backend,  # local import: only touches tree-sitter once we know it's installed
+    )
 
     package_roots = resolver.detect_package_roots(root)
     results: list[FileFacts] = []

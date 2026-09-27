@@ -1,7 +1,8 @@
+from urllib.parse import urlencode
+
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.http import require_GET
 from rest_framework.authtoken.models import Token
-from urllib.parse import urlencode
 
 
 @require_GET

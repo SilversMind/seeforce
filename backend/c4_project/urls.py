@@ -1,9 +1,9 @@
-from django.urls import path, include, re_path
-from django.views.generic import TemplateView
-from apps.graph.views import use_share, share_view
+from apps.graph.views import share_view, use_share
 from apps.graph.views.cli_auth import cli_auth
 from apps.graph.views.github_app import github_app_setup
 from apps.graph.views.install import serve_install_sh
+from django.urls import include, path, re_path
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path("cli/auth/", cli_auth),

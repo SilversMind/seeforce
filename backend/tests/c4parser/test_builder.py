@@ -1,7 +1,7 @@
 import pytest
-from c4parser.types import C4System, C4Container, C4Component
 from c4parser.builder import build
 from c4parser.exceptions import C4ValidationError
+from c4parser.types import C4Component, C4Container, C4System
 
 
 def _make_elements():

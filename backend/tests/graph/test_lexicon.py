@@ -1,7 +1,9 @@
-from django.test import TestCase
-from django.contrib.auth import get_user_model
-from apps.graph.models import ProjectMap, LexiconEntry
 import json
+
+from apps.graph.models import LexiconEntry, ProjectMap
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError
+from django.test import TestCase
 
 User = get_user_model()
 
@@ -22,7 +24,7 @@ class LexiconEntryModelTest(TestCase):
 
     def test_unique_term_per_project(self):
         LexiconEntry.objects.create(project_map=self.pm, term="CPU", definition="Central Processing Unit")
-        with self.assertRaises(Exception):
+        with self.assertRaises(IntegrityError):
             LexiconEntry.objects.create(project_map=self.pm, term="CPU", definition="Different")
 
     def test_same_term_different_projects(self):

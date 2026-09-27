@@ -1,8 +1,7 @@
-import json
 import threading
 import urllib.request
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import patch
+
 from click.testing import CliRunner
 from seeforce_cli.main import cli
 

@@ -47,14 +47,20 @@ import os
 from pathlib import Path
 
 import httpx
+from c4parser.static_facts import extract_facts
 from mcp.server.mcpserver import MCPServer
 
-from c4parser.static_facts import extract_facts
 from seeforce_cli.mcp_client import fetch_workspace
 from seeforce_cli.mcp_config import API_URL
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
 from seeforce_cli.mcp_static_facts import collapse_to_components
-from seeforce_cli.mcp_workspace import all_components, all_containers, all_systems, external_systems, format_rel
+from seeforce_cli.mcp_workspace import (
+    all_components,
+    all_containers,
+    all_systems,
+    external_systems,
+    format_rel,
+)
 
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "c4_annotator.md"
 _SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".java", ".go", ".cs", ".rb", ".rs"}

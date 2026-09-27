@@ -11,7 +11,11 @@ uses:
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseRedirect
+from django.http import (
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+)
 from django.views.decorators.http import require_GET
 
 from ..github_app import GitHubAppTokenManager
