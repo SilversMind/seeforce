@@ -1,6 +1,7 @@
-import textwrap
 import json
+import textwrap
 from pathlib import Path
+
 from click.testing import CliRunner
 from seeforce_cli.main import cli
 

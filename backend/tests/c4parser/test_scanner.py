@@ -1,7 +1,7 @@
-import pytest
 from pathlib import Path
+
 from c4parser.scanner import scan
-from c4parser.types import C4System, C4Container, C4Component
+from c4parser.types import C4Component, C4Container, C4System
 
 FIXTURES = Path(__file__).parent / "fixtures" / "sample_project"
 

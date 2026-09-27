@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useShareToken, type ShareInfo } from "../services/api";
+import { fetchShareInfo, type ShareInfo } from "../services/api";
 import { useViewStore } from "../store/viewStore";
 import { C4Graph } from "../components/Graph/C4Graph";
 import { useAuth } from "../contexts/AuthContext";
@@ -14,7 +14,7 @@ export function SharePage() {
 
   useEffect(() => {
     if (!token) return;
-    useShareToken(token)
+    fetchShareInfo(token)
       .then((data) => {
         setInfo(data);
         setShareView(data.id, token);

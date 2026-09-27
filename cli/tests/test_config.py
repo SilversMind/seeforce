@@ -1,8 +1,6 @@
-import tomllib
-from pathlib import Path
-import pytest
 from unittest.mock import patch
-from seeforce_cli.config import load_config, save_config, config_path
+
+from seeforce_cli.config import load_config, save_config
 
 
 def _mock_config_path(tmp_path):

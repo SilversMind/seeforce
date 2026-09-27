@@ -254,7 +254,7 @@ export interface ShareInfo {
   is_owner: boolean;
 }
 
-export async function useShareToken(token: string): Promise<ShareInfo> {
+export async function fetchShareInfo(token: string): Promise<ShareInfo> {
   const res = await fetch(`/api/share/${token}/`);
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error ?? `Invalid share link`);

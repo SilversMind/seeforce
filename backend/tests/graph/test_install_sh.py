@@ -1,4 +1,3 @@
-import pytest
 
 
 def test_install_sh_served(client):

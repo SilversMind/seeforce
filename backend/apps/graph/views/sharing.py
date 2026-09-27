@@ -1,11 +1,11 @@
 import secrets
 
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
 
-from ..models import ProjectMap, ShareToken, ProjectAccess
+from ..models import ProjectAccess, ProjectMap, ShareToken
 from ._permissions import _require_auth, _require_owner
 
 
@@ -71,8 +71,8 @@ def share_view(request, token, level):
     except ShareToken.DoesNotExist:
         return Response({"error": "Invalid or revoked share link."}, status=status.HTTP_404_NOT_FOUND)
 
+    from ..models import EdgeOverlay, NodeOverlay
     from ..transformers import to_react_flow
-    from ..models import NodeOverlay, EdgeOverlay
 
     pm = token_obj.project_map
     system = request.query_params.get("system")

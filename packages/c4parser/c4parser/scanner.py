@@ -11,11 +11,12 @@ import re
 import subprocess
 import sys
 import textwrap
-import yaml
 from pathlib import Path
 
-from .types import C4System, C4Container, C4Component, C4Lexicon, C4Element
+import yaml
+
 from .exceptions import C4ParseError
+from .types import C4Component, C4Container, C4Element, C4Lexicon, C4System
 
 # Triple-quoted Python docstrings — backreference so quotes must match.
 _PY_BLOCK_RE = re.compile(r'(?P<q>"""|\'\'\')(.*?)(?P=q)', re.DOTALL)
@@ -176,7 +177,7 @@ def scan(
             try:
                 result = subprocess.run(
                     ["git", "rev-parse", "--show-toplevel"],
-                    cwd=dirpath, capture_output=True, text=True, timeout=5,
+                    cwd=dirpath, capture_output=True, text=True, timeout=5, check=False,
                 )
                 git_root_cache[dirpath] = result.stdout.strip() if result.returncode == 0 else None
             except Exception:

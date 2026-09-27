@@ -11,10 +11,11 @@ uses:
       technology: REST
 """
 import click
-from seeforce_cli.commands.login import login
-from seeforce_cli.commands.scan import scan
-from seeforce_cli.commands.mcp import mcp
+
 from seeforce_cli.commands.annotate import annotate
+from seeforce_cli.commands.login import login
+from seeforce_cli.commands.mcp import mcp
+from seeforce_cli.commands.scan import scan
 
 
 @click.group()

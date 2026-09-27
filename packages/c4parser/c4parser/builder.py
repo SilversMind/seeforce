@@ -6,8 +6,9 @@ description: Takes the flat element list from Annotation Scanner, resolves every
 short_desc: Resolves relationships into workspace.json; the structural drift gate
 """
 import re
-from .types import C4System, C4Container, C4Component, C4Lexicon, C4Element
+
 from .exceptions import C4ValidationError
+from .types import C4Component, C4Container, C4Element, C4Lexicon, C4System
 
 
 def _slug(name: str) -> str:

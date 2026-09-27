@@ -13,11 +13,18 @@ import json
 import uuid
 from pathlib import Path
 
+from c4parser import (
+    build,
+    export_workspace,
+    find_empty_containers,
+    find_long_short_descriptions,
+    find_orphans,
+    scan,
+)
+from c4parser.exceptions import C4ParseError, C4ValidationError
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.graph.models import ProjectMap, sync_lexicon_entries
-from c4parser import scan, build, export_workspace, find_orphans, find_empty_containers, find_long_short_descriptions
-from c4parser.exceptions import C4ParseError, C4ValidationError
 
 _SEEFORCE_DIR = ".seeforce"
 

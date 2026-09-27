@@ -156,7 +156,7 @@ def install(project_path: str, skip_project_id: bool, skip_claude_setup: bool):
                 projects = []
 
             if projects:
-                latest = sorted(projects, key=lambda p: p.get("updated_at", ""), reverse=True)[0]
+                latest = max(projects, key=lambda p: p.get("updated_at", ""))
                 uuid = latest.get("project_id") or str(latest["id"])
                 c4file.write_text(uuid)
                 click.echo(f"Written .c4project ({uuid}) to {proj}")

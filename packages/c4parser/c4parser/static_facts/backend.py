@@ -69,8 +69,7 @@ def _clean_jsdoc(text: str) -> str:
         body = body[3:]
     elif body.startswith("/*"):
         body = body[2:]
-    if body.endswith("*/"):
-        body = body[:-2]
+    body = body.removesuffix("*/")
 
     lines: list[str] = []
     for line in body.splitlines():

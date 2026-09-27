@@ -8,11 +8,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
+from apps.graph.models import GitHubAppInstallation, ProjectMap
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.contrib.auth import get_user_model
-
-from apps.graph.models import GitHubAppInstallation, ProjectMap
 
 User = get_user_model()
 
