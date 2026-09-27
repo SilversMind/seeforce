@@ -7,7 +7,6 @@ router = SimpleRouter()
 router.register(r"", views.ProjectMapViewSet, basename="projectmap")
 
 urlpatterns = [
-    path("latest/", views.latest_project_map),
     path("<int:project_map_id>/view/<str:level>/", views.project_map_view),
     path("<int:project_map_id>/overlay/node/", views.upsert_node_overlay),
     path("<int:project_map_id>/tags/", views.project_tags),
