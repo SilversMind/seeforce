@@ -30,7 +30,7 @@ jobs:
       GITHUB_APP_PRIVATE_KEY_PATH: /tmp/nonexistent.pem
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
           cache-dependency-glob: ${{ matrix.package }}/uv.lock
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
       # Pinned: a ruff release that widens the default rule set must not turn
       # this job red on code nobody touched. Bump it deliberately.
       - run: uvx ruff@0.16.9 check .
