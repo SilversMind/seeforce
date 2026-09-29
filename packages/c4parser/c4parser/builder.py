@@ -8,7 +8,7 @@ short_desc: Resolves relationships into workspace.json; the structural drift gat
 import re
 
 from .exceptions import C4ValidationError
-from .types import C4Component, C4Container, C4Element, C4Lexicon, C4System
+from .types import C4Component, C4Container, C4Element, C4Lexicon, C4Person, C4System
 
 
 def _slug(name: str) -> str:
@@ -111,11 +111,15 @@ def build(elements: list[C4Element]) -> dict:
     components: dict[tuple[str, str], C4Component] = {}
     # Lexicon entries keyed by term (last annotation for a given term wins)
     lexicon: dict[str, C4Lexicon] = {}
+    # Human roles keyed by name, rendered at C1
+    persons: dict[str, C4Person] = {}
 
     for el in elements:
         match el:
             case C4System():
                 systems[el.name] = el
+            case C4Person():
+                persons[el.name] = el
             case C4Container():
                 containers[el.name] = el
             case C4Component():
@@ -136,6 +140,16 @@ def build(elements: list[C4Element]) -> dict:
                 f"component '{comp.name}' references unknown container '{comp.container}'",
                 element_name=comp.name,
             )
+
+    for person in persons.values():
+        for use in person.uses:
+            target = _use_name(use)
+            if target not in systems:
+                raise C4ValidationError(
+                    f"person '{person.name}' uses unknown system '{target}' — "
+                    f"a person's uses: must name a system, since C1 shows systems",
+                    element_name=person.name,
+                )
 
     # --- Phase 2.5: Validate no duplicate uses targets ---
     # Two "uses: SameThing" entries mean two relationships to one node in the
@@ -410,6 +424,28 @@ def build(elements: list[C4Element]) -> dict:
     first_system_name = primary_candidates[0] if primary_candidates else None
     primary_system_id = system_ids[first_system_name] if first_system_name else ""
 
+    people = []
+    for name, person in persons.items():
+        pid = f"person-{_slug(name)}"
+        people.append({
+            "id": pid,
+            "name": name,
+            "description": person.description,
+            "short_desc": person.short_desc,
+            "source_file": person.source_file,
+            "tags": "Element,Person",
+            "relationships": [
+                {
+                    "id": f"rel-{pid}-{system_ids[_use_name(use)]}",
+                    "destinationId": system_ids[_use_name(use)],
+                    "description": _use_description(use),
+                    "technology": _use_technology(use),
+                    "tags": "Relationship",
+                }
+                for use in person.uses
+            ],
+        })
+
     return {
         "name": systems[first_system_name].name if first_system_name else "workspace",
         "lexicon": [
@@ -417,7 +453,7 @@ def build(elements: list[C4Element]) -> dict:
             for entry in sorted(lexicon.values(), key=lambda e: e.term)
         ],
         "model": {
-            "people": [],
+            "people": people,
             "softwareSystems": all_systems,
         },
         "views": {

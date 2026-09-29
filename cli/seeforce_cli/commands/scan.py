@@ -47,11 +47,14 @@ def scan(path: str, dry_run: bool, output: str | None, extra_extensions: tuple[s
         for s in systems
         for c in s.get("containers", [])
     )
+    n_people = len(workspace["model"].get("people", []))
+    people_note = f", {n_people} person(s)" if n_people else ""
     n_lexicon = len(workspace.get("lexicon", []))
     lexicon_note = f", {n_lexicon} lexicon entr{'y' if n_lexicon == 1 else 'ies'}" if n_lexicon else ""
     click.echo(
         f"Found {len(elements)} elements — "
-        f"{len(systems)} system(s), {n_containers} container(s), {n_components} component(s){lexicon_note}"
+        f"{len(systems)} system(s), {n_containers} container(s), "
+        f"{n_components} component(s){people_note}{lexicon_note}"
     )
 
     for warning in c4parser.find_orphans(workspace):
