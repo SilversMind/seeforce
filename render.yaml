@@ -13,15 +13,12 @@ services:
     startCommand: cd backend && gunicorn c4_project.wsgi --workers 2 --bind 0.0.0.0:$PORT
     plan: free
     previews:
-      # Manual: a preview is created only for a PR labelled `render-preview` or whose
-      # title contains `[render preview]`. Free instance hours (750/month) are shared
-      # with production, so previews are opt-in rather than one per PR.
+      # Opt-in: only a PR labelled `render-preview` gets one, since free hours are shared.
       generation: manual
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: c4_project.settings.prod
-        # Previews inherit DATABASE_URL from this service; settings.preview overrides
-        # the database so a preview build never migrates production.
+        # settings.preview forces sqlite so a preview build never migrates production.
         previewValue: c4_project.settings.preview
       - key: SECRET_KEY
         generateValue: true
