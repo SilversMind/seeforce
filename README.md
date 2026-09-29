@@ -103,3 +103,16 @@ Or with just:
 just backend   # Django dev server on :8000
 just frontend  # Vite dev server on :3000
 ```
+
+## Contributing
+
+Pull requests are welcome. Commits must be signed off (`git commit -s`) — see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+Source available under the [Functional Source License 1.1, Apache 2.0 future
+license](LICENSE) (FSL-1.1-ALv2). Use it, modify it, self-host it, including
+commercially inside your own company. The one thing you may not do is offer
+SeeForce, or something substantially similar, as a competing product or
+service. Every release turns into Apache-2.0 two years after it ships.
