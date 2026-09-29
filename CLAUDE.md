@@ -29,9 +29,18 @@ Quand il détecte un changement potentiellement significatif, il injecte un rapp
 
 Le hook est une passe heuristique volontairement simple (aucun jugement sémantique) — elle ne remplace pas la question "avant tout changement important" ci-dessus, elle rattrape ce qui y échappe.
 
-## Commentaires — 2 lignes maximum
+## Commentaires — 1 ligne, 2 maximum
 
-Un commentaire de code (`#`, `//`) ne doit jamais dépasser 2 lignes — les docstrings (`"""..."""`, `/** ... */`) n'entrent pas dans cette règle, elles peuvent rester plus longues. Si une explication a besoin de plus de 2 lignes, c'est un signal qu'il faut soit simplifier le code pour qu'il se suffise à lui-même, soit déplacer le contexte dans la docstring du composant/de la fonction plutôt que dans un commentaire inline.
+Un commentaire (`#`, `//`) **et une docstring** (`"""..."""`, `/** ... */`) tiennent sur **une seule ligne**. Une deuxième ligne est permise seulement si elle est vraiment nécessaire, et elle doit alors commencer par `NOTE:` — c'est le signal qu'on dit là quelque chose que le code ne peut pas dire tout seul (un piège, une contrainte externe, une raison non évidente).
+
+Les docstrings **ne sont plus exemptées** : pas de paragraphe d'introduction, pas de rappel de contexte, pas d'explication du "pourquoi" étalée. Si l'explication déborde, c'est que le code doit être simplifié — pas que le commentaire doit grandir.
+
+```js
+/**
+ * Bakes LoginPage into dist/index.html so crawlers that don't run JS read the landing copy.
+ * NOTE: main.tsx uses createRoot, so React discards this markup and re-renders instead of hydrating.
+ */
+```
 
 <!-- seeforce:arch-sync-section -->
 ## Keeping C4 architecture annotations in sync
