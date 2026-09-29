@@ -36,3 +36,24 @@ def test_load_config_strips_trailing_slash(tmp_path):
         save_config("https://example.com/", "tok123")
         cfg = load_config()
     assert cfg["api_url"] == "https://example.com"
+
+
+def test_resolve_project_root_follows_the_paths_not_the_cwd(tmp_path, monkeypatch):
+    # The server is launched in `main` and never told the agent moved to
+    # `worktree`; the paths it is handed are the only signal it has.
+    from seeforce_cli.mcp_config import resolve_project_root
+
+    main = tmp_path / "main"
+    (main / ".git").mkdir(parents=True)
+    worktree = tmp_path / "worktree"
+    edited = worktree / "cli" / "thing.py"
+    edited.parent.mkdir(parents=True)
+    edited.write_text("x = 1\n")
+    # A linked worktree marks its root with a .git FILE, not a directory.
+    (worktree / ".git").write_text("gitdir: elsewhere")
+
+    monkeypatch.chdir(main)
+    assert resolve_project_root([str(edited)]) == worktree
+    assert resolve_project_root() == main
+    # A path that does not exist carries no signal, so fall back instead of guessing.
+    assert resolve_project_root(["nope/missing.py"]) == main

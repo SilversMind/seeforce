@@ -51,7 +51,7 @@ from c4parser.static_facts import extract_facts
 from mcp.server.mcpserver import MCPServer
 
 from seeforce_cli.mcp_client import fetch_workspace
-from seeforce_cli.mcp_config import API_URL
+from seeforce_cli.mcp_config import API_URL, resolve_project_root
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
 from seeforce_cli.mcp_static_facts import collapse_to_components
 from seeforce_cli.mcp_workspace import (
@@ -70,9 +70,13 @@ server = MCPServer("SeeForce")
 
 
 def _diagnosable(fn):
-    """Turn a connection/auth failure into an error the calling agent can act
-    on, instead of an opaque transport-level "Error executing tool" that
-    swallows the actual reason (wrong URL, expired token, backend down).
+    """Turn any tool failure into an error the calling agent can act on, instead
+    of an opaque transport-level "Error executing tool" that swallows the
+    reason. The httpx branches add advice the generic one cannot; the bare
+    Exception is the net that matters — an unlisted exception type used to
+    surface as the same empty message as a dead backend, which is what made a
+    plain project-id mismatch read like an auth failure for weeks.
+
     Runs at every tool call, so it also catches drift between which
     mcp_server.py is actually running and which repo the agent thinks it's
     talking to — the __file__ line below is what exposes that."""
@@ -88,12 +92,15 @@ def _diagnosable(fn):
                 f"pointed at the wrong environment or using an expired token.\n"
                 f"Running from: {__file__}"
             )
-        except ValueError as exc:
-            return f"SeeForce: {exc}\nRunning from: {__file__}"
         except httpx.HTTPError as exc:
             return (
                 f"SeeForce backend unreachable at {API_URL}: {exc}. Is it running, and is "
                 f"SEEFORCE_API_URL pointed at the right place?\nRunning from: {__file__}"
+            )
+        except Exception as exc:
+            return (
+                f"SeeForce {fn.__name__} failed: {type(exc).__name__}: {exc}\n"
+                f"API_URL: {API_URL}\nRunning from: {__file__}"
             )
 
     return wrapper
@@ -202,7 +209,7 @@ async def get_file_owner(file_path: str) -> str:
     Returns the component's responsibility, existing edges, and confidence level.
     Use when starting to edit a file to understand its architectural context.
     """
-    ws = await fetch_workspace()
+    ws = await fetch_workspace(resolve_project_root([file_path]))
     return render_owner(file_path, infer_owner(file_path, ws), ws)
 
 
@@ -214,7 +221,7 @@ async def get_architecture_for_files(file_paths: list[str]) -> str:
     which component owns it, existing edges, and a flag if the file has no annotation.
     Call after implementing a feature to check whether the C4 architecture needs updating.
     """
-    ws = await fetch_workspace()
+    ws = await fetch_workspace(resolve_project_root(file_paths))
     known_externals = [e["name"] for e in external_systems(ws)]
     sections: list[str] = []
 
@@ -282,8 +289,9 @@ async def get_static_facts_for_files(file_paths: list[str]) -> str:
     import-only with no real call site. Confirm each candidate against actual
     usage in the code before treating it as an architectural relation.
     """
-    ws = await fetch_workspace()
-    facts = extract_facts(os.getcwd(), file_paths)
+    root = resolve_project_root(file_paths)
+    ws = await fetch_workspace(root)
+    facts = extract_facts(str(root), file_paths)
     if not facts:
         return "Static analysis unavailable (tree-sitter not installed, or no facts extracted for these files)."
 
@@ -310,6 +318,7 @@ async def get_static_facts_for_files(file_paths: list[str]) -> str:
 
 
 @server.tool()
+@_diagnosable
 async def annotate_codebase() -> str:
     """
     Returns the SeeForce C4 annotation guide and all source files from the current project.
@@ -319,7 +328,7 @@ async def annotate_codebase() -> str:
     user to run: seeforce scan . && git add -A && git commit -m "chore: add C4 annotations"
     """
     prompt = _PROMPT_PATH.read_text(encoding="utf-8")
-    cwd = os.getcwd()
+    cwd = str(resolve_project_root())
 
     sections: list[str] = []
     total_chars = 0

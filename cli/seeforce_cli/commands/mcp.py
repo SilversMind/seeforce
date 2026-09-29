@@ -2,8 +2,8 @@
 @c3:component
 name: MCP Install Command
 container: SeeForce CLI
-description: Registers the SeeForce MCP server in ~/.claude.json and writes the drift-sync tooling (arch-sync-check.sh Stop hook, seeforce-arch-check skill, CLAUDE.md rule section) into the target repo — the delivery mechanism that makes ongoing drift checking happen in a user's own project, not just a one-time annotate_codebase pass.
-short_desc: Registers the MCP server and installs the drift-sync hook/skill
+description: Registers the SeeForce MCP server in ~/.claude.json and writes the drift-sync tooling (arch-sync-check.sh Stop hook, seeforce-arch-check skill, CLAUDE.md rule section) into the target repo — the delivery mechanism that makes ongoing drift checking happen in a user's own project, not just a one-time annotate_codebase pass. `update` re-points an existing entry at the current config and rewrites the managed files without re-running onboarding, so a re-login or a package upgrade propagates without a reinstall.
+short_desc: Registers and refreshes the MCP server plus the drift-sync hook/skill
 uses:
     - Backend: "Fetches the project id and validates the auth token via `seeforce mcp install`"
       technology: REST
@@ -164,3 +164,47 @@ def install(project_path: str, skip_project_id: bool, skip_claude_setup: bool):
                 click.echo("No projects on server yet — import a repo in SeeForce first, then re-run this command.")
 
     click.echo("\nRestart Claude Code (or start a new session) to activate the MCP server.")
+
+
+@mcp.command("update")
+@click.option("--project-path", default=".", type=click.Path(exists=True, file_okay=False),
+              help="Project repo whose managed hook/skill files should be refreshed.")
+@click.option("--skip-claude-setup", is_flag=True,
+              help="Only refresh the ~/.claude.json entry, leave the project's files alone.")
+def update(project_path: str, skip_claude_setup: bool):
+    """Refresh an existing install in place.
+
+    Re-points the ~/.claude.json entry at the current config and rewrites the
+    managed hook and skill files. Unlike `install` it never touches .c4project
+    and never registers a server that wasn't there, so it is safe to re-run.
+
+    It does not upgrade the package itself — `uv tool upgrade seeforce` does
+    that, and this command afterwards propagates whatever the new version ships.
+    """
+    cfg = load_config()
+    if not cfg["token"]:
+        raise click.ClickException("Not logged in. Run: seeforce login")
+
+    claude_path = _claude_json_path()
+    data = _load_claude_json(claude_path)
+    entry = data.get("mcpServers", {}).get("seeforce")
+    if entry is None:
+        raise click.ClickException(
+            f"No 'seeforce' MCP entry in {claude_path}. Run: seeforce mcp install"
+        )
+
+    env = entry.setdefault("env", {})
+    before = (env.get("SEEFORCE_API_URL"), env.get("SEEFORCE_API_TOKEN"))
+    env["SEEFORCE_API_URL"] = cfg["api_url"]
+    env["SEEFORCE_API_TOKEN"] = cfg["token"]
+
+    if before == (cfg["api_url"], cfg["token"]):
+        click.echo(f"MCP entry already matches your config ({cfg['api_url']})")
+    else:
+        _save_claude_json(claude_path, data)
+        click.echo(f"Refreshed MCP entry 'seeforce' in {claude_path} ({cfg['api_url']})")
+
+    if not skip_claude_setup:
+        _install_arch_sync(Path(project_path).resolve())
+
+    click.echo("\nRestart Claude Code (or /mcp → Reconnect) to pick this up.")
