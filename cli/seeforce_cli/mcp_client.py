@@ -9,14 +9,16 @@ uses:
   technology: REST
 """
 
+from pathlib import Path
+
 import httpx
 
 from seeforce_cli.mcp_config import API_URL, http_headers, resolve_project_id
 
 
-async def fetch_workspace() -> dict:
-    """Return source_json for the configured project."""
-    project_id = resolve_project_id()
+async def fetch_workspace(root: Path | None = None) -> dict:
+    """Return source_json for the project owning `root` (default: the launch dir)."""
+    project_id = resolve_project_id(root)
     async with httpx.AsyncClient(base_url=API_URL, headers=http_headers(), timeout=15) as client:
         if project_id:
             r = await client.get("/api/graph/")

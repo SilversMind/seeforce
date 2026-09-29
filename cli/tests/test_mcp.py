@@ -111,3 +111,36 @@ def test_mcp_install_skip_claude_setup(tmp_path):
     assert not (tmp_path / ".claude" / "hooks" / "arch-sync-check.sh").exists()
     assert not (tmp_path / ".claude" / "skills" / "seeforce-arch-check.md").exists()
     assert not (tmp_path / "CLAUDE.md").exists()
+
+
+def test_mcp_update_refreshes_token_in_place(tmp_path):
+    # A re-login writes a new token to config.toml but leaves ~/.claude.json
+    # holding the old one; update is what closes that gap.
+    claude_json = tmp_path / ".claude.json"
+    claude_json.write_text(json.dumps({
+        "mcpServers": {
+            "other-tool": {"type": "stdio"},
+            "seeforce": {"type": "stdio", "command": "seeforce-mcp", "args": [],
+                         "env": {"SEEFORCE_API_URL": "https://example.com",
+                                 "SEEFORCE_API_TOKEN": "stale-token"}},
+        }
+    }))
+    with patch("seeforce_cli.commands.mcp.load_config", return_value=_config(tmp_path, token="fresh-token")), \
+         patch("seeforce_cli.commands.mcp._claude_json_path", return_value=claude_json):
+        runner = CliRunner()
+        result = runner.invoke(cli, ["mcp", "update", "--project-path", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    data = json.loads(claude_json.read_text())
+    assert data["mcpServers"]["seeforce"]["env"]["SEEFORCE_API_TOKEN"] == "fresh-token"
+    assert "other-tool" in data["mcpServers"]
+
+
+def test_mcp_update_refuses_when_not_installed(tmp_path):
+    claude_json = tmp_path / ".claude.json"
+    claude_json.write_text(json.dumps({"mcpServers": {}}))
+    with patch("seeforce_cli.commands.mcp.load_config", return_value=_config(tmp_path)), \
+         patch("seeforce_cli.commands.mcp._claude_json_path", return_value=claude_json):
+        runner = CliRunner()
+        result = runner.invoke(cli, ["mcp", "update", "--project-path", str(tmp_path)])
+    assert result.exit_code != 0
+    assert "mcp install" in result.output
