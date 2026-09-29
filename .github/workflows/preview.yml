@@ -1,0 +1,34 @@
+name: Preview
+
+# Render cannot create previews for Git-backed services through its API, so the
+# only trigger it exposes is the `render-preview` label on the PR. This workflow is
+# the button for it: pick a branch in "Run workflow" and it labels that branch's PR.
+# Render does the build and deploy — nothing is deployed from here.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request-preview:
+    name: request preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label this branch's PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          pr=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -z "$pr" ]; then
+            echo "::error::No open PR for branch '$BRANCH'. Open one, then run this workflow on its branch."
+            exit 1
+          fi
+          # Creating the label is a one-off; it already exists on every later run.
+          gh label create render-preview --repo "$REPO" --color 0E8A16 \
+            --description "Render builds a preview environment for this PR" 2>/dev/null || true
+          gh pr edit "$pr" --repo "$REPO" --add-label render-preview
+          echo "Preview requested for PR #$pr — Render shows it in that PR within a minute." >> "$GITHUB_STEP_SUMMARY"
