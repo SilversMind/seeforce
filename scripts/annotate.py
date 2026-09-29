@@ -5,38 +5,7 @@ Analyze a codebase with Claude and insert C4 architecture annotations.
 Usage:
     python scripts/annotate.py --path /repo [--path /repo2] [--dry-run]
 """
-
 from __future__ import annotations
-
-"""
-@c1:external
-name: Anthropic API
-description: Hosted Claude models, called over HTTPS with an API key. The only place SeeForce itself talks to a language model — the MCP annotation path instead hands a prompt back to whichever assistant the user already runs, which never reaches this API through SeeForce.
-short_desc: Hosted Claude models, the one LLM SeeForce calls directly
-"""
-
-"""
-@c2:container
-name: Annotation Script
-system: SeeForce
-technology: Python
-description: Standalone script run by `just annotate`, outside the shipped CLI. Collects a repo's source files, asks a Claude model to write @c1/@c2/@c3 blocks for them, and edits the returned annotations back into the files. The alternative to the MCP path, for annotating without an AI assistant in the loop.
-short_desc: Standalone script that annotates a repo by calling Claude directly
-uses:
-- Anthropic API: "sends the collected source files with the C4 annotator prompt and reads back the annotation blocks to insert"
-  technology: HTTPS
-"""
-
-"""
-@c3:component
-name: C4 Annotator
-container: Annotation Script
-description: Walks the target repo skipping vendored and generated directories, builds the prompt from the C4 annotator guide plus the collected files, and rewrites each file with the annotation block the model returned for it. Honours --dry-run by printing the blocks instead of writing them.
-short_desc: Collects files, prompts the model, writes the returned blocks back
-uses:
-- Anthropic API: "one messages.create call carrying the annotator prompt and the repo's source files"
-  technology: HTTPS
-"""
 
 import argparse
 import json
