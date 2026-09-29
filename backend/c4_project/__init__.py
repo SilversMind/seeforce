@@ -6,6 +6,16 @@ short_desc: Turns C4 annotations in your code into an interactive architecture d
 """
 
 """
+@c1:person
+name: Developer
+description: Annotates their own codebase, scans it into a workspace, imports it into SeeForce, then explores and enriches the resulting diagram. Also the one who opens a share link to someone else's diagram, read-only in that case.
+short_desc: Maps a codebase, then explores and enriches the diagram
+uses:
+- SeeForce: "signs in with GitHub, imports or uploads a scanned workspace, explores the diagram, edits descriptions, tags and lexicon entries, and opens share links"
+  technology: HTTPS
+"""
+
+"""
 @c2:container
 name: Backend
 system: SeeForce

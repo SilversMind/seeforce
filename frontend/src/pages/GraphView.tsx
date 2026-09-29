@@ -1,3 +1,15 @@
+/*
+@c3:component
+name: Project Workspace
+container: Frontend
+technology: React
+description: The screen a user lands on for one project — hosts the graph canvas, keeps the current C4 level and drill-down target in the view store, resolves the project's GitHub repo and branch so nodes can link to their source file, and owns the share modal where the owner mints, copies or revokes a share link.
+short_desc: Per-project screen — hosts the graph, share modal, and current C4 level
+uses:
+- Architecture Visualizer: "embeds the graph canvas for the level currently selected in the view store"
+- Backend: "reads the project's repo and branch for source links, and creates, reads or revokes its share token"
+  technology: REST
+*/
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useSWR from "swr";
