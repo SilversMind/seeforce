@@ -2,7 +2,7 @@
 @c3:component
 name: Workspace Builder
 container: Annotation Parser
-description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id, and assembles the final workspace.json structure — systems, containers, components, relationships, and views. Also the structural drift gate — find_orphans and find_empty_containers catch level-mixing, ambiguous refs, orphan elements, and C2s with zero C3s before the workspace is written.
+description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id, and assembles the final workspace.json structure — systems, people, containers, components, relationships, and views. Also the structural drift gate — find_orphans and find_empty_containers catch level-mixing, ambiguous refs, orphan elements, C2s with zero C3s, and persons pointing at anything other than a system, before the workspace is written.
 short_desc: Resolves relationships into workspace.json; the structural drift gate
 """
 import re
