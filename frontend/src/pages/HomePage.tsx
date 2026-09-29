@@ -13,7 +13,7 @@ uses:
 import { useState, useEffect, useRef, useCallback } from "react";
 import useSWR, { mutate } from "swr";
 import { useNavigate } from "react-router-dom";
-import { fetchProjectMaps, fetchSharedProjects, renameProjectMap, importFromGitHub, syncFromGitHub, uploadProjectMap, linkProjectToGithub, type ProjectMapMeta } from "../services/api";
+import { deleteProjectMap, fetchProjectMaps, fetchSharedProjects, renameProjectMap, importFromGitHub, syncFromGitHub, uploadProjectMap, linkProjectToGithub, type ProjectMapMeta } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
 function GitHubAppLink({ url, children }: { url: string; children: React.ReactNode }) {
@@ -121,7 +121,13 @@ function ProjectCard({
 }
 
 async function deleteProject(id: number) {
-  await fetch(`/api/graph/${id}/`, { method: "DELETE" });
+  // A failed DELETE used to pass silently: the card came back on the next
+  // revalidation with no explanation.
+  try {
+    await deleteProjectMap(id);
+  } catch {
+    window.alert("Could not delete this project. It may belong to someone else.");
+  }
   await mutate("/api/graph/");
 }
 

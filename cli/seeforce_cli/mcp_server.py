@@ -3,7 +3,7 @@
 name: MCP Server
 system: SeeForce
 technology: Python / MCP stdio
-description: Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, and annotate_codebase let assistants query containers, components, and file ownership without reading source files. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.
+description: Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, and annotate_codebase let assistants query containers, components, and file ownership without reading source files. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.
 short_desc: Exposes SeeForce architecture context to AI coding assistants via MCP
 uses:
     - Backend: "Fetches workspace architecture data via REST API"
@@ -14,8 +14,8 @@ uses:
 @c3:component
 name: Tool Handlers
 container: MCP Server
-description: Answers the 5 architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), and annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass).
-short_desc: Implements the 5 MCP tools assistants call to query architecture
+description: Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), and annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass). get_static_facts_for_files is handled separately by Static Facts Query Handler.
+short_desc: Implements the MCP tools assistants call to query architecture
 uses:
     - Backend: "Fetches workspace architecture data via REST API"
       technology: REST
