@@ -1,0 +1,4 @@
+# Lets a contributor who forgot to sign off push a follow-up signed commit
+# instead of rewriting their branch history.
+allowRemediationCommits:
+  individual: true
