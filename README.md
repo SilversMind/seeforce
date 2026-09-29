@@ -4,7 +4,7 @@
 
 SeeForce scans your code for C4 model annotations and generates an interactive architecture diagram — systems, containers, components, and their relationships — directly from the code, so it never gets out of sync.
 
-Live instance: [seeforce.onrender.com](https://seeforce.onrender.com)
+Live instance: [seeforce.io](https://seeforce.io)
 
 ---
 
