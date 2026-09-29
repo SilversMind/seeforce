@@ -88,16 +88,6 @@ class ProjectMapViewSet(viewsets.ModelViewSet):
 
 
 @api_view(["GET"])
-def latest_project_map(request):
-    if err := _require_auth(request):
-        return err
-    pm = ProjectMap.objects.filter(owner=request.user).order_by("-updated_at").first()
-    if not pm:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    return Response({"id": pm.id, "name": pm.name, "project_id": pm.project_id})
-
-
-@api_view(["GET"])
 def project_map_view(request, project_map_id, level):
     if err := _require_auth(request):
         return err
