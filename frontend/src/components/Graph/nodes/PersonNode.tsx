@@ -18,7 +18,21 @@ export function PersonNode({ data }: NodeProps) {
       <Handle id="left-s" type="source" position={Position.Left} />
       <Handle id="right-t" type="target" position={Position.Right} />
       <Handle id="right-s" type="source" position={Position.Right} />
-      <div style={{ fontSize: 24 }}>👤</div>
+      {/* Inline SVG rather than an emoji: follows the person colour tokens in both themes. */}
+      <svg
+        viewBox="0 0 24 24"
+        width="26"
+        height="26"
+        fill="none"
+        stroke="var(--c4-person-border)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        aria-hidden="true"
+        style={{ display: "block", margin: "0 auto 2px" }}
+      >
+        <circle cx="12" cy="7.5" r="3.75" />
+        <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+      </svg>
       <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
         {label}
         {hasOverlay && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c4-person-border)", flexShrink: 0 }} />}
