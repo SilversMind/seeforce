@@ -8,7 +8,9 @@ triggers:
 
 ## When to invoke
 
-A Stop hook (`.claude/hooks/arch-sync-check.sh`) runs automatically at the end of every turn and does a cheap, no-LLM heuristic pre-filter on uncommitted source files (new file, new import, new class/function/component, new route). When it finds a match, it injects a reminder into context — **invoke this skill when that reminder appears**, before considering the task done.
+A Stop hook (`.claude/hooks/arch-sync-check.sh`) runs automatically at the end of every turn and does a cheap, no-LLM heuristic pre-filter on uncommitted source files (new file, or an import / class / function / component / route **added or removed**). When it finds a match, it injects a reminder into context — **invoke this skill when that reminder appears**, before considering the task done.
+
+Deletions count as much as additions: a route or a call site that disappears leaves the annotation claiming something the code no longer does, and that kind of drift is the one nothing else in the pipeline catches.
 
 The hook is deliberately dumb (regex/diff-stat only, same de-dup per unchanged diff so it doesn't nag every turn) — it can't tell whether a change is *semantically* significant, only whether it *looks* structurally significant. This skill is where the actual judgment happens: comparing current annotations against what the code now does.
 
@@ -27,7 +29,11 @@ Do NOT invoke for: pure UI styling, test-only changes, config tweaks with no new
 3. **Call `mcp__seeforce__get_static_facts_for_files`** with the same file paths. This re-derives the import graph from the file's current content — it catches edges the annotations claim (or omit) regardless of *how* the code got there, including refactors that changed a call site without adding any new import/class/def line the Stop hook's regex would notice. Same error-handling rule as step 2 applies here too.
 
 4. **Reconcile the two**:
-   - `annotation present: yes` + confidence `exact` + no unresolved static-facts candidate for that file → no action needed
+   - `annotation present: yes` + confidence `exact` → **this is where the check starts, not where it ends.** An annotated file is the easiest place for drift to hide: once a file carries an annotation block, `infer_owner` reports `exact` forever, whatever the file now contains. `render_owner` hands you that annotation's `Responsibility:` line and its `Existing edges:` — confront both against the file you just changed:
+     - Does the `description` still cover what the file does? A responsibility **added** (a new endpoint, a new protocol, a new side effect) or **removed** means the description is now wrong, even though the file is "annotated".
+     - Does every listed `uses:` edge still have a real call site *in this file*? An edge whose call site you just deleted is now stale and must be removed — nothing else in the pipeline will ever catch it.
+     - Does the file now reach a container, external service or component the edges do not mention?
+     Only conclude "no action needed" after answering those three. The tool reports whether an annotation *exists*; judging whether it is still *true* is your job and nothing else does it.
    - `annotation present: no` + wrong container inferred → new component or container candidate
    - New external dependency visible in code but not in any `uses:` edge → missing `@c1:external`
    - New cross-container call not reflected in existing edges → missing `uses:` entry
