@@ -84,6 +84,7 @@ function C4GraphInner() {
     jumpTo,
     level,
     projectMapId: rawProjectMapId,
+    shareToken,
     systemId,
     containerId,
   } = viewState;
@@ -108,13 +109,21 @@ function C4GraphInner() {
   const [mode, setMode] = useState<GraphMode>("enriched");
   const [activeTerm, setActiveTerm] = useState<LexiconEntry | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
+  // Share visitors have no account, so the owner-only endpoints would 401 and
+  // silently strip the glossary and the tag filter from a shared diagram.
+  const lexiconKey = rawProjectMapId == null
+    ? null
+    : shareToken ? `/api/share/${shareToken}/lexicon/` : `/api/graph/${rawProjectMapId}/lexicon/`;
+  const tagsKey = rawProjectMapId == null
+    ? null
+    : shareToken ? `/api/share/${shareToken}/tags/` : `/api/graph/${rawProjectMapId}/tags/`;
   const { data: lexicon = [] } = useSWR(
-    rawProjectMapId != null ? `/api/graph/${rawProjectMapId}/lexicon/` : null,
-    () => fetchLexicon(rawProjectMapId!),
+    lexiconKey,
+    () => fetchLexicon(rawProjectMapId!, shareToken),
   );
   const { data: allProjectTags = [] } = useSWR(
-    rawProjectMapId != null ? `/api/graph/${rawProjectMapId}/tags/` : null,
-    () => fetchProjectTags(rawProjectMapId!),
+    tagsKey,
+    () => fetchProjectTags(rawProjectMapId!, shareToken),
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flowInstance = useRef<ReactFlowInstance<any, any> | null>(null);

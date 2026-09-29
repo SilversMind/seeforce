@@ -112,8 +112,9 @@ export async function fetchProjectMaps(): Promise<ProjectMapMeta[]> {
   return res.json();
 }
 
-export async function fetchLexicon(projectMapId: number): Promise<LexiconEntry[]> {
-  const res = await fetch(`/api/graph/${projectMapId}/lexicon/`);
+export async function fetchLexicon(projectMapId: number, shareToken?: string | null): Promise<LexiconEntry[]> {
+  const url = shareToken ? `/api/share/${shareToken}/lexicon/` : `/api/graph/${projectMapId}/lexicon/`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
   return res.json();
 }
@@ -177,8 +178,9 @@ export async function upsertNodeOverlay(
   if (!res.ok) throw new Error(`Overlay save failed: ${res.status}`);
 }
 
-export async function fetchProjectTags(projectMapId: number): Promise<string[]> {
-  const res = await fetch(`/api/graph/${projectMapId}/tags/`);
+export async function fetchProjectTags(projectMapId: number, shareToken?: string | null): Promise<string[]> {
+  const url = shareToken ? `/api/share/${shareToken}/tags/` : `/api/graph/${projectMapId}/tags/`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Fetch tags failed: ${res.status}`);
   return (await res.json()).tags;
 }

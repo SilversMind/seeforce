@@ -9,7 +9,14 @@ from .graph import (
     upsert_node_overlay,
 )
 from .lexicon import delete_lexicon_entry, lexicon_collection
-from .sharing import manage_share, share_view, shared_projects, use_share
+from .sharing import (
+    manage_share,
+    share_lexicon,
+    share_tags,
+    share_view,
+    shared_projects,
+    use_share,
+)
 
 __all__ = [
     "ProjectMapViewSet",
@@ -23,6 +30,8 @@ __all__ = [
     "manage_share",
     "project_map_view",
     "project_tags",
+    "share_lexicon",
+    "share_tags",
     "share_view",
     "shared_projects",
     "sync_from_github",

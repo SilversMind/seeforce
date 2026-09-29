@@ -82,6 +82,7 @@ def share_view(request, token, level):
         (ov.node_type, ov.system_name, ov.container_name, ov.node_name): {
             "display_name": ov.display_name,
             "description": ov.description,
+            "tags": ov.tags,
         }
         for ov in NodeOverlay.objects.filter(project_map=pm)
     }
@@ -93,6 +94,42 @@ def share_view(request, token, level):
     result = to_react_flow(pm.source_json, level=level, system=system, container=container,
                            node_overlay=node_overlay, edge_overlay=edge_overlay)
     return Response(result)
+
+
+def _project_for_token(token: str):
+    """Resolve a share token to its project, or None when revoked or unknown."""
+    try:
+        return ShareToken.objects.select_related("project_map").get(token=token).project_map
+    except ShareToken.DoesNotExist:
+        return None
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])  # share links are public by design
+def share_lexicon(request, token):
+    """Public: the shared project's glossary, so terms stay defined for a visitor."""
+    pm = _project_for_token(token)
+    if pm is None:
+        return Response({"error": "Invalid or revoked share link."}, status=status.HTTP_404_NOT_FOUND)
+
+    from ..models import LexiconEntry
+    entries = LexiconEntry.objects.filter(project_map=pm).order_by("term")
+    return Response([{"term": e.term, "definition": e.definition} for e in entries])
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])  # share links are public by design
+def share_tags(request, token):
+    """Public: the tags used across the shared project's node overlays."""
+    pm = _project_for_token(token)
+    if pm is None:
+        return Response({"error": "Invalid or revoked share link."}, status=status.HTTP_404_NOT_FOUND)
+
+    from ..models import NodeOverlay
+    all_tags: set[str] = set()
+    for ov in NodeOverlay.objects.filter(project_map=pm):
+        all_tags.update(ov.tags or [])
+    return Response({"tags": sorted(all_tags)})
 
 
 @api_view(["GET"])
