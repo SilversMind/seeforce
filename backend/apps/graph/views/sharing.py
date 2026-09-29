@@ -149,6 +149,7 @@ def shared_projects(request):
             "name": a.share_token.project_map.name,
             "project_id": a.share_token.project_map.project_id,
             "updated_at": a.share_token.project_map.updated_at,
+            "last_synced_at": a.share_token.project_map.last_synced_at,
             "owner_username": a.share_token.project_map.owner.username if a.share_token.project_map.owner else None,
             "shared": True,
         }

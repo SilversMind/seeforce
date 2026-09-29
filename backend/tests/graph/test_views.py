@@ -251,3 +251,27 @@ class NodeOverlayTest(TestCase):
             content_type="application/json",
         )
         self.assertEqual(res.status_code, 403)
+
+
+class ProjectListPayloadTest(TestCase):
+    """The list endpoint hand-builds its payload instead of using
+    ProjectMapSerializer, so a field added to the model and the serializer
+    still does not reach the project cards until it is added here too."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="lister", password="pass")
+        self.client.force_login(self.user)
+
+    def test_list_exposes_last_synced_at(self):
+        from django.utils import timezone
+
+        stamped = ProjectMap.objects.create(
+            name="synced", source_json=SAMPLE_WORKSPACE, owner=self.user,
+            last_synced_at=timezone.now(),
+        )
+        ProjectMap.objects.create(name="never", source_json=SAMPLE_WORKSPACE, owner=self.user)
+
+        rows = {p["name"]: p for p in self.client.get("/api/graph/").json()}
+        self.assertIsNotNone(rows["synced"]["last_synced_at"])
+        self.assertIsNone(rows["never"]["last_synced_at"])
+        self.assertEqual(rows["synced"]["id"], stamped.id)
