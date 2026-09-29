@@ -14,11 +14,10 @@ uses:
 import json
 
 import requests as http_requests
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from django.utils import timezone
 
 from ..models import ProjectMap, sync_lexicon_entries
 from ._permissions import _require_auth, _require_owner
