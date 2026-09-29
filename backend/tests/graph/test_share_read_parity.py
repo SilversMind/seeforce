@@ -1,9 +1,8 @@
 """A share link must show the same diagram as the owner sees, minus the ability
 to change it. These tests pin the three ways it silently degraded instead."""
-from django.test import TestCase
+from apps.graph.models import LexiconEntry, NodeOverlay, ProjectMap, ShareToken
 from django.contrib.auth import get_user_model
-
-from apps.graph.models import ProjectMap, ShareToken, LexiconEntry, NodeOverlay
+from django.test import TestCase
 
 User = get_user_model()
 

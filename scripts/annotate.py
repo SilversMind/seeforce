@@ -6,6 +6,8 @@ Usage:
     python scripts/annotate.py --path /repo [--path /repo2] [--dry-run]
 """
 
+from __future__ import annotations
+
 """
 @c1:external
 name: Anthropic API
@@ -35,7 +37,6 @@ uses:
 - Anthropic API: "one messages.create call carrying the annotator prompt and the repo's source files"
   technology: HTTPS
 """
-from __future__ import annotations
 
 import argparse
 import json
