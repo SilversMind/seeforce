@@ -12,10 +12,7 @@ cd backend
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
-# Set site domain for allauth OAuth redirect URI
-# Only a preview reads RENDER_EXTERNAL_HOSTNAME: its ALLOWED_HOSTS is copied from the
-# base service and still names production. Production keeps using ALLOWED_HOSTS, which
-# may be a custom domain that RENDER_EXTERNAL_HOSTNAME would wrongly override.
+# Site domain for allauth redirects: a preview's own host, production's ALLOWED_HOSTS.
 python manage.py shell -c "
 from django.contrib.sites.models import Site
 import os
@@ -27,9 +24,7 @@ if domain:
     Site.objects.update_or_create(id=1, defaults={'domain': domain, 'name': domain})
 "
 
-# A preview starts from an empty sqlite database and its hostname is not registered
-# with the GitHub OAuth app, so social login cannot work there. Seed a superuser
-# instead: log in at /admin/ and the session cookie unlocks the API and the SPA.
+# A preview's host is not in the GitHub OAuth app, so /admin/ is the only way in.
 if [ "${IS_PULL_REQUEST:-false}" = "true" ] && [ -n "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
     # Non-zero simply means the user already exists on a rebuild of the same preview.
     python manage.py createsuperuser --noinput \

@@ -23,8 +23,7 @@ DATABASES = {
     }
 }
 
-# Every preview gets its own onrender.com hostname, unknowable until Render builds it,
-# so the host-dependent settings copied from production all point at the wrong domain.
+# A preview's hostname is assigned by Render, so the values copied from prod are wrong.
 _host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
 if _host:
     ALLOWED_HOSTS = [_host]

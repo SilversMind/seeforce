@@ -1,9 +1,6 @@
 name: Preview
 
-# Render cannot create previews for Git-backed services through its API, so the
-# only trigger it exposes is the `render-preview` label on the PR. This workflow is
-# the button for it: pick a branch in "Run workflow" and it labels that branch's PR.
-# Render does the build and deploy — nothing is deployed from here.
+# Render's API cannot preview Git-backed services, so this labels the PR and Render builds it.
 on:
   workflow_dispatch:
 
