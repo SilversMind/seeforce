@@ -50,7 +50,8 @@ class ProjectMapViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         pms = self.get_queryset()
         return Response([
-            {"id": pm.id, "name": pm.name, "project_id": pm.project_id, "updated_at": pm.updated_at}
+            {"id": pm.id, "name": pm.name, "project_id": pm.project_id,
+             "updated_at": pm.updated_at, "last_synced_at": pm.last_synced_at}
             for pm in pms
         ])
 
