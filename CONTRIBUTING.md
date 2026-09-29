@@ -29,13 +29,17 @@ This appends `Signed-off-by: Your Name <your@email>` using your `git config`
 `user.name` and `user.email`, which must be your real name and a reachable
 address.
 
-Forgot to sign? Amend the last commit:
+Forgot to sign? You don't have to rewrite your branch — push a follow-up
+remediation commit instead. The failed DCO check on your pull request spells out
+the exact line to put in it.
+
+If you would rather fix the history, amend the last commit:
 
 ```bash
 git commit --amend -s --no-edit && git push --force-with-lease
 ```
 
-For several commits, sign the whole branch at once:
+Or sign the whole branch at once:
 
 ```bash
 git rebase --signoff main && git push --force-with-lease
