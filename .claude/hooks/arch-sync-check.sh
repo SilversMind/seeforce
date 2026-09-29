@@ -1,8 +1,9 @@
 #!/bin/bash
 # Stop hook: cheap heuristic pre-filter for architecture drift.
 # Looks only at currently uncommitted changes to significant source files.
-# If the diff looks structurally significant (new file, new import, new
-# class/function/component definition, new route), injects a reminder to run
+# If the diff looks structurally significant (new file, or an import,
+# class/function/component definition or route added OR removed), injects a
+# reminder to run
 # the seeforce-arch-check skill before finishing. Otherwise stays silent.
 set -eu
 
@@ -55,9 +56,9 @@ fi
 
 SIGNIFICANT=0
 [ "${#NEW_FILES[@]}" -gt 0 ] && SIGNIFICANT=1 || true
-printf '%s' "$COMBINED" | grep -qE '^\+\s*(import |from .+ import|require\(|export \{)' && SIGNIFICANT=1 || true
-printf '%s' "$COMBINED" | grep -qE '^\+\s*(class |def |function |export function|export class|export default function)' && SIGNIFICANT=1 || true
-printf '%s' "$COMBINED" | grep -qE '^\+.*(path\(|router\.register\(|@api_view|urlpatterns|app\.(get|post|put|delete)\()' && SIGNIFICANT=1 || true
+printf '%s' "$COMBINED" | grep -qE '^[+-]\s*(import |from .+ import|require\(|export \{)' && SIGNIFICANT=1 || true
+printf '%s' "$COMBINED" | grep -qE '^[+-]\s*(class |def |function |export function|export class|export default function)' && SIGNIFICANT=1 || true
+printf '%s' "$COMBINED" | grep -qE '^[+-].*(path\(|router\.register\(|@api_view|urlpatterns|app\.(get|post|put|delete)\()' && SIGNIFICANT=1 || true
 
 if [ "$SIGNIFICANT" = "1" ]; then
   echo "$CURRENT_HASH" > "$HASH_FILE"
