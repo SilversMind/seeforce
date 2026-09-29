@@ -1,16 +1,7 @@
 #!/usr/bin/env node
 /**
- * Bakes the anonymous landing view into dist/index.html at build time.
- *
- * The landing copy lives in LoginPage, which App only mounts after an async
- * auth check resolves. Crawlers that don't execute JS — every LLM crawler, and
- * Googlebot before its deferred render pass — therefore see an empty mount
- * point, and JS-capable ones can snapshot the "Loading…" branch instead. This
- * puts the real markup in the served HTML; main.tsx uses createRoot, so React
- * discards this copy and re-renders on mount rather than hydrating it.
- *
- * Run by `npm run build` after `vite build`. Vite's ssrLoadModule handles the
- * TS/JSX transform, so this needs no separate build step for the component.
+ * Bakes LoginPage into dist/index.html so crawlers that don't run JS read the landing copy.
+ * NOTE: main.tsx uses createRoot, so React discards this markup and re-renders instead of hydrating.
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -47,8 +38,7 @@ try {
     throw new Error(`mount point ${MOUNT} not found in ${target} — run vite build first`);
   }
 
-  // Django's catch-all serves this file on every route, so drop the landing
-  // markup anywhere but "/" — bots don't run this and still read the copy.
+  // Django's catch-all serves this file on every route, so drop the markup anywhere but "/".
   const guard = `<script>if(location.pathname!=="/")document.getElementById("root").textContent="";</script>`;
   await writeFile(target, shell.replace(MOUNT, `<div id="root">${markup}</div>${guard}`));
   console.log(`prerender: injected ${markup.length} bytes of landing markup into dist/index.html`);
