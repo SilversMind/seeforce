@@ -10,7 +10,7 @@ services:
     runtime: python
     rootDir: .
     buildCommand: bash build.sh
-    startCommand: cd backend && gunicorn c4_project.wsgi --workers 2 --bind 0.0.0.0:$PORT
+    startCommand: bash backend/start.sh
     plan: free
     previews:
       # Opt-in: only a PR labelled `render-preview` gets one, since free hours are shared.
@@ -18,7 +18,7 @@ services:
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: c4_project.settings.prod
-        # settings.preview forces sqlite so a preview build never migrates production.
+        # NOTE: only Pro preview environments read this; build.sh and start.sh do the real switch.
         previewValue: c4_project.settings.preview
       - key: SECRET_KEY
         generateValue: true
