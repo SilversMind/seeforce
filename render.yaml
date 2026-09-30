@@ -1,9 +1,3 @@
-databases:
-  - name: seeforce-db
-    databaseName: seeforce
-    user: seeforce
-    plan: free
-
 services:
   - type: web
     name: seeforce
@@ -25,9 +19,9 @@ services:
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false  # set once in the Render dashboard; only used to seed preview logins
       - key: DATABASE_URL
-        fromDatabase:
-          name: seeforce-db
-          property: connectionString
+        # NOTE: dashboard-managed on purpose — free databases expire every 30 days, and a
+        # blueprint that names one repoints production at it once it dies.
+        sync: false
       - key: ALLOWED_HOSTS
         sync: false  # set to your render domain, e.g. seeforce.onrender.com
       - key: GITHUB_CLIENT_ID
