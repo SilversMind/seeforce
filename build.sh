@@ -9,6 +9,13 @@ cd ..
 
 # Install backend deps and run Django setup
 cd backend
+
+# Service previews copy prod's env vars verbatim, so the settings module is switched here.
+# NOTE: this must precede migrate, which would otherwise run against the production database.
+if [ "${IS_PULL_REQUEST:-false}" = "true" ]; then
+    export DJANGO_SETTINGS_MODULE=c4_project.settings.preview
+fi
+
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
