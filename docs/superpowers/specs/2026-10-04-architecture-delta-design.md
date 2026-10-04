@@ -8,14 +8,19 @@
 
 Answer one question: **what did this branch change at the architecture level?**
 
-The primary consumer is an AI assistant, through a new MCP tool. It calls the delta before
-finishing a task, to judge whether the C4 annotations still match what the code does — the same
-moment the `seeforce-arch-check` skill runs today, but comparing two snapshots instead of
-inspecting one. The `seeforce delta` CLI command is the secondary surface, for a human or a CI job.
+**The consumer is the user.** The end goal is a visual delta view in the frontend — someone
+reviewing a change wants to see what moved in the architecture, not read about it. This iteration
+builds the comparison engine that view will sit on, and gives a human-readable output today through
+`seeforce delta`.
 
-Success: an assistant that just edited annotated files can see, in one call, which elements and
-relations its branch added, removed, or altered — including renames, and without a false cascade
-of edge changes.
+An AI assistant is explicitly **not** the target: it can already answer this by reading the changed
+files, so an MCP tool would add a surface for a need that is already met.
+
+This makes the structured result the load-bearing artifact. The markdown renderer is a convenience
+over it for today's terminal use; the view will consume the structure directly.
+
+Success: a human reviewing a branch can see which elements and relations it added, removed, or
+altered — including renames, and without a false cascade of edge changes.
 
 This is rung 1 of the ladder recorded in the 2026-09-29 competitor research (a markdown change
 list, `+ / ~ / −`, grouped by element kind), plus the three-counter summary line from rung 2, which
@@ -27,12 +32,14 @@ In:
 
 - A pure comparison over two `workspace.json` structures, returning a serialisable result
 - A markdown renderer over that result
-- An MCP tool returning the markdown
 - A `seeforce delta` CLI command, with `--json` for the raw structure
 
 Out, deliberately:
 
-- Any graph rendering, phantom overlay, or Before/Delta/After tabs (rungs 3–4)
+- Any graph rendering, phantom overlay, or Before/Delta/After tabs (rungs 3–4) — the target, but it
+  needs the engine first, and elk layout stability is a known open problem
+- An MCP tool. An assistant can already read the changed files; it would be three lines over `diff`
+  the day one genuinely needs it
 - The self-overwriting PR bot comment (rung 2's delivery shape)
 - A backend endpoint
 - "Moved between containers" classification
@@ -43,14 +50,14 @@ Out, deliberately:
 
 | Decision | Choice | Why |
 |---|---|---|
-| Primary consumer | MCP tool; CLI second | The assistant is who asks the question, at the end of a task |
+| Consumer | The user; a visual view is the target | A human reviewing a change is who needs to see it; the structure is what the view will consume |
 | Inputs | Git revisions | `git show <rev>:.seeforce/workspace.json`; head defaults to the working tree |
 | Pairing key | `(kind, source_file)` bucket, name within a bucket, id when no `source_file` | Survives renames without authored ids or similarity heuristics |
 | Changed fields | All, named individually | No hard-coded judgment about which field deserves attention |
 | Edge comparison | Both endpoints resolved to pairing keys first | Stops a rename producing N false edge changes |
 | Placement | `packages/c4parser/c4parser/delta.py` | Both the CLI and the backend already depend on this package |
-| MCP return | Markdown | The assistant reads the delta to judge it; JSON costs tokens for no new capability |
-| JSON access | `--json` on the CLI only | The non-LLM consumers are Python and import the dataclasses directly |
+| Terminal output | Markdown | Readable today; it is a renderer over the structure, never an intermediate format |
+| JSON access | `--json` on the CLI | For a script; the view will import the dataclasses directly instead |
 
 ### Why `source_file` and not the id
 
@@ -93,14 +100,10 @@ keyed by `(source pairing key, destination pairing key)` rather than by its deri
 documents, call `diff`, print `render_markdown` or, with `--json`, the serialised structure. Exit
 code 0 regardless of what changed.
 
-The MCP tool `get_architecture_delta(base_rev: str = "main")` lives in
-`cli/seeforce_cli/mcp_server.py` as a new handler, decorated with `_diagnosable` like the others.
-It reads `.seeforce/workspace.json` from the given revision and from the working tree, both under
-`resolve_project_root()`.
-
-Note a property worth keeping: this tool needs no backend and no token. It is the first seeforce
-MCP tool that works fully offline, so it cannot fail from the backend-state and project-id problems
-that broke every other tool on 2026-10-04.
+One property worth preserving as the view gets built: the comparison needs no backend and no token.
+It reads two files, one of them through git. Every other architecture query in this project goes
+through the backend, and on 2026-10-04 all six were down at once from a stale project-id match — a
+delta that stays local cannot fail that way.
 
 ## Output
 
@@ -152,6 +155,7 @@ Pure-function tests over small hand-built dictionaries, one behaviour each:
 Plus two tests against the repository's real `.seeforce/workspace.json`: compared against itself it
 yields an empty delta, and `flatten` finds the 32 elements the file holds.
 
-CLI tests cover the revision-resolution and the error lines; the MCP tool gets one test asserting it
-returns the markdown rather than raising, matching the existing pattern in
-`cli/tests/test_mcp_static_facts_tool.py`.
+CLI tests cover the revision resolution, the `--json` output being parseable, and each error line.
+
+One test asserts `dataclasses.asdict(delta)` round-trips through `json.dumps` — the view depends on
+that, and it is the kind of thing a later field addition silently breaks.
