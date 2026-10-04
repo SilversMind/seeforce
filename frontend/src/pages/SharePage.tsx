@@ -4,6 +4,7 @@ import { fetchShareInfo, type ShareInfo } from "../services/api";
 import { useViewStore } from "../store/viewStore";
 import { C4Graph } from "../components/Graph/C4Graph";
 import { useAuth } from "../contexts/AuthContext";
+import { BrandMark } from "../components/BrandMark";
 
 export function SharePage() {
   const { token } = useParams<{ token: string }>();
@@ -42,7 +43,7 @@ export function SharePage() {
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
       <header style={{ height: 48, background: "#0f172a", display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
-        <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>SeeForce</span>
+        <BrandMark />
         <span style={{ color: "#475569", fontSize: 12 }}>·</span>
         <span style={{ color: "#94a3b8", fontSize: 13 }}>{info.name}</span>
         {info.owner_username && (
