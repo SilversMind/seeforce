@@ -108,6 +108,9 @@ SOCIALACCOUNT_PROVIDERS = {
 SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "none"
+# NOTE: allauth.urls routes /accounts/signup/, which with no email verification let anyone register.
+ACCOUNT_ADAPTER = "c4_project.account_adapter.NoPasswordSignupAdapter"
+SOCIALACCOUNT_ADAPTER = "c4_project.account_adapter.GithubSignupAdapter"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_STORE_TOKENS = False
 SESSION_COOKIE_HTTPONLY = True
