@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "cd backend && uv run python3 manage.py runserver 8000"],
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "export PATH=\"$HOME/.nvm/versions/node/v24.15.0/bin:$PATH\" && cd frontend && npm run dev"],
+      "port": 3000
+    }
+  ]
+}
