@@ -1,6 +1,6 @@
 #!/bin/sh
 # SeeForce CLI installer
-# Usage: curl -fsSL https://seeforce.onrender.com/install.sh | sh
+# Usage: curl -fsSL https://seeforce.io/install.sh | sh
 set -e
 
 REPO="https://github.com/SilversMind/seeforce-cli.git"

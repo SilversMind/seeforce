@@ -23,10 +23,10 @@ services:
         # blueprint that names one repoints production at it once it dies.
         sync: false
       - key: ALLOWED_HOSTS
-        sync: false  # set to your render domain, e.g. seeforce.onrender.com
+        sync: false  # set to your render domain, e.g. seeforce.io
       - key: GITHUB_CLIENT_ID
         sync: false
       - key: GITHUB_CLIENT_SECRET
         sync: false
       - key: FRONTEND_URL
-        sync: false  # set to https://seeforce.onrender.com/
+        sync: false  # set to https://seeforce.io/

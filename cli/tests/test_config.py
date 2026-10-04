@@ -10,7 +10,7 @@ def _mock_config_path(tmp_path):
 def test_load_config_returns_defaults_when_no_file(tmp_path):
     with patch("seeforce_cli.config.config_path", return_value=tmp_path / "config.toml"):
         cfg = load_config()
-    assert cfg["api_url"] == "https://seeforce.onrender.com"
+    assert cfg["api_url"] == "https://seeforce.io"
     assert cfg["token"] is None
 
 

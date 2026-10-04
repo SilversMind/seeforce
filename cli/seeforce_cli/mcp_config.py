@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-API_URL = os.environ.get("SEEFORCE_API_URL", "https://seeforce.onrender.com").rstrip("/")
+API_URL = os.environ.get("SEEFORCE_API_URL", "https://seeforce.io").rstrip("/")
 _TOKEN = os.environ.get("SEEFORCE_API_TOKEN", "")
 
 # A worktree's .git is a file, not a directory, so test for existence, not is_dir().

@@ -9,7 +9,7 @@ def config_path() -> Path:
 
 def load_config() -> dict:
     path = config_path()
-    defaults = {"api_url": "https://seeforce.onrender.com", "token": None}
+    defaults = {"api_url": "https://seeforce.io", "token": None}
     if not path.exists():
         return defaults
     with path.open("rb") as f:

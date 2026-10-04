@@ -26,7 +26,7 @@ import os
 if os.environ.get('IS_PULL_REQUEST') == 'true':
     domain = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
 else:
-    domain = os.environ.get('ALLOWED_HOSTS', 'seeforce.onrender.com').split(',')[0].strip()
+    domain = os.environ.get('ALLOWED_HOSTS', 'seeforce.io').split(',')[0].strip()
 if domain:
     Site.objects.update_or_create(id=1, defaults={'domain': domain, 'name': domain})
 "
