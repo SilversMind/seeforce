@@ -17,7 +17,10 @@ def _sociallogin():
     )
 
 
+@override_settings(ROOT_URLCONF="c4_project.preview_urls")
 class PasswordSignupClosedTest(TestCase):
+    """Production does not route these pages at all; a preview does, and must still refuse."""
+
     def test_signup_page_refuses(self):
         """allauth answers 200 with its closed page, so the template is the real signal."""
         response = Client().get("/accounts/signup/")
@@ -30,6 +33,8 @@ class PasswordSignupClosedTest(TestCase):
         )
         self.assertEqual(User.objects.count(), 0)
 
+
+class AdapterGatesTest(TestCase):
     def test_account_adapter_is_closed(self):
         request = RequestFactory().get("/accounts/signup/")
         self.assertFalse(get_account_adapter().is_open_for_signup(request))
