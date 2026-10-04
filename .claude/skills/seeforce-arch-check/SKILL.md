@@ -51,6 +51,19 @@ Do NOT invoke for: pure UI styling, test-only changes, config tweaks with no new
 
 7. **After applying**, run `seeforce scan .` to regenerate and validate workspace.json, then call `mcp__seeforce__get_context` to confirm the change is visible.
 
+## Reporting
+
+The check is a footer on an answer the user already got, not a report. **Two lines, default.**
+
+- Line 1 — verdict: `Arch check: no annotation changes needed.` or `Arch check: N gap(s) — <shortest possible description>`.
+- Line 2 — only if there are gaps: the proposal as a question (`Add a @c3:component for the share-link lifecycle in GraphView.tsx?`).
+
+No gaps → one line, stop. Do not list the files checked, the owner each resolved to, the edges confirmed intact, or the reasoning that cleared them. Do not pre-emptively show annotation blocks; show one only once the user says yes.
+
+**Stay silent on pre-existing drift the user's change did not cause** — an unannotated file that was already unannotated, a stale backend snapshot, a tool resolution quirk. Mention it only if it blocks the check, and then in one clause.
+
+Everything else — per-file breakdown, why a gap was judged real, the exact block to paste — is available on request. The user asks if they want it. The reconciliation in step 4 stays as thorough as written; it just does not get narrated.
+
 ## Rules
 
 - Never annotate config files (settings, pyproject.toml/package.json, .env, CI config).
