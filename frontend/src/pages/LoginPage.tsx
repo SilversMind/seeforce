@@ -61,8 +61,8 @@ export default function LoginPage() {
         <img
           src="/logo.png"
           alt="SeeForce"
-          width={160}
-          height={108}
+          width={220}
+          height={120}
           style={{ display: "block", marginBottom: "-0.5rem" }}
         />
         <h1 style={{ margin: 0, fontSize: "2.5rem", fontWeight: 700 }}>SeeForce</h1>

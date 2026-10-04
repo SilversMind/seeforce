@@ -11,7 +11,7 @@ export function BrandMark({ onClick }: { onClick?: () => void }) {
         userSelect: "none",
       }}
     >
-      <img src="/logo-mark.svg" alt="" width={26} height={20} style={{ display: "block" }} />
+      <img src="/logo-mark.png" alt="" width={37} height={20} style={{ display: "block" }} />
       <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>SeeForce</span>
     </div>
   );
