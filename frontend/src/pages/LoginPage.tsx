@@ -58,6 +58,13 @@ export default function LoginPage() {
         }}
       >
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem" }}>
+        <img
+          src="/logo.png"
+          alt="SeeForce"
+          width={160}
+          height={108}
+          style={{ display: "block", marginBottom: "-0.5rem" }}
+        />
         <h1 style={{ margin: 0, fontSize: "2.5rem", fontWeight: 700 }}>SeeForce</h1>
         <p style={{ margin: 0, color: "var(--c4-text-muted)", fontSize: "1.1rem", textAlign: "center", maxWidth: "28rem" }}>
           See what your project's codebase really looks like. AI adds the blocks, but you build the product.
