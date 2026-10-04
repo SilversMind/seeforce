@@ -33,11 +33,13 @@ def test_scan_prints_summary(tmp_path):
 
 
 def test_scan_writes_workspace_json(tmp_path):
+    """The backend, the GitHub import and the README all read .seeforce/workspace.json."""
     _write_annotated_repo(tmp_path)
     runner = CliRunner()
     runner.invoke(cli, ["scan", str(tmp_path)])
-    ws_file = tmp_path / "workspace.json"
+    ws_file = tmp_path / ".seeforce" / "workspace.json"
     assert ws_file.exists()
+    assert not (tmp_path / "workspace.json").exists()
     data = json.loads(ws_file.read_text())
     assert data["name"] == "MyApp"
 
@@ -71,4 +73,4 @@ def test_scan_dry_run_does_not_write_file(tmp_path):
     _write_annotated_repo(tmp_path)
     runner = CliRunner()
     runner.invoke(cli, ["scan", "--dry-run", str(tmp_path)])
-    assert not (tmp_path / "workspace.json").exists()
+    assert not (tmp_path / ".seeforce" / "workspace.json").exists()
