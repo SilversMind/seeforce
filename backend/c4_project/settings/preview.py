@@ -15,6 +15,9 @@ DATABASES = {
 # Preview URLs are public and guessable, so gate everything before Django routes it.
 MIDDLEWARE = ["c4_project.preview_auth.basic_auth_middleware", *MIDDLEWARE]
 
+# GitHub OAuth cannot reach a preview's hostname, so password login is the only way in here.
+ROOT_URLCONF = "c4_project.preview_urls"
+
 # A preview's hostname is assigned by Render, so the values copied from prod are wrong.
 _host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
 if _host:
