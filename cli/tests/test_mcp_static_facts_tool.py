@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from seeforce_cli.mcp_server import get_static_facts_for_files
+from seeforce_cli.mcp_server import get_context, get_static_facts_for_files
 
 _EMPTY_WS = {"model": {"softwareSystems": []}}
 
@@ -62,3 +62,44 @@ async def test_get_static_facts_for_files_truncates_long_docstring(tmp_path):
     def_line = next(ln for ln in result.splitlines() if ln.startswith("  function f"))
     assert len(def_line) < 200
     assert def_line.endswith("…")
+
+
+@pytest.mark.asyncio
+async def test_failed_lookup_names_the_project_and_the_backend():
+    """A project-id mismatch used to read like an auth failure — the message must say which id."""
+    boom = AsyncMock(side_effect=ValueError("No project found with id 'abc-123'"))
+    with patch("seeforce_cli.mcp_server.fetch_workspace", new=boom):
+        result = await get_context()
+    assert "abc-123" in result
+    assert "API_URL" in result
+
+
+@pytest.mark.asyncio
+async def test_project_id_match_ignores_case():
+    """GitHub owner/repo is case-insensitive, so .c4project and the backend can disagree on casing."""
+    from seeforce_cli.mcp_client import fetch_workspace
+
+    class _Resp:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return self._payload
+
+    class _Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def get(self, url):
+            listing = [{"project_id": "github:SilversMind/seeforce", "id": 1}]
+            return _Resp(listing if url == "/api/graph/" else {"source_json": _EMPTY_WS})
+
+    with patch("seeforce_cli.mcp_client.resolve_project_id", return_value="github:Silversmind/seeforce"), \
+         patch("seeforce_cli.mcp_client.httpx.AsyncClient", return_value=_Client()):
+        assert await fetch_workspace() == _EMPTY_WS
