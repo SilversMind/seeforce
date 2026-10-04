@@ -10,7 +10,7 @@ from c4parser.exceptions import C4ParseError, C4ValidationError
 @click.command()
 @click.argument("path", default=".", type=click.Path(exists=True, file_okay=False))
 @click.option("--dry-run", is_flag=True, help="Print workspace JSON without writing file.")
-@click.option("--output", "-o", default=None, help="Output file path (default: <path>/workspace.json).")
+@click.option("--output", "-o", default=None, help="Output file path (default: <path>/.seeforce/workspace.json).")
 @click.option(
     "--ext", "-e", "extra_extensions", multiple=True,
     help=f"Additional file extension to scan, e.g. -e .mjs (defaults: {', '.join(sorted(c4parser.DEFAULT_EXTENSIONS))}).",
@@ -69,6 +69,7 @@ def scan(path: str, dry_run: bool, output: str | None, extra_extensions: tuple[s
         click.echo(json.dumps(workspace, indent=2))
         return
 
-    out_path = Path(output) if output else root / "workspace.json"
+    out_path = Path(output) if output else root / ".seeforce" / "workspace.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(c4parser.export_workspace(workspace), encoding="utf-8")
     click.echo(f"Written: {out_path}")
