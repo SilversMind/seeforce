@@ -467,7 +467,7 @@
               {
                 "id": "rel-seeforce-seeforce-cli-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
-                "description": "parses and builds workspace.json when scanning a repo locally via `seeforce scan`",
+                "description": "parses and builds workspace.json when scanning a repo locally via `seeforce scan` or comparing snapshots via `seeforce delta`",
                 "technology": "",
                 "tags": "Relationship"
               },
@@ -625,6 +625,16 @@
                 "short_desc": "Resolves relationships into workspace.json; the structural drift gate",
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/builder.py",
+                "tags": "Element,Component",
+                "relationships": []
+              },
+              {
+                "id": "seeforce-annotation-parser-delta-reporter",
+                "name": "Delta Reporter",
+                "description": "Compares two workspace.json snapshots and reports what changed at the architecture level — pairs elements on (kind, source_file) so a rename reads as a rename rather than a remove plus an add, resolves relation endpoints through that same pairing so renaming an element does not mark all its inbound edges as changed, and renders the result as markdown. Pure computation over two dicts, with no backend call, no token, nothing written to disk.",
+                "short_desc": "Compares two workspace snapshots into an architecture delta",
+                "technology": "Python",
+                "source_file": "packages/c4parser/c4parser/delta.py",
                 "tags": "Element,Component",
                 "relationships": []
               },
