@@ -28,4 +28,4 @@ dev = ["pytest>=7.0", "pytest-asyncio>=0.24"]
 asyncio_mode = "auto"
 
 [tool.uv.sources]
-seeforce-c4parser = { path = "../packages/c4parser", editable = true }
+seeforce-c4parser = { workspace = true }
