@@ -16,13 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - package: backend
-            extras: --extra dev
-          - package: cli
-            extras: --extra dev
-          - package: packages/c4parser
-            extras: --extra dev --extra static-facts
+        package: [backend, cli, packages/c4parser]
     env:
       # apps/graph/github_app.py reads these at request time with os.environ[...],
       # so they must exist even though every GitHub call in the tests is mocked.
@@ -33,9 +27,10 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
-          cache-dependency-glob: ${{ matrix.package }}/uv.lock
-      - run: uv sync --locked ${{ matrix.extras }}
-        working-directory: ${{ matrix.package }}
+          cache-dependency-glob: uv.lock
+      # One lockfile for the whole workspace, so a shared package cannot be bumped
+      # NOTE: in one member and left stale in another — which is what three locks allowed.
+      - run: uv sync --locked --all-packages --all-extras
       - run: uv run pytest
         working-directory: ${{ matrix.package }}
 

@@ -1,0 +1,17 @@
+[project]
+name = "seeforce-monorepo"
+version = "0.0.0"
+description = "Workspace root. Not published; it exists to give the three packages one lockfile."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["backend", "cli", "packages/c4parser"]
+
+[tool.uv.sources]
+seeforce-c4parser = { workspace = true }
+
+[tool.uv]
+# NOTE: the root resolves at 3.12 because backend needs it; each member keeps its own
+# requires-python, so the published floors stay 3.11 for the cli and the parser.
+package = false
