@@ -25,3 +25,8 @@ backend/workspace.json
 
 # Secrets
 *.pem
+
+# Local agent tooling — specs, speckit scaffolding and skills stay out of the repo
+specs/
+.specify/
+.claude/skills/speckit-*/
