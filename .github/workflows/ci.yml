@@ -44,6 +44,27 @@ jobs:
       # this job red on code nobody touched. Bump it deliberately.
       - run: uvx ruff@0.16.9 check .
 
+  arch:
+    name: arch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # seeforce delta reads the base revision's workspace.json out of git.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv sync --locked --all-packages --all-extras
+      # workspace.json is a pure scan artifact, so a rescan must be a no-op.
+      # NOTE: when it isn't, the arch tooling serves the old model as current — which reads as "no annotation" on a component that has one.
+      - run: uv run seeforce scan .
+      - run: git diff --exit-code .seeforce/workspace.json
+      - name: Architecture delta vs base
+        if: github.event_name == 'pull_request'
+        run: uv run seeforce delta "origin/$GITHUB_BASE_REF" >> "$GITHUB_STEP_SUMMARY"
+
   frontend:
     name: frontend
     runs-on: ubuntu-latest
