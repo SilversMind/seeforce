@@ -194,9 +194,11 @@ def scan(
             if _is_ignored(d, ignore, rel_path=rel_d):
                 continue
             pruned.append(d)
-        dirnames[:] = pruned
+        # Sorted so the walk order is the tree's, not the filesystem's — an unsorted
+        # NOTE: walk puts elements in a different order on ext4 than on APFS, which breaks the byte-identical rescan.
+        dirnames[:] = sorted(pruned)
 
-        for filename in filenames:
+        for filename in sorted(filenames):
             if Path(filename).suffix not in exts:
                 continue
             rel_f = os.path.relpath(os.path.join(dirpath, filename), root_path).replace(os.sep, "/")
