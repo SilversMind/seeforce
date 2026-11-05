@@ -3,7 +3,7 @@
 name: Delta Reporter
 container: Annotation Parser
 technology: Python
-description: Compares two workspace.json snapshots and reports what changed at the architecture level — pairs elements on (kind, source_file) so a rename reads as a rename rather than a remove plus an add, resolves relation endpoints through that same pairing so renaming an element does not mark all its inbound edges as changed, and renders the result as markdown. Pure computation over two dicts, with no backend call, no token, nothing written to disk.
+description: Compares two workspace.json snapshots and reports what changed at the architecture level — pairs elements on (kind, source_file) so a rename reads as a rename rather than a remove plus an add, resolves relation endpoints through that same pairing so renaming an element does not mark all its inbound edges as changed, and renders the result as markdown. Also checks the feature catalogue against that same delta — a feature is broken when the model elements it names intersect the elements the delta removed, reusing the pairing instead of a second comparison path. Pure computation over two dicts, with no backend call, no token, nothing written to disk.
 short_desc: Compares two workspace snapshots into an architecture delta
 """
 from dataclasses import dataclass, field

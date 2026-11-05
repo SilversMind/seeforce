@@ -619,6 +619,16 @@
                 "relationships": []
               },
               {
+                "id": "seeforce-annotation-parser-feature-catalogue",
+                "name": "Feature Catalogue",
+                "description": "Loads, validates and serialises the feature catalogue — the list of intentions a repo serves, grouped into categories, each naming the set of model elements it touches. Resolves every element the catalogue names against a workspace snapshot flattened by Delta Reporter, so the catalogue stays a reading of the model and can assert no structure of its own. Refuses to load rather than degrade — an unknown schema version, an element that resolves to nothing, or two model elements colliding on one path all raise instead of yielding a partial catalogue. Also owns the append-only merge that keeps a human-reviewed feature byte-identical across regenerations.",
+                "short_desc": "Loads and validates the feature catalogue against a workspace snapshot",
+                "technology": "Python",
+                "source_file": "packages/c4parser/c4parser/features.py",
+                "tags": "Element,Component",
+                "relationships": []
+              },
+              {
                 "id": "seeforce-annotation-parser-workspace-builder",
                 "name": "Workspace Builder",
                 "description": "Takes the flat element list from Annotation Scanner, resolves every \"uses:\" reference into a concrete element id, and assembles the final workspace.json structure — systems, people, containers, components, relationships, and views. Also the structural drift gate — find_orphans and find_empty_containers catch level-mixing, ambiguous refs, orphan elements, C2s with zero C3s, and persons pointing at anything other than a system, before the workspace is written.",
@@ -629,9 +639,19 @@
                 "relationships": []
               },
               {
+                "id": "seeforce-annotation-parser-entry-point-discovery",
+                "name": "Entry Point Discovery",
+                "description": "Finds every deterministic way into a repo — HTTP routes, REST collection registrations, CLI commands, MCP tools and page routes — by querying call sites and decorators in the syntax tree rather than module-level list literals, which a URL conf assembled inside a function would hide entirely. Counts one router registration as one entry point rather than one per generated method route, and excludes catch-all fallback routes. Output is sorted so two runs over one tree agree byte for byte. Feeds new-feature detection, which keys on entry points because regenerating the catalogue is not reproducible.",
+                "short_desc": "Extracts a repo's routes, commands and tools as sorted entry points",
+                "technology": "Python / tree-sitter",
+                "source_file": "packages/c4parser/c4parser/entrypoints.py",
+                "tags": "Element,Component",
+                "relationships": []
+              },
+              {
                 "id": "seeforce-annotation-parser-delta-reporter",
                 "name": "Delta Reporter",
-                "description": "Compares two workspace.json snapshots and reports what changed at the architecture level — pairs elements on (kind, source_file) so a rename reads as a rename rather than a remove plus an add, resolves relation endpoints through that same pairing so renaming an element does not mark all its inbound edges as changed, and renders the result as markdown. Pure computation over two dicts, with no backend call, no token, nothing written to disk.",
+                "description": "Compares two workspace.json snapshots and reports what changed at the architecture level — pairs elements on (kind, source_file) so a rename reads as a rename rather than a remove plus an add, resolves relation endpoints through that same pairing so renaming an element does not mark all its inbound edges as changed, and renders the result as markdown. Also checks the feature catalogue against that same delta — a feature is broken when the model elements it names intersect the elements the delta removed, reusing the pairing instead of a second comparison path. Pure computation over two dicts, with no backend call, no token, nothing written to disk.",
                 "short_desc": "Compares two workspace snapshots into an architecture delta",
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/delta.py",
