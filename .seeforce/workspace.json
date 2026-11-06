@@ -275,6 +275,85 @@
             ],
             "components": [
               {
+                "id": "seeforce-seeforce-cli-annotate-command",
+                "name": "Annotate Command",
+                "description": "The `seeforce annotate` command — prints the instructions for starting an annotation pass in the user's own coding assistant, which then fetches the guide over MCP. It calls no model and writes no annotation itself; this is the boundary that keeps every other command in this CLI deterministic.",
+                "short_desc": "Prints how to start an annotation pass in the user's AI assistant",
+                "technology": "",
+                "source_file": "cli/seeforce_cli/commands/annotate.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-seeforce-cli-annotate-command-seeforce-mcp-server",
+                    "destinationId": "seeforce-mcp-server",
+                    "description": "names the server the assistant fetches the annotation guide from",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-seeforce-cli-delta-command",
+                "name": "Delta Command",
+                "description": "The `seeforce delta` command — reads a `.seeforce/workspace.json` at two revisions out of git, prints what changed architecturally, and then reports every catalogue feature that names an element the comparison removed. Exits 1 when a feature is broken, 2 on a revision that does not exist or a failed load, and 0 when the model changed but no feature did — a changed architecture is not a failure. Writes nothing and repairs nothing.",
+                "short_desc": "Compares two revisions' workspaces and fails CI on a broken feature",
+                "technology": "",
+                "source_file": "cli/seeforce_cli/commands/delta.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-seeforce-cli-delta-command-seeforce-annotation-parser-delta-reporter",
+                    "destinationId": "seeforce-annotation-parser-delta-reporter",
+                    "description": "compares the two snapshots and intersects the catalogue against the removed elements",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-seeforce-cli-delta-command-seeforce-annotation-parser-feature-catalogue",
+                    "destinationId": "seeforce-annotation-parser-feature-catalogue",
+                    "description": "loads and validates the working tree's catalogue against the head snapshot",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-seeforce-cli-features-command",
+                "name": "Features Command",
+                "description": "The `seeforce features` command — loads the catalogue and the model from the working tree, applies every fatal validation rule, and lists what the repo lets you do with capabilities and prerequisites in separate blocks. Exits 2 on a validation failure or a missing model, and 0 with an explanatory line when the repo has no catalogue yet. Reads only; it never writes or repairs the catalogue.",
+                "short_desc": "Validates the feature catalogue and lists what the repo lets you do",
+                "technology": "",
+                "source_file": "cli/seeforce_cli/commands/features.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-seeforce-cli-features-command-seeforce-annotation-parser-feature-catalogue",
+                    "destinationId": "seeforce-annotation-parser-feature-catalogue",
+                    "description": "loads and validates the catalogue against the scanned workspace",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-seeforce-cli-login-command",
+                "name": "Login Command",
+                "description": "The `seeforce login` command — runs the GitHub OAuth flow against the backend through a short-lived local callback server, then stores the API url and token in the user's config so the other commands and the MCP server can authenticate.",
+                "short_desc": "Authenticates via GitHub OAuth and stores the API token locally",
+                "technology": "",
+                "source_file": "cli/seeforce_cli/commands/login.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-seeforce-cli-login-command-seeforce-backend",
+                    "destinationId": "seeforce-backend",
+                    "description": "runs the OAuth exchange and returns the API token",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
                 "id": "seeforce-seeforce-cli-mcp-install-command",
                 "name": "MCP Install Command",
                 "description": "Registers the SeeForce MCP server in ~/.claude.json and writes the drift-sync tooling (arch-sync-check.sh Stop hook, seeforce-arch-check skill, CLAUDE.md rule section) into the target repo — the delivery mechanism that makes ongoing drift checking happen in a user's own project, not just a one-time annotate_codebase pass. `update` re-points an existing entry at the current config and rewrites the managed files without re-running onboarding, so a re-login or a package upgrade propagates without a reinstall.",
@@ -291,13 +370,38 @@
                     "tags": "Relationship"
                   }
                 ]
+              },
+              {
+                "id": "seeforce-seeforce-cli-scan-command",
+                "name": "Scan Command",
+                "description": "The `seeforce scan` command — walks the repo for annotation blocks, assembles the workspace, prints the advisory warnings (orphan component, container with no component, overlong short_desc) and writes `.seeforce/workspace.json`. Exits non-zero on a parse error or a reference that resolves to nothing, so a rescan that is not a no-op is what tells CI the committed workspace is stale.",
+                "short_desc": "Scans the repo for annotations and writes .seeforce/workspace.json",
+                "technology": "",
+                "source_file": "cli/seeforce_cli/commands/scan.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-seeforce-cli-scan-command-seeforce-annotation-parser-annotation-scanner",
+                    "destinationId": "seeforce-annotation-parser-annotation-scanner",
+                    "description": "parses the annotation blocks out of the repo's source files",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-seeforce-cli-scan-command-seeforce-annotation-parser-workspace-builder",
+                    "destinationId": "seeforce-annotation-parser-workspace-builder",
+                    "description": "resolves the references between parsed elements and assembles the workspace",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
               }
             ]
           },
           {
             "id": "seeforce-mcp-server",
             "name": "MCP Server",
-            "description": "Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, and annotate_codebase let assistants query containers, components, and file ownership without reading source files. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.",
+            "description": "Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, annotate_codebase and catalogue_features let assistants query containers, components, and file ownership without reading source files, and fetch the guides they follow to write annotations or a feature catalogue themselves. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.",
             "short_desc": "Exposes SeeForce architecture context to AI coding assistants via MCP",
             "technology": "Python / MCP stdio",
             "source_file": "cli/seeforce_cli/mcp_server.py",
@@ -343,7 +447,7 @@
               {
                 "id": "seeforce-mcp-server-tool-handlers",
                 "name": "Tool Handlers",
-                "description": "Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), and annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass). get_static_facts_for_files is handled separately by Static Facts Query Handler.",
+                "description": "Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass), and catalogue_features (the guide for writing .seeforce/features.json). Both guide-serving tools write nothing and call no model — the assistant writes the file and the CLI validates it afterwards. get_static_facts_for_files is handled separately by Static Facts Query Handler.",
                 "short_desc": "Implements the MCP tools assistants call to query architecture",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/mcp_server.py",

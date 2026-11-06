@@ -1,3 +1,13 @@
+"""
+@c3:component
+name: Login Command
+container: SeeForce CLI
+description: The `seeforce login` command — runs the GitHub OAuth flow against the backend through a short-lived local callback server, then stores the API url and token in the user's config so the other commands and the MCP server can authenticate.
+short_desc: Authenticates via GitHub OAuth and stores the API token locally
+uses:
+- Backend: "runs the OAuth exchange and returns the API token"
+  technology: REST
+"""
 import http.server
 import secrets
 import threading

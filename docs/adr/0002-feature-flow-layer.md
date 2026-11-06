@@ -72,6 +72,13 @@ The broken check — a feature whose named elements intersect the elements a del
 `seeforce delta`, reusing its existing pairing rather than adding a second comparison path. It exits
 non-zero and writes nothing.
 
+A broken feature is validated against the **base** snapshot, not the head one. A feature is broken
+precisely because it names an element the head model no longer declares, and an unresolvable element
+is otherwise a fatal load error — so validating the catalogue against head would report every broken
+feature as a failed load and make the exit code that fails CI unreachable. The base is also the
+snapshot the catalogue was reviewed against. A feature naming an element that exists in neither
+snapshot is a stale catalogue and still fails to load.
+
 No drift verdict is stored or displayed. A divergence breaks CI, and that is the whole mechanism: a
 stored verdict would need its own freshness story, and a stale "broken" badge in the UI is a worse
 artifact than a red pipeline. The feature list and the restricted per-feature view *are* in v1; only

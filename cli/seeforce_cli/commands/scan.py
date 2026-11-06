@@ -1,3 +1,13 @@
+"""
+@c3:component
+name: Scan Command
+container: SeeForce CLI
+description: The `seeforce scan` command — walks the repo for annotation blocks, assembles the workspace, prints the advisory warnings (orphan component, container with no component, overlong short_desc) and writes `.seeforce/workspace.json`. Exits non-zero on a parse error or a reference that resolves to nothing, so a rescan that is not a no-op is what tells CI the committed workspace is stale.
+short_desc: Scans the repo for annotations and writes .seeforce/workspace.json
+uses:
+- Annotation Scanner: "parses the annotation blocks out of the repo's source files"
+- Workspace Builder: "resolves the references between parsed elements and assembles the workspace"
+"""
 import json
 import sys
 from pathlib import Path
