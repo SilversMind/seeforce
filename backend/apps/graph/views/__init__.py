@@ -1,4 +1,5 @@
 from .auth import auth_logout, auth_me
+from .delta import project_delta_view, project_pull_requests
 from .github_import import import_from_github, link_to_github, sync_from_github
 from .graph import (
     ProjectMapViewSet,
@@ -26,7 +27,9 @@ __all__ = [
     "lexicon_collection",
     "link_to_github",
     "manage_share",
+    "project_delta_view",
     "project_map_view",
+    "project_pull_requests",
     "project_tags",
     "share_lexicon",
     "share_tags",
