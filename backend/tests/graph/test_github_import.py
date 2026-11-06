@@ -1,5 +1,4 @@
 import json
-import os
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -156,16 +155,13 @@ class ImportFromGitHubTest(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.assertIn("API rate limit exceeded", resp.json()["error"])
 
-    @patch.dict(os.environ, {"GITHUB_PUBLIC_READ_TOKEN": "pat-public"})
     @patch("apps.graph.views.github_import.http_requests.get")
-    def test_public_fallback_authenticates_with_the_read_token(self, mock_get):
-        """The fallback must not go out anonymous — that path is capped at 60 req/h per egress IP."""
-        self._make_token()
-        mock_get.side_effect = [_mock_github_404(), _mock_github_ok()]
-        resp = self._post({"repo": "owner/public-repo"})
-        self.assertEqual(resp.status_code, 201, resp.json())
-        fallback_headers = mock_get.call_args_list[1].kwargs["headers"]
-        self.assertEqual(fallback_headers["Authorization"], "token pat-public")
+    def test_no_installation_says_so_instead_of_blaming_github(self, mock_get):
+        """With no installation the request is anonymous and dies on a shared quota — say that, not 'access denied'."""
+        mock_get.return_value = _mock_github_403()
+        resp = self._post({"repo": "owner/repo"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("No GitHub App installation is linked", resp.json()["error"])
 
     @patch("apps.graph.views.github_import.http_requests.get")
     def test_expired_token_returns_clear_error(self, mock_get):
