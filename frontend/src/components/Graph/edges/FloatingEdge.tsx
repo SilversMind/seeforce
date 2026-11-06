@@ -103,6 +103,13 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               opacity: hovered || selected || changed ? 1 : 0,
               pointerEvents: hovered || selected ? "all" : "none",
+              /* Parallel relations merge into one label, so a changed edge's always-on
+                 label is capped to two lines until it is hovered or selected. */
+              maxWidth: hovered || selected ? undefined : 260,
+              overflow: hovered || selected ? undefined : "hidden",
+              display: hovered || selected ? undefined : "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: hovered || selected ? undefined : 2,
             }}
           >
             <DescriptionWithHighlights
