@@ -14,6 +14,7 @@ import click
 
 from seeforce_cli.commands.annotate import annotate
 from seeforce_cli.commands.delta import delta
+from seeforce_cli.commands.features import features
 from seeforce_cli.commands.login import login
 from seeforce_cli.commands.mcp import mcp
 from seeforce_cli.commands.scan import scan
@@ -30,3 +31,4 @@ cli.add_command(scan)
 cli.add_command(mcp)
 cli.add_command(annotate)
 cli.add_command(delta)
+cli.add_command(features)

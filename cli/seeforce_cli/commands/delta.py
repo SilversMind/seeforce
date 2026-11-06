@@ -1,13 +1,44 @@
+"""
+@c3:component
+name: Delta Command
+container: SeeForce CLI
+description: The `seeforce delta` command — reads a `.seeforce/workspace.json` at two revisions out of git, prints what changed architecturally, and then reports every catalogue feature that names an element the comparison removed. Exits 1 when a feature is broken, 2 on a revision that does not exist or a failed load, and 0 when the model changed but no feature did — a changed architecture is not a failure. Writes nothing and repairs nothing.
+short_desc: Compares two revisions' workspaces and fails CI on a broken feature
+uses:
+- Delta Reporter: "compares the two snapshots and intersects the catalogue against the removed elements"
+- Feature Catalogue: "loads and validates the working tree's catalogue against the head snapshot"
+"""
 import dataclasses
 import json
 import subprocess
 from pathlib import Path
 
 import click
-from c4parser.delta import diff, render_markdown
+from c4parser.delta import (
+    broken_features,
+    diff,
+    render_broken_features,
+    render_markdown,
+)
 from c4parser.exceptions import C4ValidationError
+from c4parser.features import load_catalogue
+
+from seeforce_cli.commands.features import CATALOGUE, LoadError, read_json
 
 _WORKSPACE = ".seeforce/workspace.json"
+
+
+def _load_catalogue(root: Path, base_ws: dict):
+    """Return the working tree's catalogue validated against the BASE model, or None if there is none.
+    NOTE: against head, a broken feature would be a fatal load error instead and exit 1 unreachable.
+    """
+    path = root / CATALOGUE
+    if not path.exists():
+        return None
+    try:
+        return load_catalogue(read_json(path), base_ws)
+    except C4ValidationError as exc:
+        raise LoadError(str(exc))
 
 
 def _load_rev(root: Path, rev: str) -> dict:
@@ -17,17 +48,17 @@ def _load_rev(root: Path, rev: str) -> dict:
             cwd=root, capture_output=True, text=True, check=False,
         )
     except OSError as exc:
-        raise click.ClickException(f"cannot run git: {exc}")
+        raise LoadError(f"cannot run git: {exc}")
     if result.returncode != 0:
         detail = result.stderr.strip().splitlines()
-        raise click.ClickException(detail[0] if detail else f"cannot read {_WORKSPACE} at {rev}")
+        raise LoadError(detail[0] if detail else f"cannot read {_WORKSPACE} at {rev}")
     return _parse(result.stdout, f"{rev}:{_WORKSPACE}")
 
 
 def _load_worktree(root: Path) -> dict:
     path = root / _WORKSPACE
     if not path.exists():
-        raise click.ClickException(f"{_WORKSPACE} not found in {root} — run `seeforce scan .` first")
+        raise LoadError(f"{_WORKSPACE} not found in {root} — run `seeforce scan .` first")
     return _parse(path.read_text(encoding="utf-8"), str(path))
 
 
@@ -35,7 +66,7 @@ def _parse(raw: str, where: str) -> dict:
     try:
         return json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise click.ClickException(f"{where} is not valid JSON: {exc}")
+        raise LoadError(f"{where} is not valid JSON: {exc}")
 
 
 @click.command()
@@ -56,9 +87,20 @@ def delta(base_rev: str, head_rev: str | None, path: str, as_json: bool):
     try:
         result = diff(base_ws, head_ws)
     except C4ValidationError as exc:
-        raise click.ClickException(str(exc))
+        raise LoadError(str(exc))
+
+    catalogue = _load_catalogue(root, base_ws)
+    broken = broken_features(catalogue, result) if catalogue else {}
 
     if as_json:
-        click.echo(json.dumps(dataclasses.asdict(result), indent=2))
+        payload = dataclasses.asdict(result)
+        payload["broken_features"] = broken
+        click.echo(json.dumps(payload, indent=2))
     else:
         click.echo(render_markdown(result))
+        if catalogue:
+            click.echo("")
+            click.echo(render_broken_features(broken))
+
+    if broken:
+        raise SystemExit(1)

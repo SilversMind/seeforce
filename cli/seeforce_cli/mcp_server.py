@@ -3,7 +3,7 @@
 name: MCP Server
 system: SeeForce
 technology: Python / MCP stdio
-description: Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, and annotate_codebase let assistants query containers, components, and file ownership without reading source files. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.
+description: Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, annotate_codebase and catalogue_features let assistants query containers, components, and file ownership without reading source files, and fetch the guides they follow to write annotations or a feature catalogue themselves. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.
 short_desc: Exposes SeeForce architecture context to AI coding assistants via MCP
 uses:
     - Backend: "Fetches workspace architecture data via REST API"
@@ -14,7 +14,7 @@ uses:
 @c3:component
 name: Tool Handlers
 container: MCP Server
-description: Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), and annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass). get_static_facts_for_files is handled separately by Static Facts Query Handler.
+description: Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass), and catalogue_features (the guide for writing .seeforce/features.json). Both guide-serving tools write nothing and call no model — the assistant writes the file and the CLI validates it afterwards. get_static_facts_for_files is handled separately by Static Facts Query Handler.
 short_desc: Implements the MCP tools assistants call to query architecture
 uses:
     - Backend: "Fetches workspace architecture data via REST API"
@@ -63,6 +63,7 @@ from seeforce_cli.mcp_workspace import (
 )
 
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "c4_annotator.md"
+_CATALOGUER_PATH = Path(__file__).parent / "prompts" / "feature_cataloguer.md"
 _SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".java", ".go", ".cs", ".rb", ".rs"}
 _EXCLUDE_DIRS = {"node_modules", "__pycache__", ".git", "dist", "build", "vendor", ".venv", "venv", ".env", "tests"}
 
@@ -354,6 +355,19 @@ async def annotate_codebase() -> str:
 
     files_block = "\n".join(sections) if sections else "No source files found."
     return f"{prompt}\n\n---\n\n## Source Files\n\n{files_block}"
+
+
+@server.tool()
+@_diagnosable
+async def catalogue_features() -> str:
+    """
+    Returns the SeeForce guide for building a feature catalogue — the list of intentions a repo
+    serves, written to .seeforce/features.json and verified against the C4 model.
+    Call this when the user asks to catalogue, list or document what their repo lets people do.
+    After receiving the output: follow the guide, write the file, then run `seeforce features`
+    to validate it. Never set reviewed_at, and never edit a feature that already has one.
+    """
+    return _CATALOGUER_PATH.read_text(encoding="utf-8")
 
 
 def main():
