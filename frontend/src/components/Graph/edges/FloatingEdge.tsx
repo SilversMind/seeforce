@@ -59,7 +59,19 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
   });
 
   const overlayLabel = (data as { overlay_label?: string } | undefined)?.overlay_label ?? "";
-  const displayLabel = mode === "enriched" ? (overlayLabel || (label as string)) : (label as string);
+  const baseLabel = mode === "enriched" ? (overlayLabel || (label as string)) : (label as string);
+  const delta = (data as { delta?: { state: string } } | undefined)?.delta;
+  const changed = delta !== undefined && delta.state !== "unchanged";
+  // The mark carries the state without colour, the way a node's badge does.
+  const mark = { added: "+", modified: "~", removed: "−" }[delta?.state ?? ""] ?? "";
+  const displayLabel = changed ? `${mark} ${baseLabel}`.trim() : baseLabel;
+  const edgeStyle = {
+    stroke: changed ? `var(--c4-delta-${delta!.state})` : "var(--c4-edge-stroke)",
+    strokeWidth: changed ? 2.5 : 1.5,
+    ...(delta?.state === "removed" ? { strokeDasharray: "6 4" } : {}),
+    // Recessive, not hidden: an unchanged relation stays on the canvas and keeps its label.
+    ...(delta?.state === "unchanged" ? { opacity: 0.4 } : {}),
+  };
 
   return (
     <>
@@ -75,7 +87,7 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
       />
       {/* interactionWidth=0: BaseEdge's own invisible hit-path would otherwise
           paint on top of ours and swallow the hover events before they reach it. */}
-      <BaseEdge id={id} path={edgePath} markerEnd="url(#c4-arrow)" interactionWidth={0} style={{ stroke: "var(--c4-edge-stroke)", strokeWidth: 1.5 }} />
+      <BaseEdge id={id} path={edgePath} markerEnd="url(#c4-arrow)" interactionWidth={0} style={edgeStyle} />
       {displayLabel && (
         <EdgeLabelRenderer>
           {/* Stays mounted always — toggling mount/unmount on hover makes the
@@ -89,8 +101,15 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
             style={{
               position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              opacity: hovered || selected ? 1 : 0,
+              opacity: hovered || selected || changed ? 1 : 0,
               pointerEvents: hovered || selected ? "all" : "none",
+              /* Parallel relations merge into one label, so a changed edge's always-on
+                 label is capped to two lines until it is hovered or selected. */
+              maxWidth: hovered || selected ? undefined : 260,
+              overflow: hovered || selected ? undefined : "hidden",
+              display: hovered || selected ? undefined : "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: hovered || selected ? undefined : 2,
             }}
           >
             <DescriptionWithHighlights

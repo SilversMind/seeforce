@@ -37,6 +37,54 @@ export interface NodeOverlayKey {
   node_name: string;
 }
 
+export interface FieldChange {
+  field: string;
+  before: string;
+  after: string;
+}
+
+export interface DeltaElementState {
+  state: "added" | "removed" | "modified" | "unchanged";
+  self_changed: boolean;
+  contains_changes: boolean;
+  fields: FieldChange[];
+  possible_rename_of: string | null;
+  ghost: boolean;
+  declared_parent: string | null;
+}
+
+export interface DeltaRelationState {
+  state: "added" | "removed" | "modified" | "unchanged";
+  fields: FieldChange[];
+  ghost: boolean;
+}
+
+export interface PullRequestOption {
+  number: number;
+  title: string;
+  head_ref: string;
+  base_ref: string;
+  head_sha: string;
+  base_sha: string;
+}
+
+export interface ChangeListItem {
+  kind: "person" | "system" | "container" | "component" | "relation";
+  path: string;
+  state: "added" | "removed" | "modified";
+  level: "C1" | "C2" | "C3";
+  node_id: string | null;
+  summary: string;
+}
+
+export interface ComparisonSummary {
+  added: number;
+  removed: number;
+  changed: number;
+  empty: boolean;
+  changes: ChangeListItem[];
+}
+
 export interface RFNodeData extends Record<string, unknown> {
   label: string;
   technology: string;
@@ -48,6 +96,7 @@ export interface RFNodeData extends Record<string, unknown> {
   tags: string[];
   has_overlay: boolean;
   overlay_key: NodeOverlayKey;
+  delta?: DeltaElementState;
 }
 
 export interface RFEdgeEndpoint {
@@ -61,6 +110,7 @@ export interface RFEdgeData extends Record<string, unknown> {
   technology: string;
   source_node: RFEdgeEndpoint;
   target_node: RFEdgeEndpoint;
+  delta?: DeltaRelationState;
 }
 
 export interface RFNode {
@@ -85,6 +135,8 @@ export interface RFEdge {
 export interface ReactFlowData {
   nodes: RFNode[];
   edges: RFEdge[];
+  comparison?: PullRequestOption;
+  summary?: ComparisonSummary;
 }
 
 export async function uploadProjectMap(name: string, workspace: unknown): Promise<ProjectMapMeta> {
@@ -153,6 +205,26 @@ export function buildShareViewUrl(
   if (containerId) params.set("container", containerId);
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
+}
+
+export async function fetchOpenPullRequests(projectMapId: number): Promise<PullRequestOption[]> {
+  const res = await fetch(`/api/graph/${projectMapId}/pulls/`);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error ?? `Fetch failed: ${res.status}`);
+  return body;
+}
+
+export function buildDeltaViewUrl(
+  projectMapId: number,
+  level: string,
+  systemId: string | null,
+  containerId: string | null,
+  pullRequest: number,
+): string {
+  const params = new URLSearchParams({ pr: String(pullRequest) });
+  if (systemId) params.set("system", systemId);
+  if (containerId) params.set("container", containerId);
+  return `/api/graph/${projectMapId}/delta/view/${level}/?${params.toString()}`;
 }
 
 export function buildViewUrl(

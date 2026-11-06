@@ -12,12 +12,14 @@ export interface ViewState {
   containerName: string | null;
   githubRepo: string | null;
   githubBranch: string | null;
+  pullRequest: number | null;
 }
 
 interface ViewStore extends ViewState {
   setProjectMap: (id: number) => void;
   setShareView: (id: number, token: string) => void;
   setGithubMeta: (repo: string, branch: string) => void;
+  setPullRequest: (pr: number | null) => void;
   clearProjectMap: () => void;
   drillToC2: (systemId: string, systemName: string) => void;
   drillToC3: (containerId: string, containerName: string) => void;
@@ -36,18 +38,21 @@ export const useViewStore = create<ViewStore>((set) => ({
   containerName: null,
   githubRepo: null,
   githubBranch: null,
+  pullRequest: null,
 
   setProjectMap: (id) =>
-    set({ projectMapId: id, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+    set({ projectMapId: id, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null, pullRequest: null }),
 
   setShareView: (id, token) =>
-    set({ projectMapId: id, shareToken: token, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+    set({ projectMapId: id, shareToken: token, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null, pullRequest: null }),
 
   setGithubMeta: (repo, branch) =>
     set({ githubRepo: repo || null, githubBranch: branch || null }),
 
   clearProjectMap: () =>
-    set({ projectMapId: null, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null }),
+    set({ projectMapId: null, shareToken: null, level: "C1", systemId: null, systemName: null, containerId: null, containerName: null, githubRepo: null, githubBranch: null, pullRequest: null }),
+
+  setPullRequest: (pr) => set({ pullRequest: pr }),
 
   drillToC2: (systemId, systemName) =>
     set({ level: "C2", systemId, systemName, containerId: null, containerName: null }),
