@@ -43,8 +43,8 @@ def _github_token(user, repo: str = ""):
         )
 
 
-def _get_contents(url: str, token: str | None) -> "http_requests.Response":
-    headers = {"Accept": "application/vnd.github.v3.raw"}
+def _get_contents(url: str, token: str | None, accept: str = "application/vnd.github.v3.raw") -> "http_requests.Response":
+    headers = {"Accept": accept}
     if token:
         headers["Authorization"] = f"token {token}"
     try:

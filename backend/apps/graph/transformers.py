@@ -54,6 +54,19 @@ def _node(
     }
 
 
+def overlay_maps(project_map) -> tuple[dict[OverlayKey, dict], dict[str, dict]]:
+    """The node and edge overlays of one project, keyed the way the view builders read them."""
+    from .models import EdgeOverlay, NodeOverlay
+    nodes = {
+        (ov.node_type, ov.system_name, ov.container_name, ov.node_name): {
+            "display_name": ov.display_name, "description": ov.description, "tags": ov.tags,
+        }
+        for ov in NodeOverlay.objects.filter(project_map=project_map)
+    }
+    edges = {ov.edge_id: {"label": ov.label} for ov in EdgeOverlay.objects.filter(project_map=project_map)}
+    return nodes, edges
+
+
 def _layout(nodes: list[dict]) -> list[dict]:
     # Deterministic grid: fill rows left-to-right, wrap every _GRID_COLS nodes.
     for index, node in enumerate(nodes):

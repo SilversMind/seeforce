@@ -8,6 +8,8 @@ router.register(r"", views.ProjectMapViewSet, basename="projectmap")
 
 urlpatterns = [
     path("<int:project_map_id>/view/<str:level>/", views.project_map_view),
+    path("<int:project_map_id>/pulls/", views.project_pull_requests),
+    path("<int:project_map_id>/delta/view/<str:level>/", views.project_delta_view),
     path("<int:project_map_id>/overlay/node/", views.upsert_node_overlay),
     path("<int:project_map_id>/tags/", views.project_tags),
     path("<int:project_map_id>/overlay/edge/", views.upsert_edge_overlay),
