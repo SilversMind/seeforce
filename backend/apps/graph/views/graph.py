@@ -21,7 +21,7 @@ from ..serializers import (
     ProjectMapSerializer,
     ProjectMapUploadSerializer,
 )
-from ..transformers import to_react_flow
+from ..transformers import overlay_maps, to_react_flow
 from ._permissions import (
     IsAuthenticatedOrReturn401,
     IsOwner,
@@ -102,18 +102,7 @@ def project_map_view(request, project_map_id, level):
     system = request.query_params.get("system")
     container = request.query_params.get("container")
 
-    node_overlay = {
-        (ov.node_type, ov.system_name, ov.container_name, ov.node_name): {
-            "display_name": ov.display_name,
-            "description": ov.description,
-            "tags": ov.tags,
-        }
-        for ov in NodeOverlay.objects.filter(project_map=pm)
-    }
-    edge_overlay = {
-        ov.edge_id: {"label": ov.label}
-        for ov in EdgeOverlay.objects.filter(project_map=pm)
-    }
+    node_overlay, edge_overlay = overlay_maps(pm)
 
     result = to_react_flow(
         pm.source_json,
