@@ -11,7 +11,7 @@ uses:
   technology: REST
 */
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import { useViewStore } from "../store/viewStore";
 import { C4Graph } from "../components/Graph/C4Graph";
@@ -98,6 +98,9 @@ export function GraphView() {
   const navigate = useNavigate();
   const setProjectMap = useViewStore((s) => s.setProjectMap);
   const setGithubMeta = useViewStore((s) => s.setGithubMeta);
+  const setPullRequest = useViewStore((s) => s.setPullRequest);
+  const pullRequest = useViewStore((s) => s.pullRequest);
+  const [searchParams, setSearchParams] = useSearchParams();
   const githubRepo = useViewStore((s) => s.githubRepo);
   const githubBranch = useViewStore((s) => s.githubBranch);
   const [shareOpen, setShareOpen] = useState(false);
@@ -114,6 +117,22 @@ export function GraphView() {
     }
     setProjectMap(projectMapId);
   }, [projectMapId, setProjectMap, navigate]);
+
+  // A link carries the comparison, so reopening or sharing it shows the same two commits.
+  useEffect(() => {
+    const fromUrl = searchParams.get("pr");
+    setPullRequest(fromUrl && /^\d+$/.test(fromUrl) ? Number(fromUrl) : null);
+  }, [projectMapId, searchParams, setPullRequest]);
+
+  useEffect(() => {
+    const inUrl = searchParams.get("pr");
+    const selected = pullRequest == null ? null : String(pullRequest);
+    if (inUrl === selected) return;
+    const next = new URLSearchParams(searchParams);
+    if (selected === null) next.delete("pr");
+    else next.set("pr", selected);
+    setSearchParams(next, { replace: true });
+  }, [pullRequest, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (meta) {
