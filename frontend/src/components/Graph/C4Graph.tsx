@@ -9,6 +9,8 @@ uses:
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"
 - Edge manager: "Renders directional relationship edges between nodes"
 - Overlay Editor: "opens the detail/edit panel for the clicked node or edge"
+- Comparison Selector: "mounts the control that picks which merge request the canvas is showing"
+- Change List: "mounts the comparison's change list and selects the node an item names"
 */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
@@ -45,6 +47,8 @@ import { ExternalNode } from "./nodes/ExternalNode";
 import { FloatingEdge } from "./edges/FloatingEdge";
 import { Breadcrumb } from "../Breadcrumb";
 import { OverlaySidebar } from "./OverlaySidebar";
+import { DeltaSelector } from "./DeltaSelector";
+import { DeltaChangeList } from "./DeltaChangeList";
 import { LexiconBottomPanel } from "./LexiconBottomPanel";
 
 const nodeTypes = {
@@ -87,11 +91,15 @@ function C4GraphInner() {
     shareToken,
     systemId,
     containerId,
+    pullRequest,
   } = viewState;
   const projectMapId = rawProjectMapId != null ? String(rawProjectMapId) : null;
   const {
     nodes: fetchedNodes,
     edges: fetchedEdges,
+    comparison,
+    summary,
+    error: viewError,
     isLoading,
     refetch,
   } = useWorkspace(viewState);
@@ -180,6 +188,29 @@ function C4GraphInner() {
     }
 
     /**
+     * A comparison adds nodes the arranged map never had — the elements this
+     * NOTE: merge request adds — so an exact match is impossible; keep everything that exists in both states put and park only the newcomers beside it.
+     */
+    const savedCoversSurvivors =
+      saved !== null &&
+      pullRequest != null &&
+      fetchedNodes.some((n) => saved[n.id] !== undefined) &&
+      fetchedNodes.every((n) => saved[n.id] !== undefined || n.data.delta?.state === "added");
+    if (savedCoversSurvivors) {
+      const known = Object.values(saved!);
+      const parkX = Math.max(...known.map((p) => p.x)) + 320;
+      let parked = 0;
+      setNodes(fetchedNodes.map((n) => ({
+        ...n,
+        position: saved![n.id] ?? { x: parkX, y: parked++ * 180 },
+      })));
+      setEdges(fetchedEdges);
+      setAwaitingMeasurement(false);
+      fitAll();
+      return;
+    }
+
+    /**
      * Mount at a neutral position first so the measurement pass below can
      * pick up real content-driven box sizes once React Flow has rendered
      * every node — ELK needs those, not an estimate.
@@ -188,7 +219,7 @@ function C4GraphInner() {
     setNodes(fetchedNodes.map((n) => ({ ...n, position: { x: 0, y: 0 } })));
     setEdges(fetchedEdges);
     setAwaitingMeasurement(true);
-  }, [fetchedNodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, fitAll]);
+  }, [fetchedNodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, pullRequest, fitAll]);
 
   useEffect(() => {
     if (!awaitingMeasurement || !nodesInitialized) return;
@@ -198,7 +229,8 @@ function C4GraphInner() {
         setNodes(laidOut);
         setEdges(routedEdges);
         fitAll();
-        if (projectMapId) {
+        // A comparison shows nodes the ordinary map does not have, so writing this layout back would re-arrange that map on the next visit.
+        if (projectMapId && pullRequest == null) {
           const positions: Record<string, { x: number; y: number }> = {};
           laidOut.forEach((n) => {
             positions[n.id] = n.position;
@@ -210,16 +242,16 @@ function C4GraphInner() {
         setIsLayouting(false);
         setAwaitingMeasurement(false);
       });
-  }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, fitAll]);
+  }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, pullRequest, fitAll]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
-    if (!projectMapId) return;
+    if (!projectMapId || pullRequest != null) return;
     const positions: Record<string, { x: number; y: number }> = {};
     nodes.forEach((n) => {
       positions[n.id] = n.position;
     });
     savePositions(projectMapId, level, positions, systemId, containerId);
-  }, [nodes, projectMapId, level, systemId, containerId]);
+  }, [nodes, projectMapId, level, systemId, containerId, pullRequest]);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -271,6 +303,13 @@ function C4GraphInner() {
     setSidebarTarget(null);
   }, []);
 
+  const selectChange = useCallback((nodeId: string) => {
+    const node = nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    setSidebarTarget({ kind: "node", node: node as unknown as RFNode });
+    flowInstance.current?.fitView({ nodes: [{ id: nodeId }], padding: 0.6, duration: 400 });
+  }, [nodes]);
+
   const displayNodes = useMemo(() => {
     if (activeTags.size === 0) return nodes;
     return nodes.filter((n) =>
@@ -297,6 +336,22 @@ function C4GraphInner() {
           </defs>
         </svg>
         <Breadcrumb />
+
+        {rawProjectMapId != null && !shareToken && (
+          <DeltaSelector
+            projectMapId={rawProjectMapId}
+            comparison={comparison}
+            summary={summary}
+            error={viewError}
+          />
+        )}
+        {pullRequest != null && summary && (
+          <DeltaChangeList
+            summary={summary}
+            visibleNodeIds={new Set(displayNodes.map((n) => n.id))}
+            onSelect={selectChange}
+          />
+        )}
 
         {/* Mode toggle */}
         <div

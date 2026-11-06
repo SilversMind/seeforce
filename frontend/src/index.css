@@ -39,6 +39,11 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
   --c4-edge-stroke: #94a3b8;
   --c4-edge-label-text: #475569;
 
+  --c4-delta-added: #16a34a;
+  --c4-delta-modified: #d97706;
+  --c4-delta-removed: #dc2626;
+  --c4-delta-badge-text: #ffffff;
+
   --c4-sidebar-bg: #f8fafc;
   --c4-sidebar-border: #e2e8f0;
   --c4-sidebar-text: #1e293b;
@@ -118,6 +123,11 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
     --c4-edge-stroke: #4e6080;
     --c4-edge-label-text: #94a3b8;
 
+    --c4-delta-added: #22c55e;
+    --c4-delta-modified: #f59e0b;
+    --c4-delta-removed: #ef4444;
+    --c4-delta-badge-text: #0f172a;
+
     --c4-sidebar-bg: #1e293b;
     --c4-sidebar-border: #334155;
     --c4-sidebar-text: #e2e8f0;
@@ -125,3 +135,58 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
     --c4-sidebar-input-bg: #0f172a;
   }
 }
+
+/* Comparison states. Styled on the React Flow node wrapper so one rule covers
+   every node type instead of five inline-styled components. */
+.c4-delta { position: relative; }
+
+/* An outline, not a shadow: it is offset outward, so the state ring never blends
+   into a node's own border — the Component border is amber too. */
+.c4-delta-added > *,
+.c4-delta-modified > *,
+.c4-delta-contains > *,
+.c4-delta-removed > * {
+  outline: 2px solid var(--c4-delta-outline);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.c4-delta-added { --c4-delta-outline: var(--c4-delta-added); }
+.c4-delta-modified,
+.c4-delta-contains { --c4-delta-outline: var(--c4-delta-modified); }
+.c4-delta-removed { --c4-delta-outline: var(--c4-delta-removed); }
+
+/* The badge is the non-colour half of each state: the word, not just the hue. */
+.c4-delta-added::after,
+.c4-delta-modified::after,
+.c4-delta-contains::after,
+.c4-delta-removed::after {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--c4-delta-badge-text);
+  background: var(--c4-delta-outline);
+  pointer-events: none;
+}
+
+.c4-delta-added::after { content: "+ added"; }
+.c4-delta-modified::after { content: "~ modified"; }
+.c4-delta-contains::after { content: "~ contains changes"; }
+.c4-delta-removed::after { content: "− removed"; }
+
+/* A removed element is still drawn, and still readable, but it is not here any more. */
+.c4-delta-removed > * {
+  border-style: dashed !important;
+  opacity: 0.85;
+}
+
+/* Recessive, never hidden: labels keep their text and their contrast. */
+.c4-delta-unchanged { filter: saturate(0.25); opacity: 0.55; }
+.c4-delta-unchanged:hover { filter: none; opacity: 1; }
