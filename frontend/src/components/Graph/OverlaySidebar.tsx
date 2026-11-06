@@ -11,7 +11,7 @@ uses:
 */
 import { useState, useEffect } from "react";
 import { mutate } from "swr";
-import { type RFNode, type RFEdge, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
+import { type RFNode, type RFEdge, type DeltaElementState, type DeltaRelationState, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
 import { useLexicon } from "../../contexts/LexiconContext";
 import { useViewStore } from "../../store/viewStore";
 
@@ -232,6 +232,11 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+        {open && (
+          <DeltaDetail
+            delta={isNode ? target!.node.data.delta : target!.edge.data.delta}
+          />
+        )}
         {open && isNode ? (
           <>
             <Section label="Name">
@@ -504,6 +509,73 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
     </div>
   );
 }
+
+/**
+ * What the comparison says about this element, as read-only fact.
+ * NOTE: it is computed from two commits, never authored, so it is labelled apart from the overlay fields a person wrote below.
+ */
+function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState }) {
+  if (!delta || delta.state === "unchanged") return null;
+  const element = delta as DeltaElementState;
+  const own = element.self_changed === true;
+  const encloses = element.contains_changes === true;
+  const reading =
+    own && encloses ? "Its own declaration changed, and it contains changes."
+      : own ? "Its own declaration changed."
+      : encloses ? "It did not change itself — something it contains did."
+      : null;
+
+  return (
+    <div
+      style={{
+        border: `1px solid var(--c4-delta-${delta.state === "modified" ? "modified" : delta.state})`,
+        borderRadius: 6,
+        padding: "8px 10px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+      }}
+    >
+      <Section label="In this merge request — computed, not authored">
+        <ReadValue>
+          {{ added: "Added", removed: "Removed", modified: "Modified" }[delta.state]}
+          {reading ? ` — ${reading}` : ""}
+        </ReadValue>
+      </Section>
+
+      {delta.fields.length > 0 && (
+        <Section label="Fields">
+          {delta.fields.map((f) => (
+            <div key={f.field} style={{ fontSize: 12, marginTop: 2 }}>
+              <span style={{ color: "var(--c4-sidebar-muted)" }}>{f.field}: </span>
+              <span style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
+                {f.before || "—"}
+              </span>
+              <span style={{ color: "var(--c4-sidebar-muted)" }}> → </span>
+              <span>{f.after || "—"}</span>
+            </div>
+          ))}
+        </Section>
+      )}
+
+      {element.possible_rename_of && (
+        <Section label="Possibly a rename">
+          <ReadValue muted>
+            This file declares several elements of one kind, so the comparison cannot tell a rename
+            from a removal plus an addition. The other side of the pair is {element.possible_rename_of}.
+          </ReadValue>
+        </Section>
+      )}
+
+      {element.declared_parent && (
+        <Section label="Declared under">
+          <ReadValue muted>{element.declared_parent}, which this merge request also removes.</ReadValue>
+        </Section>
+      )}
+    </div>
+  );
+}
+
 
 function Section({ label, children, style }: { label: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
