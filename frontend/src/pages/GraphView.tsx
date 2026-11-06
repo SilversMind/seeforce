@@ -16,6 +16,7 @@ import useSWR from "swr";
 import { useViewStore } from "../store/viewStore";
 import { C4Graph } from "../components/Graph/C4Graph";
 import { getShareToken, createShareToken, revokeShareToken, fetchProjectMap } from "../services/api";
+import { BrandMark } from "../components/BrandMark";
 
 function ShareModal({ projectMapId, onClose }: { projectMapId: number; onClose: () => void }) {
   const [token, setToken] = useState<string | null>(null);
@@ -137,12 +138,7 @@ export function GraphView() {
           flexShrink: 0,
         }}
       >
-        <span
-          onClick={() => navigate("/")}
-          style={{ color: "white", fontWeight: 700, fontSize: 16, cursor: "pointer" }}
-        >
-          SeeForce
-        </span>
+        <BrandMark onClick={() => navigate("/")} />
         {githubRepo && githubBranch && (
           <>
             <span style={{ color: "#475569", fontSize: 12 }}>·</span>

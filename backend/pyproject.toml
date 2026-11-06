@@ -37,4 +37,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-seeforce-c4parser = { path = "../packages/c4parser", editable = true }
+seeforce-c4parser = { workspace = true }

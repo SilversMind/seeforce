@@ -12,6 +12,7 @@ from .builder import (
     find_long_short_descriptions,
     find_orphans,
 )
+from .delta import Delta, diff, flatten, render_markdown
 from .exceptions import C4ParseError, C4ValidationError
 from .exporter import export_workspace
 from .scanner import DEFAULT_EXTENSIONS, scan
@@ -25,10 +26,14 @@ __all__ = [
     "C4ParseError",
     "C4System",
     "C4ValidationError",
+    "Delta",
     "build",
+    "diff",
     "export_workspace",
     "find_empty_containers",
     "find_long_short_descriptions",
     "find_orphans",
+    "flatten",
+    "render_markdown",
     "scan",
 ]

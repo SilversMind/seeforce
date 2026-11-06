@@ -16,13 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - package: backend
-            extras: --extra dev
-          - package: cli
-            extras: --extra dev
-          - package: packages/c4parser
-            extras: --extra dev --extra static-facts
+        package: [backend, cli, packages/c4parser]
     env:
       # apps/graph/github_app.py reads these at request time with os.environ[...],
       # so they must exist even though every GitHub call in the tests is mocked.
@@ -33,9 +27,10 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
-          cache-dependency-glob: ${{ matrix.package }}/uv.lock
-      - run: uv sync --locked ${{ matrix.extras }}
-        working-directory: ${{ matrix.package }}
+          cache-dependency-glob: uv.lock
+      # One lockfile for the whole workspace, so a shared package cannot be bumped
+      # NOTE: in one member and left stale in another — which is what three locks allowed.
+      - run: uv sync --locked --all-packages --all-extras
       - run: uv run pytest
         working-directory: ${{ matrix.package }}
 
@@ -48,6 +43,27 @@ jobs:
       # Pinned: a ruff release that widens the default rule set must not turn
       # this job red on code nobody touched. Bump it deliberately.
       - run: uvx ruff@0.16.9 check .
+
+  arch:
+    name: arch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # seeforce delta reads the base revision's workspace.json out of git.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv sync --locked --all-packages --all-extras
+      # workspace.json is a pure scan artifact, so a rescan must be a no-op.
+      # NOTE: when it isn't, the arch tooling serves the old model as current — which reads as "no annotation" on a component that has one.
+      - run: uv run seeforce scan .
+      - run: git diff --exit-code .seeforce/workspace.json
+      - name: Architecture delta vs base
+        if: github.event_name == 'pull_request'
+        run: uv run seeforce delta "origin/$GITHUB_BASE_REF" >> "$GITHUB_STEP_SUMMARY"
 
   frontend:
     name: frontend
