@@ -646,7 +646,15 @@
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/features.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-annotation-parser-feature-catalogue-seeforce-annotation-parser-delta-reporter",
+                    "destinationId": "seeforce-annotation-parser-delta-reporter",
+                    "description": "flattens a workspace snapshot into the element paths the catalogue resolves against",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
               },
               {
                 "id": "seeforce-annotation-parser-annotation-scanner",
