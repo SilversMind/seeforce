@@ -7,9 +7,11 @@ from c4parser.delta import (
     COMPARED_FIELDS,
     Delta,
     Element,
+    broken_features,
     diff,
     flatten,
     pair,
+    render_broken_features,
     render_markdown,
 )
 from c4parser.exceptions import C4ValidationError
@@ -364,3 +366,60 @@ def test_elements_without_an_id_do_not_share_a_canonical_key():
     ]
     edge = diff(_ws_shell(), head).edges_added[0]
     assert (edge.source_path, edge.dest_path) == ("A (Backend)", "?")
+
+
+def _catalogue(*features):
+    """A Catalogue built straight from the dataclasses, so these tests do not re-test loading."""
+    from c4parser.features import Catalogue, Category, Feature
+
+    return Catalogue(
+        version=1,
+        generated_at="2026-11-06T00:00:00Z",
+        categories=[
+            Category(
+                name="Projects",
+                features=[
+                    Feature(
+                        id=fid,
+                        name=fid,
+                        intent="An intention.",
+                        kind="capability",
+                        components=list(components),
+                    )
+                    for fid, components in features
+                ],
+            )
+        ],
+    )
+
+
+def test_a_feature_naming_a_removed_component_is_broken():
+    delta = Delta(removed=[_el("component", "Importer (CLI)")])
+    broken = broken_features(_catalogue(("import", ["Importer (CLI)", "Store (CLI)"])), delta)
+    assert broken == {"import": ["Importer (CLI)"]}
+
+
+def test_a_feature_untouched_by_the_delta_is_not_broken():
+    delta = Delta(removed=[_el("component", "Importer (CLI)")])
+    assert broken_features(_catalogue(("share", ["Viewer (CLI)"])), delta) == {}
+
+
+def test_an_added_or_changed_element_never_breaks_a_feature():
+    delta = Delta(added=[_el("component", "Viewer (CLI)")], removed=[])
+    assert broken_features(_catalogue(("share", ["Viewer (CLI)"])), delta) == {}
+
+
+def test_the_broken_verdict_is_identical_across_two_runs():
+    catalogue = _catalogue(
+        ("import", ["Importer (CLI)", "Store (CLI)"]),
+        ("share", ["Viewer (CLI)"]),
+    )
+    delta = Delta(removed=[_el("component", "Store (CLI)"), _el("component", "Viewer (CLI)")])
+    first = render_broken_features(broken_features(catalogue, delta))
+    assert first == render_broken_features(broken_features(catalogue, delta))
+    assert "import lost Store (CLI)" in first
+    assert "share lost Viewer (CLI)" in first
+
+
+def test_no_broken_feature_renders_an_explicit_line():
+    assert "No feature lost a component." in render_broken_features({})

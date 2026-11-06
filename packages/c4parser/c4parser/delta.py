@@ -276,3 +276,23 @@ def render_markdown(delta: Delta) -> str:
         lines += ["", "### Relationships", *edge_rows]
 
     return "\n".join(lines)
+
+
+def broken_features(catalogue, delta: Delta) -> dict[str, list[str]]:
+    """Catalogue features naming an element this delta removed, mapped to what each lost — FR-030."""
+    removed = {e.path for e in delta.removed}
+    return {
+        f.id: lost
+        for f in catalogue.features()
+        if (lost := sorted(set(f.components) & removed))
+    }
+
+
+def render_broken_features(broken: dict[str, list[str]]) -> str:
+    """Render the broken verdict. Reports only — nothing here writes or repairs (FR-031b)."""
+    if not broken:
+        return "## Features\n\nNo feature lost a component."
+    lines = ["## Broken features", "", f"{len(broken)} feature(s) name a component the model no longer declares.", ""]
+    for feature_id, lost in sorted(broken.items()):
+        lines.append(f"- {feature_id} lost {', '.join(lost)}")
+    return "\n".join(lines)
