@@ -2,16 +2,17 @@
 @c3:component
 name: GitHub Import
 container: Backend
-description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.
+description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to a read-only public token (GITHUB_PUBLIC_READ_TOKEN) for public repos no install covers. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.
 short_desc: Imports, re-syncs, and links project architecture from GitHub
 uses:
-  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise"
+  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, with a read-only public token otherwise"
     technology: HTTPS
   - GitHub App Token Manager: "Requests a fresh installation token before each Contents API call"
   - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
 """
 
 import json
+import os
 
 import requests as http_requests
 from django.utils import timezone
@@ -61,12 +62,10 @@ def _fetch_workspace_json(token: str | None, repo: str, branch: str) -> dict:
     url = f"https://api.github.com/repos/{repo}/contents/.seeforce/workspace.json?ref={branch}"
     resp = _get_contents(url, token)
 
-    # No installation covers this repo, or the installation doesn't include it —
-    # it might still be a public repo, which GitHub serves without auth.
-    # ponytail: unauthenticated fallback shares this server's IP rate limit
-    # (60 req/h) across every user; swap in a low-privilege PAT if that bites.
+    # No installation covers this repo, so retry as a public read — GITHUB_PUBLIC_READ_TOKEN
+    # NOTE: is a read-only PAT lifting this path from 60 req/h per shared egress IP to 5000 per token.
     if token and resp.status_code in (401, 403, 404):
-        resp = _get_contents(url, None)
+        resp = _get_contents(url, os.environ.get("GITHUB_PUBLIC_READ_TOKEN"))
 
     if resp.status_code == 404:
         raise ValueError(
@@ -77,9 +76,8 @@ def _fetch_workspace_json(token: str | None, repo: str, branch: str) -> dict:
     if resp.status_code == 401:
         raise ValueError("GitHub App installation token expired or invalid. Reinstall the GitHub App.")
     if resp.status_code == 403:
-        raise ValueError(
-            f"Access denied to {repo}. Make sure this repo is included in your GitHub App installation."
-        )
+        # GitHub says which it is — a rate limit reads nothing like a missing permission.
+        raise ValueError(f"GitHub refused {repo}: {resp.text.strip()[:200]}")
     if not resp.ok:
         raise ValueError(f"GitHub API error {resp.status_code}.")
 
