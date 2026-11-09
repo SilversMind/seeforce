@@ -30,7 +30,9 @@ const EMPTY_EDGES: ReactFlowData["edges"] = [];
 export function deltaClassName(delta: DeltaElementState | undefined): string | undefined {
   if (!delta) return undefined;
   if (delta.state === "modified") {
-    return delta.self_changed ? "c4-delta c4-delta-modified" : "c4-delta c4-delta-contains";
+    if (delta.self_changed) return "c4-delta c4-delta-modified";
+    if (delta.contains_changes) return "c4-delta c4-delta-contains";
+    return "c4-delta c4-delta-relation";
   }
   return `c4-delta c4-delta-${delta.state}`;
 }

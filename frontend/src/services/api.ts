@@ -47,6 +47,7 @@ export interface DeltaElementState {
   state: "added" | "removed" | "modified" | "unchanged";
   self_changed: boolean;
   contains_changes: boolean;
+  relation_changed: boolean;
   fields: FieldChange[];
   possible_rename_of: string | null;
   ghost: boolean;

@@ -20,6 +20,7 @@ _ANCESTOR_KINDS = {"component": ("container", "system"), "container": ("system",
 _UNCHANGED = {
     "state": "unchanged", "self_changed": False, "contains_changes": False,
     "fields": [], "possible_rename_of": None, "ghost": False, "declared_parent": None,
+    "relation_changed": False,
 }
 
 
@@ -95,24 +96,27 @@ def _endpoint(path: str, by_path: dict[tuple[str, str], dict]) -> dict | None:
     return None
 
 
-def _contains(delta: Delta, own: dict[tuple[str, str], dict], by_path: dict[tuple[str, str], dict]) -> set[tuple[str, str]]:
-    """Every element enclosing a change, found through containment only — never along a relation."""
-    out: set[tuple[str, str]] = set()
+def _rollups(delta: Delta, own: dict[tuple[str, str], dict], by_path: dict[tuple[str, str], dict]) -> tuple[set[tuple[str, str]], set[tuple[str, str]]]:
+    """The elements enclosing a change through containment, and those a changed relation touches."""
+    encloses: set[tuple[str, str]] = set()
+    endpoints: set[tuple[str, str]] = set()
 
     def climb(kind: str, path: str) -> None:
         info = by_path.get((kind, path))
         if info is None:
             return
         for akind, apath in zip(_ANCESTOR_KINDS.get(kind, ()), info["ancestors"]):
-            out.add((akind, apath))
+            encloses.add((akind, apath))
 
     for kind, path in own:
         climb(kind, path)
     for edge in (*delta.edges_added, *delta.edges_removed, *delta.edges_changed):
         for path in (edge.source_path, edge.dest_path):
             if (info := _endpoint(path, by_path)) is not None:
+                # NOTE: the endpoint itself is marked too, or a container's rollup dead-ends with nothing explaining it inside.
+                endpoints.add((info["kind"], info["path"]))
                 climb(info["kind"], info["path"])
-    return out
+    return encloses, endpoints
 
 
 def _ghost_node(element: Element, node_type: str, declared_parent: str | None, state: dict) -> dict:
@@ -265,7 +269,7 @@ def decorate(
     base_paths = element_paths(base_ws.get("model", {}))
     own = _own_states(delta)
     by_path = _by_path(head_paths, base_paths)
-    encloses = _contains(delta, own, by_path)
+    encloses, endpoints = _rollups(delta, own, by_path)
 
     target = container if level == "C3" else system
     # A removed container has no head view, so its own level is rendered from the base and reads as removed.
@@ -282,10 +286,12 @@ def decorate(
         state = dict(own.get(key, _UNCHANGED))
         if gone and state["state"] == "unchanged":
             state = {**_UNCHANGED, "state": "removed", "ghost": True}
-        if state["state"] == "unchanged" and key in encloses:
-            state = {**state, "state": "modified", "contains_changes": True}
+        if state["state"] == "unchanged" and (key in encloses or key in endpoints):
+            state = {**state, "state": "modified", "contains_changes": key in encloses}
         elif state["state"] == "modified" and key in encloses:
             state = {**state, "contains_changes": True}
+        if key in endpoints:
+            state = {**state, "relation_changed": True}
         node["data"]["delta"] = state
 
     present = {n["id"] for n in view["nodes"]}

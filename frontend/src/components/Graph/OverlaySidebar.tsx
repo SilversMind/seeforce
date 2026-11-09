@@ -519,10 +519,12 @@ function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState
   const element = delta as DeltaElementState;
   const own = element.self_changed === true;
   const encloses = element.contains_changes === true;
+  const touched = element.relation_changed === true;
   const reading =
     own && encloses ? "Its own declaration changed, and it contains changes."
       : own ? "Its own declaration changed."
       : encloses ? "It did not change itself — something it contains did."
+      : touched ? "It did not change itself — a relation it takes part in did."
       : null;
 
   return (
