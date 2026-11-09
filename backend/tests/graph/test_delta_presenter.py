@@ -111,7 +111,7 @@ def test_an_unchanged_element_says_so_explicitly():
     assert state == {
         "state": "unchanged", "self_changed": False, "contains_changes": False,
         "fields": [], "possible_rename_of": None,
-        "ghost": False, "declared_parent": None,
+        "ghost": False, "declared_parent": None, "relation_changed": False,
     }
 
 
@@ -361,3 +361,17 @@ def test_drilling_into_a_removed_container_shows_what_it_held_rather_than_an_emp
     assert [n["id"] for n in result["nodes"]] == ["shop-worker-job"]
     assert _delta(result, "shop-worker-job")["state"] == "removed"
     assert _delta(result, "shop-worker-job")["ghost"] is True
+
+
+def test_a_relation_endpoint_is_marked_so_the_rollup_does_not_dead_end():
+    """A container reading 'contains changes' must have something marked inside it."""
+    head = _ws([_container("API Backend", "shop-api", [
+        _component("Order Service", "shop-api-order", "api/order.py",
+                   relationships=[{"id": "r1", "destinationId": "shop-api-payment", "description": "now settles"}]),
+        _component("Payment Service", "shop-api-payment", "api/payment.py"),
+    ])])
+    target = _delta(_decorate(BASE, head, "C3", container="shop-api"), "shop-api-payment")
+    assert target["state"] == "modified"
+    assert target["relation_changed"] is True
+    assert target["self_changed"] is False
+    assert target["contains_changes"] is False

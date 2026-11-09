@@ -145,6 +145,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
 .c4-delta-added > *,
 .c4-delta-modified > *,
 .c4-delta-contains > *,
+.c4-delta-relation > *,
 .c4-delta-removed > * {
   outline: 2px solid var(--c4-delta-outline);
   outline-offset: 3px;
@@ -153,13 +154,15 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
 
 .c4-delta-added { --c4-delta-outline: var(--c4-delta-added); }
 .c4-delta-modified,
-.c4-delta-contains { --c4-delta-outline: var(--c4-delta-modified); }
+.c4-delta-contains,
+.c4-delta-relation { --c4-delta-outline: var(--c4-delta-modified); }
 .c4-delta-removed { --c4-delta-outline: var(--c4-delta-removed); }
 
 /* The badge is the non-colour half of each state: the word, not just the hue. */
 .c4-delta-added::after,
 .c4-delta-modified::after,
 .c4-delta-contains::after,
+.c4-delta-relation::after,
 .c4-delta-removed::after {
   position: absolute;
   top: -9px;
@@ -179,6 +182,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--c4-p
 .c4-delta-added::after { content: "+ added"; }
 .c4-delta-modified::after { content: "~ modified"; }
 .c4-delta-contains::after { content: "~ contains changes"; }
+.c4-delta-relation::after { content: "~ relation changed"; }
 .c4-delta-removed::after { content: "− removed"; }
 
 /* A removed element is still drawn, and still readable, but it is not here any more. */
