@@ -26,8 +26,12 @@ export function DeltaChangeList({
   visibleNodeIds: Set<string>;
   onSelect: (nodeId: string) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   if (summary.empty) return null;
+
+  const counts: [ChangeListItem["state"], number][] = [
+    ["added", summary.added], ["modified", summary.changed], ["removed", summary.removed],
+  ];
 
   return (
     <div
@@ -37,8 +41,8 @@ export function DeltaChangeList({
         right: 284,
         zIndex: 15,
         width: 300,
-        maxHeight: "70%",
-        overflowY: "auto",
+        maxHeight: open ? "70%" : undefined,
+        overflowY: open ? "auto" : "visible",
         background: "var(--c4-sidebar-bg)",
         border: "1px solid var(--c4-sidebar-border)",
         borderRadius: 6,
@@ -47,13 +51,27 @@ export function DeltaChangeList({
     >
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        title={open ? "Hide the change list" : "Show the change list"}
         style={{
-          background: "none", border: "none", padding: 0, cursor: "pointer", width: "100%",
-          textAlign: "left", fontSize: 10, fontWeight: 600, textTransform: "uppercase",
-          letterSpacing: "0.05em", color: "var(--c4-sidebar-muted)",
+          display: "flex", alignItems: "center", gap: 6, width: "100%",
+          background: "var(--c4-sidebar-chip-bg, rgba(127,127,127,0.12))",
+          border: "1px solid var(--c4-sidebar-border)", borderRadius: 4,
+          padding: "4px 6px", cursor: "pointer", textAlign: "left",
+          fontSize: 10, fontWeight: 600, textTransform: "uppercase",
+          letterSpacing: "0.05em", color: "var(--c4-sidebar-text)",
         }}
       >
-        {open ? "▾" : "▸"} {summary.changes.length} change{summary.changes.length === 1 ? "" : "s"}
+        <span style={{ fontSize: 9 }}>{open ? "▾" : "▸"}</span>
+        <span>{summary.changes.length} change{summary.changes.length === 1 ? "" : "s"}</span>
+        <span style={{ marginLeft: "auto", display: "flex", gap: 5 }}>
+          {counts.filter(([, n]) => n > 0).map(([state, n]) => (
+            <span key={state} style={{ color: COLOUR[state], fontWeight: 700 }}>
+              {MARK[state]}
+              {n}
+            </span>
+          ))}
+        </span>
       </button>
 
       {open && summary.changes.map((change, index) => {
