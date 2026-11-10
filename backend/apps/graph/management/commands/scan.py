@@ -7,7 +7,7 @@ short_desc: Scans local repo paths and upserts the resulting ProjectMap
 uses:
 - Annotation Scanner: "parses annotation blocks from the target repo path(s)"
 - Workspace Builder: "resolves relationships and assembles the parsed elements into workspace.json"
-- Database/Project Store: "creates or updates the ProjectMap row for the scanned project"
+- Database/Database: "creates or updates the ProjectMap row for the scanned project"
 """
 import json
 import uuid

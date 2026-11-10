@@ -48,8 +48,8 @@
             "relationships": [],
             "components": [
               {
-                "id": "seeforce-database-project-store",
-                "name": "Project Store",
+                "id": "seeforce-database-database",
+                "name": "Database",
                 "description": "Holds everything a project owns once it has been imported — the workspace snapshot and its feature catalogue, the node and edge overlays a reader hand-edits, the share tokens and access grants that open a map to someone else, the lexicon entries, and the GitHub App installations that authorise a repo fetch. This is the schema the Database container stores, so a component that persists or reads project state names this element rather than the container.",
                 "short_desc": "Stores project snapshots, overlays, sharing grants and lexicon entries",
                 "technology": "PostgreSQL",
@@ -168,8 +168,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-database-project-store",
-                    "destinationId": "seeforce-database-project-store",
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "creates or updates the ProjectMap row for the scanned project",
                     "technology": "",
                     "tags": "Relationship"
@@ -193,8 +193,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-auth-api-seeforce-database-project-store",
-                    "destinationId": "seeforce-database-project-store",
+                    "id": "rel-seeforce-backend-auth-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "reads the user's GitHub SocialAccount and GitHubAppInstallation rows",
                     "technology": "",
                     "tags": "Relationship"
@@ -246,8 +246,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-delta-view-api-seeforce-database-project-store",
-                    "destinationId": "seeforce-database-project-store",
+                    "id": "rel-seeforce-backend-delta-view-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "reads the ProjectMap row the comparison is requested for",
                     "technology": "",
                     "tags": "Relationship"
@@ -271,8 +271,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-database-project-store",
-                    "destinationId": "seeforce-database-project-store",
+                    "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "creates or updates the GitHubAppInstallation row for the logged-in user",
                     "technology": "",
                     "tags": "Relationship"
@@ -303,8 +303,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-github-import-seeforce-database-project-store",
-                    "destinationId": "seeforce-database-project-store",
+                    "id": "rel-seeforce-backend-github-import-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "creates or updates the ProjectMap row for the imported, synced, or linked repo",
                     "technology": "",
                     "tags": "Relationship"
@@ -321,8 +321,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-backend-edit-api-seeforce-database-project-store",
-                    "destinationId": "seeforce-database-project-store",
+                    "id": "rel-seeforce-backend-edit-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows",
                     "technology": "",
                     "tags": "Relationship"

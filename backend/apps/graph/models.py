@@ -1,6 +1,6 @@
 """
 @c3:component
-name: Project Store
+name: Database
 container: Database
 technology: PostgreSQL
 description: Holds everything a project owns once it has been imported — the workspace snapshot and its feature catalogue, the node and edge overlays a reader hand-edits, the share tokens and access grants that open a map to someone else, the lexicon entries, and the GitHub App installations that authorise a repo fetch. This is the schema the Database container stores, so a component that persists or reads project state names this element rather than the container.
