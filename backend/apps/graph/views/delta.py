@@ -12,7 +12,7 @@ uses:
 - Delta Reporter: "runs the comparison between the two commits' workspace snapshots"
 - Delta Presenter: "projects that comparison onto the rendered view it returns"
 - Graph transformer: "reads the project's node and edge overlays so a compared view carries the same authored labels as the ordinary one"
-- Database: "reads the ProjectMap row the comparison is requested for"
+- Database/Project Store: "reads the ProjectMap row the comparison is requested for"
 """
 import requests as http_requests
 from c4parser.delta import diff

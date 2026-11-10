@@ -7,7 +7,7 @@ short_desc: Session check, logout, and GitHub App install status/URL
 uses:
   - GitHub: "OAuth 2.0 login and identity resolution"
     technology: HTTPS
-  - Database: "reads the user's GitHub SocialAccount and GitHubAppInstallation rows"
+  - Database/Project Store: "reads the user's GitHub SocialAccount and GitHubAppInstallation rows"
 """
 
 import os
