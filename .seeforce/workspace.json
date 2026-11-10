@@ -771,6 +771,24 @@
                 ]
               },
               {
+                "id": "seeforce-frontend-feature-list",
+                "name": "Feature List",
+                "description": "Reads the feature catalogue off the project payload and lists what the repo lets you do, grouped by category, with the prerequisites a reader must satisfy shown apart from the capabilities the repo offers. Shows each feature's one-sentence intent, the model elements it names, and whether a human has reviewed it or an agent generated it. Carries no drift indicator of any kind, because no verdict is stored and a stale badge would be worse than none.",
+                "short_desc": "Lists the catalogue of intentions a repo serves, grouped by category",
+                "technology": "React",
+                "source_file": "frontend/src/pages/FeaturesPage.tsx",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-feature-list-seeforce-backend",
+                    "destinationId": "seeforce-backend",
+                    "description": "reads the feature catalogue from the project payload it already fetches to draw the map",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
                 "id": "seeforce-frontend-project-workspace",
                 "name": "Project Workspace",
                 "description": "The screen a user lands on for one project — hosts the graph canvas, keeps the current C4 level and drill-down target in the view store, resolves the project's GitHub repo and branch so nodes can link to their source file, and owns the share modal where the owner mints, copies or revokes a share link.",

@@ -61,6 +61,7 @@ class ProjectMapViewSet(viewsets.ModelViewSet):
         pm = ProjectMap.objects.create(
             name=ser.validated_data["name"],
             source_json=ser.validated_data["workspace"],
+            features_json=ser.validated_data.get("features"),
             owner=request.user,
         )
         sync_lexicon_entries(pm, ser.validated_data["workspace"])
