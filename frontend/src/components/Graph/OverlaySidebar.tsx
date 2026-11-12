@@ -10,7 +10,7 @@ description: |
 short_desc: Sidebar panel to view and edit a node or edge's overlay details
 uses:
 - Lexicon: "reads the shared glossary via context to find terms relevant to the node being edited"
-- Edit API:
+- API Client:
   - "saves node/edge overlay edits"
   - "saves lexicon entry changes"
   short_desc: "saves overlay and lexicon edits"

@@ -9,7 +9,7 @@ description: |
 short_desc: Handles GitHub's post-install redirect and links the installation
 uses:
   - GitHub App Token Manager: "reads the installation's owning GitHub account"
-  - Database: "creates or updates the GitHubAppInstallation row for the logged-in user"
+  - Database/Database: "creates or updates the GitHubAppInstallation row for the logged-in user"
 """
 from urllib.parse import urlencode
 

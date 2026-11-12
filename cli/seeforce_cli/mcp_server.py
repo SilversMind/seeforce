@@ -29,8 +29,7 @@ description: |
   - Serves the guides behind annotate_codebase and catalogue_features
 short_desc: Implements the MCP tools assistants call to query architecture
 uses:
-    - Backend: "fetches workspace architecture data"
-      technology: REST
+    - Workspace API Client: "loads the project's workspace"
 """
 
 """
@@ -287,8 +286,7 @@ description: |
   - Drops edges between files of the same component
 short_desc: Answers get_static_facts_for_files with candidate edges
 uses:
-- Backend: "fetches the workspace to resolve candidate edges to known components"
-  technology: REST
+- Workspace API Client: "loads the workspace to resolve candidate edges to known components"
 - Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
 - Ownership Inference: "resolves each candidate edge endpoint's owning component"
 """

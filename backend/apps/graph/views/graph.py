@@ -11,7 +11,7 @@ description: |
   - Serves the rendered graph for a given C4 level
 short_desc: Saves user edits and serves project CRUD and graph views
 uses:
-- Database: "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows"
+- Database/Database: "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows"
 - Graph transformer: "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint"
 """
 
