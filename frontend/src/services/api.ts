@@ -1,9 +1,46 @@
+/*
+@c3:component
+name: API Client
+container: Frontend
+technology: TypeScript
+description: The single place the frontend talks to the backend — every HTTP call the application makes goes through here, so no page or graph component issues a fetch of its own. Holds the project, overlay, lexicon, tag, delta, GitHub and sharing calls, and builds the share and view URLs the read-only pages use.
+short_desc: The frontend's only HTTP surface onto the backend
+uses:
+- Edit API: "reads and writes projects, node and edge overlays, lexicon entries and tags, and fetches the rendered view for a level"
+  technology: REST
+- Auth API: "reads the signed-in user and ends the session"
+  technology: REST
+- Delta View API: "lists the linked repository's open pull requests and fetches the decorated delta view"
+  technology: REST
+- GitHub Import: "imports a repository, re-syncs it, and links an existing project to one"
+  technology: REST
+- Sharing API: "mints, reads and revokes a share token, and reads a shared project through one"
+  technology: REST
+*/
 export interface AuthUser {
   id: number;
   username: string;
   avatar_url: string;
   github_app_installed: boolean;
   github_app_install_url: string | null;
+}
+
+export interface CatalogueFeature {
+  id: string;
+  name: string;
+  intent: string;
+  kind: "capability" | "prerequisite";
+  components: string[];
+  reviewed: boolean;
+}
+
+export interface CatalogueCategory {
+  name: string;
+  features: CatalogueFeature[];
+}
+
+export interface Catalogue {
+  categories: CatalogueCategory[];
 }
 
 export interface ProjectMapMeta {
@@ -17,6 +54,7 @@ export interface ProjectMapMeta {
   last_synced_at?: string | null;
   shared?: boolean;
   owner_username?: string;
+  features?: Catalogue;
 }
 
 export async function fetchProjectMap(id: number): Promise<ProjectMapMeta> {
