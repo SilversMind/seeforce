@@ -25,6 +25,24 @@ export interface AuthUser {
   github_app_install_url: string | null;
 }
 
+export interface CatalogueFeature {
+  id: string;
+  name: string;
+  intent: string;
+  kind: "capability" | "prerequisite";
+  components: string[];
+  reviewed: boolean;
+}
+
+export interface CatalogueCategory {
+  name: string;
+  features: CatalogueFeature[];
+}
+
+export interface Catalogue {
+  categories: CatalogueCategory[];
+}
+
 export interface ProjectMapMeta {
   id: number;
   name: string;
@@ -36,6 +54,7 @@ export interface ProjectMapMeta {
   last_synced_at?: string | null;
   shared?: boolean;
   owner_username?: string;
+  features?: Catalogue;
 }
 
 export async function fetchProjectMap(id: number): Promise<ProjectMapMeta> {

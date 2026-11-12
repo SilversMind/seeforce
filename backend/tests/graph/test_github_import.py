@@ -116,12 +116,18 @@ class ImportFromGitHubTest(TestCase):
         # Installation exists but for a different account than this repo's
         # owner — first (authenticated) call 404s, retry unauthenticated succeeds.
         self._make_token()
-        mock_get.side_effect = [_mock_github_404(), _mock_github_ok()]
+        # The optional catalogue is fetched after the workspace and 404s here, so four calls.
+        mock_get.side_effect = [
+            _mock_github_404(), _mock_github_ok(),
+            _mock_github_404(), _mock_github_404(),
+        ]
         resp = self._post({"repo": "someoneelse/public-repo"})
         self.assertEqual(resp.status_code, 201)
-        self.assertEqual(mock_get.call_count, 2)
         self.assertIn("Authorization", mock_get.call_args_list[0].kwargs["headers"])
         self.assertNotIn("Authorization", mock_get.call_args_list[1].kwargs["headers"])
+        self.assertIn("workspace.json", mock_get.call_args_list[0].args[0])
+        self.assertIn("workspace.json", mock_get.call_args_list[1].args[0])
+        self.assertIsNone(ProjectMap.objects.get().features_json)
 
     def test_token_minting_failure_returns_400(self):
         # Installation row exists locally, but GitHub rejects the token-mint
@@ -373,3 +379,71 @@ class LinkToGithubTest(TestCase):
         self.assertEqual(self.pm.project_id, "github:owner/newrepo")
         # Same row, not a new project.
         self.assertEqual(ProjectMap.objects.count(), 1)
+
+
+SAMPLE_CATALOGUE = {
+    "version": 1,
+    "generated_at": "2026-11-10T00:00:00Z",
+    "categories": [
+        {
+            "name": "Reading the architecture",
+            "features": [
+                {
+                    "id": "explore-the-map",
+                    "name": "Explore the map",
+                    "intent": "Navigate what the annotations declare.",
+                    "kind": "capability",
+                    "components": ["Architecture Visualizer (Frontend)"],
+                    "reviewed_at": "abc1234",
+                    "entry_points": ["page:/project/:id"],
+                    "paths": [],
+                }
+            ],
+        }
+    ],
+}
+
+
+class ImportStoresCatalogueTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="cataloguer", password="pw")
+        self.client.force_login(self.user)
+
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_catalogue_is_stored_from_the_same_commit_as_the_model(self, mock_get):
+        mock_get.side_effect = [_mock_github_ok(), _mock_github_ok(SAMPLE_CATALOGUE)]
+        resp = self.client.post(
+            "/api/graph/import/github/",
+            data=json.dumps({"repo": "owner/repo"}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertIn("workspace.json", mock_get.call_args_list[0].args[0])
+        self.assertIn("features.json", mock_get.call_args_list[1].args[0])
+        self.assertEqual(ProjectMap.objects.get().features_json, SAMPLE_CATALOGUE)
+
+    @patch("apps.graph.views.github_import.http_requests.get")
+    def test_a_missing_catalogue_stores_null_rather_than_failing_the_import(self, mock_get):
+        mock_get.side_effect = [_mock_github_ok(), _mock_github_404()]
+        resp = self.client.post(
+            "/api/graph/import/github/",
+            data=json.dumps({"repo": "owner/repo"}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertIsNone(ProjectMap.objects.get().features_json)
+
+
+class CataloguePayloadTest(TestCase):
+    def test_reviewed_at_is_collapsed_to_a_boolean_and_the_sha_never_leaves(self):
+        from apps.graph.serializers import public_catalogue
+
+        payload = public_catalogue(SAMPLE_CATALOGUE)
+        feature = payload["categories"][0]["features"][0]
+        self.assertIs(feature["reviewed"], True)
+        self.assertNotIn("reviewed_at", feature)
+
+    def test_no_catalogue_serves_an_empty_one_rather_than_an_error(self):
+        from apps.graph.serializers import public_catalogue
+
+        self.assertEqual(public_catalogue(None), {"categories": []})
