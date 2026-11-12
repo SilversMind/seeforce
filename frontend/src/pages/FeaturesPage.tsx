@@ -6,7 +6,7 @@ technology: React
 description: Reads the feature catalogue off the project payload and lists what the repo lets you do, grouped by category, with the prerequisites a reader must satisfy shown apart from the capabilities the repo offers. Shows each feature's one-sentence intent, the model elements it names, and whether a human has reviewed it or an agent generated it. Carries no drift indicator of any kind, because no verdict is stored and a stale badge would be worse than none.
 short_desc: Lists the catalogue of intentions a repo serves, grouped by category
 uses:
-- Backend: "reads the feature catalogue from the project payload it already fetches to draw the map"
+- API Client: "reads the feature catalogue from the project payload it already fetches to draw the map"
   technology: REST
 */
 import useSWR from "swr";
