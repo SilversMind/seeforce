@@ -355,7 +355,7 @@
               {
                 "id": "seeforce-backend-github-import",
                 "name": "GitHub Import",
-                "description": "- Imports, re-syncs and links a project to a GitHub repository\n- Picks the user's installation matching the repo owner, falling back to public access\n- Stores the fetched .seeforce/workspace.json as a ProjectMap\n- Caches reads pinned to a commit for a day, keyed by token",
+                "description": "- Imports, re-syncs and links a project to a GitHub repository\n- Picks the user's installation matching the repo owner, falling back to public access\n- Fetches .seeforce/workspace.json and the optional features.json from the same commit\n- Stores both as a ProjectMap\n- Caches reads pinned to a commit for a day, keyed by token",
                 "short_desc": "Imports, re-syncs, and links project architecture from GitHub",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
@@ -391,8 +391,8 @@
               {
                 "id": "seeforce-backend-edit-api",
                 "name": "Edit API",
-                "description": "- Saves user edits on a project map:\n  - Node description overlays\n  - Edge label overlays\n  - Lexicon entries\n- Serves project CRUD\n- Serves the rendered graph for a given C4 level",
-                "short_desc": "Saves user edits and serves project CRUD and graph views",
+                "description": "- Saves user edits on a project map:\n  - Node description overlays\n  - Edge label overlays\n  - Lexicon entries\n- Serves project CRUD\n- Serves the rendered graph for a given C4 level\n- Serves the stored feature catalogue on the project payload",
+                "short_desc": "Saves user edits and serves projects, graph views and features",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/graph.py",
                 "tags": "Element,Component",
@@ -951,6 +951,25 @@
                   }
                 ],
                 "loc": 28
+              },
+              {
+                "id": "seeforce-frontend-feature-list",
+                "name": "Feature List",
+                "description": "- Lists what the repo lets you do, grouped by category\n- Shows prerequisites apart from capabilities\n- Shows each feature's intent and the model elements it names\n- Marks whether a human reviewed it or an agent generated it",
+                "short_desc": "Lists the catalogue of intentions a repo serves, grouped by category",
+                "technology": "React",
+                "source_file": "frontend/src/pages/FeaturesPage.tsx",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-feature-list-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
+                    "description": "reads the feature catalogue from the project payload it already fetches to draw the map",
+                    "short_desc": "",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  }
+                ]
               },
               {
                 "id": "seeforce-frontend-project-workspace",

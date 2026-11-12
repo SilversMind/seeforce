@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "generated_at": "2026-11-10T00:00:00Z",
+  "categories": [
+    {
+      "name": "Getting a repo onto the map",
+      "features": [
+        {
+          "id": "scan-a-local-repo",
+          "name": "Scan a local repo",
+          "intent": "Turn the annotations committed in a working tree into a workspace snapshot.",
+          "kind": "capability",
+          "components": [
+            "Scan Command (SeeForce CLI)",
+            "Annotation Scanner (Annotation Parser)",
+            "Workspace Builder (Annotation Parser)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["cli:seeforce scan"],
+          "paths": []
+        },
+        {
+          "id": "import-a-project-from-github",
+          "name": "Import a project from GitHub",
+          "intent": "Bring a repo's committed architecture into the app without a local checkout.",
+          "kind": "capability",
+          "components": [
+            "GitHub Import (Backend)",
+            "GitHub App Token Manager (Backend)",
+            "Project Library (Frontend)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["http:api/graph/import/github/"],
+          "paths": []
+        },
+        {
+          "id": "annotate-a-codebase-with-an-agent",
+          "name": "Annotate a codebase with an agent",
+          "intent": "Let the developer's own agent write the C4 annotations the scan reads.",
+          "kind": "capability",
+          "components": [
+            "Annotate Command (SeeForce CLI)",
+            "Tool Handlers (MCP Server)",
+            "Static Facts Extractor (Annotation Parser)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["cli:seeforce annotate", "mcp:annotate_codebase"],
+          "paths": []
+        }
+      ]
+    },
+    {
+      "name": "Reading the architecture",
+      "features": [
+        {
+          "id": "explore-the-architecture-map",
+          "name": "Explore the architecture map",
+          "intent": "Navigate the systems, containers and components the annotations declare.",
+          "kind": "capability",
+          "components": [
+            "Architecture Visualizer (Frontend)",
+            "Node manager (Frontend)",
+            "Edge manager (Frontend)",
+            "Graph transformer (Backend)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["page:/project/:id"],
+          "paths": []
+        },
+        {
+          "id": "review-a-merge-request-delta",
+          "name": "Review a merge request delta",
+          "intent": "See what a merge request changed at the architecture level before merging it.",
+          "kind": "capability",
+          "components": [
+            "Delta Presenter (Backend)",
+            "Delta View API (Backend)",
+            "Change List (Frontend)",
+            "Comparison Selector (Frontend)",
+            "Delta Reporter (Annotation Parser)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["http:api/graph/<int:project_map_id>/delta/view/<str:level>/"],
+          "paths": []
+        },
+        {
+          "id": "name-the-terms-a-codebase-uses",
+          "name": "Name the terms a codebase uses",
+          "intent": "Keep a shared lexicon so a diagram reader knows what each word means here.",
+          "kind": "capability",
+          "components": [
+            "Lexicon (Frontend)",
+            "Edit API (Backend)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["http:api/graph/<int:project_map_id>/lexicon/"],
+          "paths": []
+        }
+      ]
+    },
+    {
+      "name": "Keeping the model true",
+      "features": [
+        {
+          "id": "catch-architecture-drift-in-a-pull-request",
+          "name": "Catch architecture drift in a pull request",
+          "intent": "Fail a pull request whose code no longer matches the architecture it declares.",
+          "kind": "capability",
+          "components": [
+            "Delta Command (SeeForce CLI)",
+            "Delta Reporter (Annotation Parser)",
+            "Feature Catalogue (Annotation Parser)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["cli:seeforce delta"],
+          "paths": []
+        },
+        {
+          "id": "list-what-the-repo-lets-you-do",
+          "name": "List what the repo lets you do",
+          "intent": "Read the catalogue of intentions this repo serves without opening the code.",
+          "kind": "capability",
+          "components": [
+            "Features Command (SeeForce CLI)",
+            "Feature Catalogue (Annotation Parser)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["cli:seeforce features"],
+          "paths": []
+        }
+      ]
+    },
+    {
+      "name": "Getting set up",
+      "features": [
+        {
+          "id": "sign-in-with-github",
+          "name": "Sign in with GitHub",
+          "intent": "Authenticate so a project can be owned and shared.",
+          "kind": "prerequisite",
+          "components": [
+            "Auth API (Backend)",
+            "Auth Context (Frontend)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["http:accounts/github/login/"],
+          "paths": []
+        },
+        {
+          "id": "connect-the-cli-to-an-account",
+          "name": "Connect the CLI to an account",
+          "intent": "Pair a local checkout with the account that owns the project it feeds.",
+          "kind": "prerequisite",
+          "components": [
+            "Login Command (SeeForce CLI)",
+            "Auth API (Backend)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["cli:seeforce login", "http:cli/auth/"],
+          "paths": []
+        },
+        {
+          "id": "install-the-mcp-server-in-an-agent",
+          "name": "Install the MCP server in an agent",
+          "intent": "Give the developer's agent the tools that read and write this architecture.",
+          "kind": "prerequisite",
+          "components": [
+            "MCP Install Command (SeeForce CLI)",
+            "Tool Handlers (MCP Server)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["cli:seeforce mcp"],
+          "paths": []
+        },
+        {
+          "id": "grant-repo-access-with-the-github-app",
+          "name": "Grant repo access with the GitHub App",
+          "intent": "Authorise SeeForce to read the repos it imports architecture from.",
+          "kind": "prerequisite",
+          "components": [
+            "GitHub App Setup Endpoint (Backend)",
+            "GitHub App Token Manager (Backend)"
+          ],
+          "reviewed_at": null,
+          "entry_points": ["http:github-app/setup/"],
+          "paths": []
+        }
+      ]
+    }
+  ]
+}
