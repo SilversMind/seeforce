@@ -316,6 +316,42 @@ def build(elements: list[C4Element]) -> dict:
     for ext_id in external_ids.values():
         element_system[ext_id] = ext_id
 
+    element_container: dict[str, str] = {}
+    for name, cid in container_ids.items():
+        element_container[cid] = cid
+    for (cont_name, _), comp_id in component_ids.items():
+        element_container[comp_id] = container_ids[cont_name]
+    for ext_id in external_ids.values():
+        element_container[ext_id] = ext_id
+
+    def _rollup_container_relationships(cont_node: dict) -> list[dict]:
+        """Derive container-level relationships from component uses crossing a container boundary, so C2 shows what the components actually do."""
+        cont_id = cont_node["id"]
+        authored = list(cont_node["relationships"])
+        seen = {r["destinationId"] for r in authored}
+        order: list[str] = []
+        descriptions: dict[str, list[str]] = {}
+        for comp in cont_node["components"]:
+            for rel in comp["relationships"]:
+                dest = element_container.get(rel["destinationId"])
+                if not dest or dest == cont_id or dest in seen:
+                    continue
+                if dest not in descriptions:
+                    descriptions[dest] = []
+                    order.append(dest)
+                desc = (rel.get("description") or "").strip()
+                if desc and desc not in descriptions[dest]:
+                    descriptions[dest].append(desc)
+        return authored + [
+            {
+                "id": f"rel-{cont_id}-{dest}",
+                "destinationId": dest,
+                "description": "; ".join(descriptions[dest]),
+                "tags": "Relationship",
+            }
+            for dest in order
+        ]
+
     def _rollup_system_relationships(sys_node: dict) -> list[dict]:
         """Derive system-level relationships from container/component uses that
         cross system boundaries (including external broker systems), carrying
@@ -406,6 +442,8 @@ def build(elements: list[C4Element]) -> dict:
             "containers": sys_containers,
         }
         sys_node["relationships"] = _rollup_system_relationships(sys_node)
+        for cont_node in sys_containers:
+            cont_node["relationships"] = _rollup_container_relationships(cont_node)
         system_nodes.append(sys_node)
 
         if sys_containers:

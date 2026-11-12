@@ -5,7 +5,7 @@ container: MCP Server
 technology: Python / httpx
 description: Fetches the current project's workspace.json from the Backend over REST, resolving which project to fetch via a configured project UUID or falling back to the most recently updated one.
 uses:
-- Backend: "fetches workspace architecture data via REST API"
+- Backend/Edit API: "fetches workspace architecture data via REST API"
   technology: REST
 """
 

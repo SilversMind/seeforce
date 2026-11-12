@@ -6,6 +6,8 @@ technology: ReactFlow
 description: Display architecture and manage user interaction such as drilling down on specific component
 short_desc: Renders the graph and handles drill-down between C1/C2/C3 views
 uses:
+- API Client: "loads the project's lexicon entries and tag list for the canvas"
+  technology: REST
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"
 - Edge manager: "Renders directional relationship edges between nodes"
 - Overlay Editor: "opens the detail/edit panel for the clicked node or edge"
