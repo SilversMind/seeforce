@@ -1,14 +1,14 @@
 from .auth import auth_logout, auth_me
 from .delta import project_delta_view, project_pull_requests
 from .github_import import import_from_github, link_to_github, sync_from_github
-from .graph import (
-    ProjectMapViewSet,
-    project_map_view,
-    project_tags,
+from .overlays import (
+    delete_lexicon_entry,
+    lexicon_collection,
     upsert_edge_overlay,
     upsert_node_overlay,
 )
-from .lexicon import delete_lexicon_entry, lexicon_collection
+from .projects import ProjectMapViewSet
+from .rendering import project_map_view, project_tags
 from .sharing import (
     manage_share,
     share_lexicon,

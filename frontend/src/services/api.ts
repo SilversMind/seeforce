@@ -12,11 +12,20 @@ description: |
   - Builds the share and view URLs of the read-only pages
 short_desc: The frontend's only HTTP surface onto the backend
 uses:
-- Edit API:
-  - "reads and writes projects"
-  - "reads and writes overlays, lexicon entries and tags"
-  - "fetches the rendered view for a level"
-  short_desc: "manages projects and edits, fetches views"
+- Project Lifecycle:
+  - "lists the user's projects"
+  - "creates, renames and deletes projects"
+  short_desc: "lists and manages projects"
+  technology: REST
+- Map Rendering:
+  - "fetches the rendered map for a level"
+  - "fetches the tag list it filters on"
+  short_desc: "fetches the map and its tags"
+  technology: REST
+- Overlay Editing:
+  - "writes node and edge overlays"
+  - "writes lexicon entries"
+  short_desc: "writes overlays and lexicon entries"
   technology: REST
 - Auth API:
   - "reads the signed-in user"
