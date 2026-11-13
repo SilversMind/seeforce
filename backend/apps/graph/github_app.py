@@ -2,8 +2,8 @@
 @c3:component
 name: GitHub App Token Manager
 container: Backend
-description: Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token.
-short_desc: Mints short-lived GitHub App installation tokens for API calls
+description: Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token. The token is cached for 50 of its 60 minutes, so a burst of API calls mints once instead of once per call.
+short_desc: Mints and caches short-lived GitHub App installation tokens
 uses:
   - GitHub: "Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens"
     technology: HTTPS
@@ -13,6 +13,9 @@ import time
 
 import jwt
 import requests as http_requests
+from django.core.cache import cache
+
+_TOKEN_TTL = 50 * 60
 
 
 class GitHubAppTokenManager:
@@ -43,6 +46,12 @@ class GitHubAppTokenManager:
         return resp.json().get("account") or None
 
     def installation_token(self, installation_id: str) -> str:
+        """The installation's access token, minted once per 50 minutes rather than per call."""
+        # ponytail: a revoked install keeps serving its cached token until the TTL
+        # runs out; forget_installation_token on the setup callback covers reinstalls.
+        key = _token_cache_key(installation_id)
+        if cached := cache.get(key):
+            return cached
         resp = http_requests.post(
             f"https://api.github.com/app/installations/{installation_id}/access_tokens",
             headers={
@@ -52,4 +61,15 @@ class GitHubAppTokenManager:
             timeout=10,
         )
         resp.raise_for_status()
-        return resp.json()["token"]
+        token = resp.json()["token"]
+        cache.set(key, token, _TOKEN_TTL)
+        return token
+
+
+def _token_cache_key(installation_id: str) -> str:
+    return f"gh:token:{installation_id}"
+
+
+def forget_installation_token(installation_id: str) -> None:
+    """Drop a cached token so the next call mints a fresh one."""
+    cache.delete(_token_cache_key(installation_id))

@@ -3,11 +3,11 @@
 name: Delta View API
 container: Backend
 technology: Django REST Framework
-description: Serves the architecture delta of a merge request — lists the linked repository's open pull requests, then for a chosen one reads .seeforce/workspace.json at the two commits it names, runs the comparison, and returns the decorated C1/C2/C3 view. Read-only — nothing is stored, no snapshot is kept per commit, and no cache is built. The repository is always read under the requesting user's own installation token, so access is decided by GitHub for the person actually looking rather than by the project's owner.
+description: Serves the architecture delta of a merge request — lists the linked repository's open pull requests, then for a chosen one reads that single pull request and .seeforce/workspace.json at the two commits it names, runs the comparison, and returns the decorated C1/C2/C3 view. Read-only — nothing is stored and no snapshot is kept per commit, but each commit's workspace.json is cached in memory for a day, so drilling from C1 to C3 on one pull request re-reads GitHub only once. The repository is always read under the requesting user's own installation token, so access is decided by GitHub for the person actually looking rather than by the project's owner, and the cache is keyed by that token so one installation's read is never served to another.
 short_desc: Serves open pull requests and the decorated delta view
 uses:
 - GitHub Import: "reuses its installation-token resolution and its Contents API read of .seeforce/workspace.json at a commit"
-- GitHub: "lists the repository's open pull requests through the Pulls API"
+- GitHub: "lists the repository's open pull requests, and reads one by number, through the Pulls API"
   technology: HTTPS
 - Delta Reporter: "runs the comparison between the two commits' workspace snapshots"
 - Delta Presenter: "projects that comparison onto the rendered view it returns"
@@ -28,6 +28,7 @@ from ._permissions import _require_access, _require_auth
 from .github_import import _fetch_workspace_json, _get_contents, _github_token
 
 _PULLS_URL = "https://api.github.com/repos/{repo}/pulls?state=open&per_page=50"
+_PULL_URL = "https://api.github.com/repos/{repo}/pulls/{number}"
 _JSON_ACCEPT = "application/vnd.github+json"
 
 
@@ -43,7 +44,7 @@ class _SideMissing(ValueError):
         super().__init__(message)
 
 
-def _get_json(url: str, token: str | None, repo: str):
+def _get_json(url: str, token: str | None, repo: str, absent_ok: bool = False):
     resp = _get_contents(url, token, _JSON_ACCEPT)
     # A public repo is served without auth, exactly as the contents read falls back.
     if token and resp.status_code in (401, 403, 404):
@@ -51,6 +52,8 @@ def _get_json(url: str, token: str | None, repo: str):
     if resp.status_code in (401, 403):
         raise _Refused(f"Your GitHub App installation does not give you access to {repo}.")
     if resp.status_code == 404:
+        if absent_ok:
+            return None
         raise _Refused(f"{repo} was not found, or it is private and not in your GitHub App installation.")
     if not resp.ok:
         raise ValueError(f"GitHub API error {resp.status_code}.")
@@ -60,21 +63,31 @@ def _get_json(url: str, token: str | None, repo: str):
         raise ValueError("GitHub returned a response that is not valid JSON.")
 
 
+def _option(pr: dict) -> dict:
+    """The fields of a pull request the comparison needs, from GitHub's own representation."""
+    return {
+        "number": pr["number"],
+        "title": pr.get("title", ""),
+        "head_ref": pr.get("head", {}).get("ref", ""),
+        "base_ref": pr.get("base", {}).get("ref", ""),
+        "head_sha": pr.get("head", {}).get("sha", ""),
+        # ponytail: GitHub's recorded base, not a freshly computed merge base — it can lag on a long-lived branch; upgrade is one call to /compare for merge_base_commit.sha.
+        "base_sha": pr.get("base", {}).get("sha", ""),
+    }
+
+
 def _open_pull_requests(user, repo: str) -> list[dict]:
     """The repository's open pull requests, each carrying both commits the comparison needs."""
     token = _github_token(user, repo)
-    return [
-        {
-            "number": pr["number"],
-            "title": pr.get("title", ""),
-            "head_ref": pr.get("head", {}).get("ref", ""),
-            "base_ref": pr.get("base", {}).get("ref", ""),
-            "head_sha": pr.get("head", {}).get("sha", ""),
-            # ponytail: GitHub's recorded base, not a freshly computed merge base — it can lag on a long-lived branch; upgrade is one call to /compare for merge_base_commit.sha.
-            "base_sha": pr.get("base", {}).get("sha", ""),
-        }
-        for pr in _get_json(_PULLS_URL.format(repo=repo), token, repo)
-    ]
+    return [_option(pr) for pr in _get_json(_PULLS_URL.format(repo=repo), token, repo)]
+
+
+def _open_pull_request(user, repo: str, number: int) -> dict | None:
+    """One pull request by number, or None once it is no longer open."""
+    token = _github_token(user, repo)
+    # NOTE: GitHub answers 404 both for a pull request that never existed and for a repo the requester cannot see, so absent_ok folds the two into "gone".
+    pr = _get_json(_PULL_URL.format(repo=repo, number=number), token, repo, absent_ok=True)
+    return _option(pr) if pr and pr.get("state") == "open" else None
 
 
 def _load_both(user, repo: str, option: dict) -> tuple[dict, dict]:
@@ -135,13 +148,12 @@ def project_delta_view(request, project_map_id, level):
         )
 
     try:
-        options = _open_pull_requests(request.user, pm.github_repo)
+        option = _open_pull_request(request.user, pm.github_repo, int(requested))
     except _Refused as exc:
         return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
     except (ValueError, http_requests.RequestException) as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-    option = next((o for o in options if o["number"] == int(requested)), None)
     if option is None:
         return Response(
             {"error": f"Pull request #{requested} is not open on {pm.github_repo} any more, so the "

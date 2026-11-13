@@ -18,7 +18,7 @@ from django.http import (
 )
 from django.views.decorators.http import require_GET
 
-from ..github_app import GitHubAppTokenManager
+from ..github_app import GitHubAppTokenManager, forget_installation_token
 from ..models import GitHubAppInstallation
 
 
@@ -57,4 +57,5 @@ def github_app_setup(request):
         installation_id=installation_id,
         defaults={"user": request.user, "account_login": account_login},
     )
+    forget_installation_token(installation_id)
     return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
