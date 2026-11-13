@@ -618,7 +618,7 @@
               {
                 "id": "rel-seeforce-mcp-server-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
-                "description": "extracts imports, definitions, and docstrings for the requested files",
+                "description": "parses the requested files from the working tree on every call",
                 "tags": "Relationship"
               }
             ],
@@ -674,7 +674,7 @@
               {
                 "id": "seeforce-mcp-server-static-facts-query-handler",
                 "name": "Static Facts Query Handler",
-                "description": "- Implements the get_static_facts_for_files MCP tool\n- Collapses import facts into component-level candidate edges\n- Drops edges between files of the same component",
+                "description": "- Implements the get_static_facts_for_files MCP tool, the drift challenge\n- Collapses their imports into component-level candidate edges\n- Drops edges between files of the same component\n- Hands them to the assistant as a signal to confirm, never as truth",
                 "short_desc": "Answers get_static_facts_for_files with candidate edges",
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
@@ -691,7 +691,7 @@
                   {
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-annotation-parser-static-facts-extractor",
                     "destinationId": "seeforce-annotation-parser-static-facts-extractor",
-                    "description": "extracts imports, definitions, and docstrings for the requested files",
+                    "description": "parses the requested files from the working tree on every call",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"

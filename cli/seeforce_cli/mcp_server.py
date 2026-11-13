@@ -281,13 +281,14 @@ name: Static Facts Query Handler
 container: MCP Server
 technology: Python
 description: |
-  - Implements the get_static_facts_for_files MCP tool
-  - Collapses import facts into component-level candidate edges
+  - Implements the get_static_facts_for_files MCP tool, the drift challenge
+  - Collapses their imports into component-level candidate edges
   - Drops edges between files of the same component
+  - Hands them to the assistant as a signal to confirm, never as truth
 short_desc: Answers get_static_facts_for_files with candidate edges
 uses:
 - Workspace API Client: "loads the workspace to resolve candidate edges to known components"
-- Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
+- Static Facts Extractor: "parses the requested files from the working tree on every call"
 - Ownership Inference: "resolves each candidate edge endpoint's owning component"
 """
 @server.tool()
