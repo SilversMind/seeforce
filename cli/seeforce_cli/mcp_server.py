@@ -269,11 +269,11 @@ def _summarize_docstring(docstring: str) -> str:
 name: Static Facts Query Handler
 container: MCP Server
 technology: Python
-description: Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, formatting both as tool output for the calling AI assistant.
+description: Implements the get_static_facts_for_files MCP tool — the drift challenge. Reads the stored model from the backend, then has Static Facts Extractor parse the requested files out of the developer's working tree right now, so what the annotations claim can be confronted with what the code currently does; the facts are never stored, because a stored copy could not catch drift. Collapses the extracted imports into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, and hands both to the calling assistant as a candidate signal to confirm, never as truth.
 uses:
 - Backend/Edit API: "Fetches workspace architecture data via REST API, needed to resolve candidate edges to known components"
   technology: REST
-- Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
+- Static Facts Extractor: "parses the requested files out of the working tree on every call, so the annotations can be challenged against the code as it is now rather than as it was stored"
 - Ownership Inference: "resolves each candidate edge endpoint's owning component"
 """
 @server.tool()
