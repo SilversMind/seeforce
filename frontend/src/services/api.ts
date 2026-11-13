@@ -6,7 +6,11 @@ technology: TypeScript
 description: The single place the frontend talks to the backend — every HTTP call the application makes goes through here, so no page or graph component issues a fetch of its own. Holds the project, overlay, lexicon, tag, delta, GitHub and sharing calls, and builds the share and view URLs the read-only pages use.
 short_desc: The frontend's only HTTP surface onto the backend
 uses:
-- Edit API: "reads and writes projects, node and edge overlays, lexicon entries and tags, and fetches the rendered view for a level"
+- Project Lifecycle: "lists, creates, renames and deletes the user's projects"
+  technology: REST
+- Map Rendering: "fetches the rendered map for a level and the tag list it filters on"
+  technology: REST
+- Overlay Editing: "writes the node and edge overlays a reader authors, and the lexicon entries they define"
   technology: REST
 - Auth API: "reads the signed-in user and ends the session"
   technology: REST
