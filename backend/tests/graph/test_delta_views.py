@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from apps.graph.models import ProjectMap
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 
 User = get_user_model()
@@ -11,6 +12,8 @@ PULL = {
     "head": {"ref": "feat/lexicon", "sha": "head1"},
     "base": {"ref": "main", "sha": "base1"},
 }
+# The single-pull-request read carries the state the listing implies.
+OPEN_PULL = {**PULL, "state": "open"}
 
 
 def _ws(components):
@@ -45,6 +48,7 @@ def _resp(status_code=200, payload=None):
 
 class DeltaViewTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user(username="reviewer", password="pass")
         self.pm = ProjectMap.objects.create(
             name="Shop", source_json=HEAD_WS, owner=self.user, github_repo="acme/shop",
@@ -100,7 +104,7 @@ class DeltaViewTest(TestCase):
         assert "not linked" in res.json()["error"]
 
     def test_the_delta_view_returns_the_decorated_head_map(self):
-        token, listing, reads = self._patch(_resp(200, [PULL]), _resp(200, BASE_WS), _resp(200, HEAD_WS))
+        token, listing, reads = self._patch(_resp(200, OPEN_PULL), _resp(200, BASE_WS), _resp(200, HEAD_WS))
         with token, listing, reads:
             res = self.client.get(f"/api/graph/{self.pm.id}/delta/view/C3/?pr=42&container=shop-api")
         assert res.status_code == 200
@@ -116,16 +120,75 @@ class DeltaViewTest(TestCase):
         assert "pr=" in res.json()["error"]
 
     def test_a_pull_request_that_is_no_longer_open_cannot_be_compared(self):
-        token, listing, reads = self._patch(_resp(200, []))
+        token, listing, reads = self._patch(_resp(200, {**PULL, "state": "closed"}))
         with token, listing, reads:
             res = self.client.get(f"/api/graph/{self.pm.id}/delta/view/C2/?pr=42")
         assert res.status_code == 409
         assert res.json()["missing"] is None
 
+    def test_a_pull_request_github_cannot_find_is_treated_as_gone(self):
+        token, listing, reads = self._patch(_resp(404), _resp(404))
+        with token, listing, reads:
+            res = self.client.get(f"/api/graph/{self.pm.id}/delta/view/C2/?pr=42")
+        assert res.status_code == 409
+        assert res.json()["missing"] is None
+
+    def test_the_delta_view_reads_only_the_pull_request_it_was_asked_for(self):
+        token, listing, reads = self._patch(_resp(200, OPEN_PULL), _resp(200, BASE_WS), _resp(200, HEAD_WS))
+        with token, listing as listed, reads:
+            self.client.get(f"/api/graph/{self.pm.id}/delta/view/C2/?pr=42")
+        assert [c.args[0] for c in listed.call_args_list] == [
+            "https://api.github.com/repos/acme/shop/pulls/42"
+        ]
+
     def test_a_baseline_missing_on_one_side_names_that_side(self):
-        token, listing, reads = self._patch(_resp(200, [PULL]), _resp(404), _resp(404))
+        token, listing, reads = self._patch(_resp(200, OPEN_PULL), _resp(404), _resp(404))
         with token, listing, reads:
             res = self.client.get(f"/api/graph/{self.pm.id}/delta/view/C2/?pr=42")
         assert res.status_code == 409
         assert res.json()["missing"] == "base"
         assert "workspace.json" in res.json()["error"]
+
+
+SHA_PULL = {
+    "number": 42, "title": "Split the lexicon out", "state": "open",
+    "head": {"ref": "feat/lexicon", "sha": "b" * 40},
+    "base": {"ref": "main", "sha": "a" * 40},
+}
+
+
+class WorkspaceCacheTest(TestCase):
+    """Drilling C1 to C3 on one pull request must read each commit's workspace.json once."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user(username="reviewer", password="pass")
+        self.pm = ProjectMap.objects.create(
+            name="Shop", source_json=HEAD_WS, owner=self.user, github_repo="acme/shop",
+            github_branch="main",
+        )
+        self.client.force_login(self.user)
+
+    def _drill(self, baselines):
+        """Request C1 then C3 for the same pull request, returning the baseline reads that reached GitHub."""
+        with patch("apps.graph.views.delta._github_token", return_value="tok"), \
+             patch("apps.graph.views.delta._get_contents", return_value=_resp(200, SHA_PULL)), \
+             patch("apps.graph.views.github_import._get_contents", side_effect=baselines) as reads:
+            for level in ("C1", "C3"):
+                res = self.client.get(f"/api/graph/{self.pm.id}/delta/view/{level}/?pr=42")
+                assert res.status_code == 200, res.json()
+            return reads
+
+    def test_a_commit_pinned_baseline_is_read_once_across_two_views(self):
+        reads = self._drill([_resp(200, BASE_WS), _resp(200, HEAD_WS)])
+        assert reads.call_count == 2
+
+    def test_the_cache_is_scoped_to_the_token_that_read_it(self):
+        from apps.graph.views.github_import import _workspace_cache_key
+        mine = _workspace_cache_key("tok-a", "acme/shop", "a" * 40)
+        theirs = _workspace_cache_key("tok-b", "acme/shop", "a" * 40)
+        assert mine != theirs
+
+    def test_a_branch_ref_is_never_cached_because_it_moves(self):
+        from apps.graph.views.github_import import _workspace_cache_key
+        assert _workspace_cache_key("tok", "acme/shop", "main") is None

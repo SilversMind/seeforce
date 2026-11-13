@@ -2,18 +2,21 @@
 @c3:component
 name: GitHub Import
 container: Backend
-description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.
+description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap; a read pinned to a commit SHA is cached in memory for a day, keyed by the token that read it, while a read of a moving branch never is. Blob links are built client-side from github_repo/github_branch, not here.
 short_desc: Imports, re-syncs, and links project architecture from GitHub
 uses:
   - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise"
     technology: HTTPS
-  - GitHub App Token Manager: "Requests a fresh installation token before each Contents API call"
+  - GitHub App Token Manager: "Requests the installation token before each Contents API call"
   - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
 """
 
+import hashlib
 import json
+import re
 
 import requests as http_requests
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -21,6 +24,18 @@ from rest_framework.response import Response
 
 from ..models import ProjectMap, sync_lexicon_entries
 from ._permissions import _require_auth, _require_owner
+
+_COMMIT_SHA = re.compile(r"^[0-9a-f]{40}$")
+_WORKSPACE_TTL = 24 * 60 * 60
+
+
+def _workspace_cache_key(token: str | None, repo: str, ref: str) -> str | None:
+    """A cache key for an immutable ref read with this credential, or None when the ref can move."""
+    # NOTE: keyed by the token, not just the repo, so a private repo one installation may read is never served to another.
+    if not _COMMIT_SHA.match(ref):
+        return None
+    scope = hashlib.sha256((token or "public").encode()).hexdigest()[:16]
+    return f"gh:ws:{scope}:{repo}@{ref}"
 
 
 def _github_token(user, repo: str = ""):
@@ -54,10 +69,11 @@ def _get_contents(url: str, token: str | None, accept: str = "application/vnd.gi
 
 
 def _fetch_workspace_json(token: str | None, repo: str, branch: str) -> dict:
-    """
-    Fetch .seeforce/workspace.json from a GitHub repo.
-    Raises ValueError with a user-facing message on any failure.
-    """
+    """Fetch .seeforce/workspace.json from a GitHub repo, raising ValueError with a user-facing message on any failure."""
+    key = _workspace_cache_key(token, repo, branch)
+    if key and (cached := cache.get(key)) is not None:
+        return cached
+
     url = f"https://api.github.com/repos/{repo}/contents/.seeforce/workspace.json?ref={branch}"
     resp = _get_contents(url, token)
 
@@ -84,9 +100,12 @@ def _fetch_workspace_json(token: str | None, repo: str, branch: str) -> dict:
         raise ValueError(f"GitHub API error {resp.status_code}.")
 
     try:
-        return resp.json()
+        workspace = resp.json()
     except json.JSONDecodeError:
         raise ValueError(".seeforce/workspace.json is not valid JSON.")
+    if key:
+        cache.set(key, workspace, _WORKSPACE_TTL)
+    return workspace
 
 
 @api_view(["POST"])
