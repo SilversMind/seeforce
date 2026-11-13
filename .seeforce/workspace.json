@@ -568,7 +568,7 @@
               {
                 "id": "rel-seeforce-mcp-server-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
-                "description": "extracts imports, definitions, and docstrings for the requested files",
+                "description": "parses the requested files out of the working tree on every call, so the annotations can be challenged against the code as it is now rather than as it was stored",
                 "tags": "Relationship"
               }
             ],
@@ -622,7 +622,7 @@
               {
                 "id": "seeforce-mcp-server-static-facts-query-handler",
                 "name": "Static Facts Query Handler",
-                "description": "Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, formatting both as tool output for the calling AI assistant.",
+                "description": "Implements the get_static_facts_for_files MCP tool — the drift challenge. Reads the stored model from the backend, then has Static Facts Extractor parse the requested files out of the developer's working tree right now, so what the annotations claim can be confronted with what the code currently does; the facts are never stored, because a stored copy could not catch drift. Collapses the extracted imports into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, and hands both to the calling assistant as a candidate signal to confirm, never as truth.",
                 "short_desc": "",
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
@@ -638,7 +638,7 @@
                   {
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-annotation-parser-static-facts-extractor",
                     "destinationId": "seeforce-annotation-parser-static-facts-extractor",
-                    "description": "extracts imports, definitions, and docstrings for the requested files",
+                    "description": "parses the requested files out of the working tree on every call, so the annotations can be challenged against the code as it is now rather than as it was stored",
                     "technology": "",
                     "tags": "Relationship"
                   },
