@@ -98,6 +98,16 @@
             ],
             "components": [
               {
+                "id": "seeforce-backend-feature-catalogue-api",
+                "name": "Feature Catalogue API",
+                "description": "Shapes the stored feature catalogue for the project payload — drops the review commit down to a boolean so the SHA never leaves the backend, and turns a project with no catalogue into an empty one rather than an error, because having none is a normal state. Carries no drift verdict of any kind, since none is stored and a stale badge would be worse than none at all.",
+                "short_desc": "Shapes the stored feature catalogue for the project payload",
+                "technology": "Python",
+                "source_file": "backend/apps/graph/catalogue.py",
+                "tags": "Element,Component",
+                "relationships": []
+              },
+              {
                 "id": "seeforce-backend-delta-presenter",
                 "name": "Delta Presenter",
                 "description": "Decorates an already-rendered C1/C2/C3 view with the state an architecture comparison gives each element and relation — added, removed, modified or unchanged — rolling a descendant's change up through containment so a component change is visible on its container and its system, injecting the elements a merge request removed as ghost nodes so they keep a position, and summarising every change in the comparison as one list. Pure computation over two workspace dicts and a Delta — no HTTP call, no database read, nothing written, and no risk or merge verdict anywhere in its output.",
@@ -343,25 +353,68 @@
                 ]
               },
               {
-                "id": "seeforce-backend-edit-api",
-                "name": "Edit API",
-                "description": "Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level, and exposes the stored feature catalogue on the project payload with its review flag reduced to a boolean.",
-                "short_desc": "User mutations — node/edge overlays, lexicon CRUD, project CRUD",
-                "technology": "",
-                "source_file": "backend/apps/graph/views/graph.py",
+                "id": "seeforce-backend-overlay-editing",
+                "name": "Overlay Editing",
+                "description": "Everything a human authors on top of the derived model — the node descriptions and edge labels a reader rewrites without touching the annotations, and the per-project lexicon that defines the terms those descriptions use. A scan replaces the model wholesale and never touches any of it, which is what keeps an enriched reading separable from the original one.",
+                "short_desc": "Node and edge overlays, and the per-project lexicon",
+                "technology": "Python / Django REST Framework",
+                "source_file": "backend/apps/graph/views/overlays.py",
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-backend-edit-api-seeforce-database-database",
+                    "id": "rel-seeforce-backend-overlay-editing-seeforce-database-database",
                     "destinationId": "seeforce-database-database",
-                    "description": "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows",
+                    "description": "reads and writes the NodeOverlay, EdgeOverlay and LexiconEntry rows a reader authors",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-backend-project-lifecycle",
+                "name": "Project Lifecycle",
+                "description": "Owns a project as an object — lists the ones a user has, creates one from an uploaded workspace snapshot, renames it, and deletes it. Holds no opinion on what the snapshot contains; the model arrives whole from a scan or an import and is replaced whole, never patched here.",
+                "short_desc": "Lists, creates, renames and deletes projects",
+                "technology": "Python / Django REST Framework",
+                "source_file": "backend/apps/graph/views/projects.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-backend-project-lifecycle-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
+                    "description": "reads and writes the ProjectMap rows a user owns",
                     "technology": "",
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-edit-api-seeforce-backend-graph-transformer",
+                    "id": "rel-seeforce-backend-project-lifecycle-seeforce-backend-feature-catalogue-api",
+                    "destinationId": "seeforce-backend-feature-catalogue-api",
+                    "description": "shapes the stored catalogue into the form the project payload carries",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-backend-map-rendering",
+                "name": "Map Rendering",
+                "description": "The application's main read path — turns a project's stored workspace snapshot plus the overlays a reader has written on top of it into the nodes and edges the canvas draws for one C4 level, and serves the tag list the same view filters on. Reads both the derived model and the authored overlay, and writes neither.",
+                "short_desc": "Serves the rendered map for a level, and its tag list",
+                "technology": "Python / Django REST Framework",
+                "source_file": "backend/apps/graph/views/rendering.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-backend-map-rendering-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
+                    "description": "reads the ProjectMap snapshot and the overlays applied to it",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-map-rendering-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
-                    "description": "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint",
+                    "description": "converts the requested project's workspace.json into the ReactFlow nodes and edges the canvas draws",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -514,8 +567,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-seeforce-cli-mcp-install-command-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
+                    "id": "rel-seeforce-seeforce-cli-mcp-install-command-seeforce-backend-project-lifecycle",
+                    "destinationId": "seeforce-backend-project-lifecycle",
                     "description": "Fetches the project id and validates the auth token via `seeforce mcp install`",
                     "technology": "REST",
                     "tags": "Relationship"
@@ -583,9 +636,9 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-workspace-api-client-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
-                    "description": "fetches workspace architecture data via REST API",
+                    "id": "rel-seeforce-mcp-server-workspace-api-client-seeforce-backend-project-lifecycle",
+                    "destinationId": "seeforce-backend-project-lifecycle",
+                    "description": "fetches the project's stored workspace snapshot via REST API",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -611,9 +664,9 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
-                    "description": "Fetches workspace architecture data via REST API",
+                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-backend-project-lifecycle",
+                    "destinationId": "seeforce-backend-project-lifecycle",
+                    "description": "Fetches the project's stored workspace snapshot via REST API",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -629,9 +682,9 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
-                    "description": "Fetches workspace architecture data via REST API, needed to resolve candidate edges to known components",
+                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend-project-lifecycle",
+                    "destinationId": "seeforce-backend-project-lifecycle",
+                    "description": "Fetches the project's stored workspace snapshot, needed to resolve candidate edges to known components",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
@@ -927,9 +980,23 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
-                    "description": "reads and writes projects, node and edge overlays, lexicon entries and tags, and fetches the rendered view for a level",
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-project-lifecycle",
+                    "destinationId": "seeforce-backend-project-lifecycle",
+                    "description": "lists, creates, renames and deletes the user's projects",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-map-rendering",
+                    "destinationId": "seeforce-backend-map-rendering",
+                    "description": "fetches the rendered map for a level and the tag list it filters on",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-overlay-editing",
+                    "destinationId": "seeforce-backend-overlay-editing",
+                    "description": "writes the node and edge overlays a reader authors, and the lexicon entries they define",
                     "technology": "REST",
                     "tags": "Relationship"
                   },

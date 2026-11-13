@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from .catalogue import public_catalogue
 from .models import ProjectMap
 
 
@@ -14,30 +15,6 @@ class ProjectMapSerializer(serializers.ModelSerializer):
     def get_features(self, obj) -> dict:
         """Serve the catalogue with reviewed_at collapsed to a boolean and no drift information (FR-024b)."""
         return public_catalogue(obj.features_json)
-
-
-def public_catalogue(features_json) -> dict:
-    """Shape a stored catalogue for the project payload; no catalogue is an empty one, never an error."""
-    categories = (features_json or {}).get("categories") or []
-    return {
-        "categories": [
-            {
-                "name": category.get("name", ""),
-                "features": [
-                    {
-                        "id": feature.get("id"),
-                        "name": feature.get("name"),
-                        "intent": feature.get("intent"),
-                        "kind": feature.get("kind"),
-                        "components": feature.get("components") or [],
-                        "reviewed": bool(feature.get("reviewed_at")),
-                    }
-                    for feature in category.get("features") or []
-                ],
-            }
-            for category in categories
-        ]
-    }
 
 
 class ProjectMapUploadSerializer(serializers.Serializer):
