@@ -7,7 +7,7 @@ description: The signed-in landing screen — lists the projects a user owns and
 short_desc: Lists projects and is where upload or GitHub import creates one
 uses:
 - Auth Context: "reads the signed-in user and the GitHub App installation status that gates private-repo import"
-- Backend: "lists owned and shared projects, uploads or imports a workspace, then renames, deletes, re-syncs or links one to a repo"
+- API Client: "lists owned and shared projects, uploads or imports a workspace, then renames, deletes, re-syncs or links one to a repo"
   technology: REST
 */
 import { useState, useEffect, useRef, useCallback } from "react";

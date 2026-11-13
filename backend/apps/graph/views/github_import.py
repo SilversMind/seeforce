@@ -8,7 +8,7 @@ uses:
   - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise"
     technology: HTTPS
   - GitHub App Token Manager: "Requests a fresh installation token before each Contents API call"
-  - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
+  - Database/Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
 """
 
 import json

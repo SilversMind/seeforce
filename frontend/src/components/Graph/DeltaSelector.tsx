@@ -6,7 +6,7 @@ technology: React
 description: Lets a reviewer pick which open pull request to see on the map and leave the comparison again, lists the repository's open pull requests with the branch each one targets, names both commits actually compared so "compared against what?" is answered on screen, and explains the four state badges in a legend. Shows plainly why no comparison is available — no repository link, no open pull request, or no repository access for this account — instead of an empty control.
 short_desc: Picks the pull request to compare and explains the states
 uses:
-- Backend: "lists the linked repository's open pull requests"
+- API Client: "lists the linked repository's open pull requests"
   technology: REST
 */
 import useSWR from "swr";

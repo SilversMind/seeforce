@@ -6,7 +6,7 @@ description: Sliding detail panel for the selected node or edge — shows name, 
 short_desc: Sidebar panel to view and edit a node or edge's overlay details
 uses:
 - Lexicon: "reads the shared glossary via context to find terms relevant to the node being edited"
-- Edit API: "saves node/edge overlay edits and lexicon entry changes"
+- API Client: "saves node/edge overlay edits and lexicon entry changes"
   technology: REST
 */
 import { useState, useEffect } from "react";
