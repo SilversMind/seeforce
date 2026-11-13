@@ -179,6 +179,22 @@ export function GraphView() {
         >
           ← Projects
         </button>
+        {(meta?.features?.categories?.length ?? 0) > 0 && (
+          <button
+            onClick={() => navigate(`/project/${projectMapId}/features`)}
+            style={{
+              background: "#1e293b",
+              color: "#94a3b8",
+              border: "1px solid #334155",
+              borderRadius: 6,
+              padding: "4px 12px",
+              fontSize: 12,
+              cursor: "pointer",
+            }}
+          >
+            Features
+          </button>
+        )}
         <button
           onClick={() => setShareOpen(true)}
           style={{

@@ -2,7 +2,7 @@
 @c3:component
 name: Edit API
 container: Backend
-description: Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level.
+description: Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level, and exposes the stored feature catalogue on the project payload with its review flag reduced to a boolean.
 short_desc: User mutations — node/edge overlays, lexicon CRUD, project CRUD
 uses:
 - Database/Database: "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows"
@@ -61,6 +61,7 @@ class ProjectMapViewSet(viewsets.ModelViewSet):
         pm = ProjectMap.objects.create(
             name=ser.validated_data["name"],
             source_json=ser.validated_data["workspace"],
+            features_json=ser.validated_data.get("features"),
             owner=request.user,
         )
         sync_lexicon_entries(pm, ser.validated_data["workspace"])

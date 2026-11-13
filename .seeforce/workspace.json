@@ -313,7 +313,7 @@
               {
                 "id": "seeforce-backend-github-import",
                 "name": "GitHub Import",
-                "description": "Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.",
+                "description": "Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json and the optional .seeforce/features.json in one operation, so a project's model and its feature catalogue always come from the same commit, and upserts both as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.",
                 "short_desc": "Imports, re-syncs, and links project architecture from GitHub",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
@@ -345,7 +345,7 @@
               {
                 "id": "seeforce-backend-edit-api",
                 "name": "Edit API",
-                "description": "Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level.",
+                "description": "Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level, and exposes the stored feature catalogue on the project payload with its review flag reduced to a boolean.",
                 "short_desc": "User mutations — node/edge overlays, lexicon CRUD, project CRUD",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/graph.py",
@@ -845,6 +845,24 @@
                     "destinationId": "seeforce-frontend-architecture-visualizer",
                     "description": "injects lexicon context into the ReactFlow node tree",
                     "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-frontend-feature-list",
+                "name": "Feature List",
+                "description": "Reads the feature catalogue off the project payload and lists what the repo lets you do, grouped by category, with the prerequisites a reader must satisfy shown apart from the capabilities the repo offers. Shows each feature's one-sentence intent, the model elements it names, and whether a human has reviewed it or an agent generated it. Carries no drift indicator of any kind, because no verdict is stored and a stale badge would be worse than none.",
+                "short_desc": "Lists the catalogue of intentions a repo serves, grouped by category",
+                "technology": "React",
+                "source_file": "frontend/src/pages/FeaturesPage.tsx",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-feature-list-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
+                    "description": "reads the feature catalogue from the project payload it already fetches to draw the map",
+                    "technology": "REST",
                     "tags": "Relationship"
                   }
                 ]

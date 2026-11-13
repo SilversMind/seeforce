@@ -2,7 +2,7 @@
 @c3:component
 name: GitHub Import
 container: Backend
-description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.
+description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json and the optional .seeforce/features.json in one operation, so a project's model and its feature catalogue always come from the same commit, and upserts both as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.
 short_desc: Imports, re-syncs, and links project architecture from GitHub
 uses:
   - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise"
@@ -89,6 +89,23 @@ def _fetch_workspace_json(token: str | None, repo: str, branch: str) -> dict:
         raise ValueError(".seeforce/workspace.json is not valid JSON.")
 
 
+def _fetch_features_json(token: str | None, repo: str, branch: str) -> dict | None:
+    """Fetch the optional feature catalogue from the same commit as the model; absent is None, broken raises."""
+    url = f"https://api.github.com/repos/{repo}/contents/.seeforce/features.json?ref={branch}"
+    resp = _get_contents(url, token)
+    if token and resp.status_code in (401, 403, 404):
+        resp = _get_contents(url, None)
+
+    if resp.status_code == 404:
+        return None
+    if not resp.ok:
+        raise ValueError(f"GitHub API error {resp.status_code} reading .seeforce/features.json.")
+    try:
+        return resp.json()
+    except json.JSONDecodeError:
+        raise ValueError(".seeforce/features.json is not valid JSON.")
+
+
 @api_view(["POST"])
 def import_from_github(request):
     if err := _require_auth(request):
@@ -108,6 +125,7 @@ def import_from_github(request):
 
     try:
         workspace = _fetch_workspace_json(token, repo, branch)
+        features = _fetch_features_json(token, repo, branch)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -121,6 +139,7 @@ def import_from_github(request):
         defaults={
             "name": name,
             "source_json": workspace,
+            "features_json": features,
             "owner": request.user,
             "github_repo": repo,
             "github_branch": branch,
@@ -174,6 +193,7 @@ def link_to_github(request, project_map_id):
 
     try:
         workspace = _fetch_workspace_json(token, repo, branch)
+        features = _fetch_features_json(token, repo, branch)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -181,8 +201,9 @@ def link_to_github(request, project_map_id):
     pm.github_repo = repo
     pm.github_branch = branch
     pm.source_json = workspace
+    pm.features_json = features
     pm.last_synced_at = timezone.now()
-    pm.save(update_fields=["project_id", "github_repo", "github_branch", "source_json", "last_synced_at", "updated_at"])
+    pm.save(update_fields=["project_id", "github_repo", "github_branch", "source_json", "features_json", "last_synced_at", "updated_at"])
     sync_lexicon_entries(pm, workspace)
 
     return Response({"id": pm.id, "name": pm.name, "linked": True})
@@ -212,12 +233,14 @@ def sync_from_github(request, project_map_id):
 
     try:
         workspace = _fetch_workspace_json(token, pm.github_repo, pm.github_branch)
+        features = _fetch_features_json(token, pm.github_repo, pm.github_branch)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
     pm.source_json = workspace
+    pm.features_json = features
     pm.last_synced_at = timezone.now()
-    pm.save(update_fields=["source_json", "last_synced_at", "updated_at"])
+    pm.save(update_fields=["source_json", "features_json", "last_synced_at", "updated_at"])
     sync_lexicon_entries(pm, workspace)
 
     return Response({"id": pm.id, "name": pm.name, "synced": True, "last_synced_at": pm.last_synced_at})
