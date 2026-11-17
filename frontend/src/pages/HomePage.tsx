@@ -10,8 +10,14 @@ description: |
   - Prompts the GitHub App install
 short_desc: Lists projects and is where upload or GitHub import creates one
 uses:
-- Auth Context: "reads the signed-in user and the GitHub App installation status that gates private-repo import"
-- Backend: "lists, creates, renames, deletes, re-syncs and links projects"
+- Auth Context:
+  - "reads the signed-in user"
+  - "reads the GitHub App installation status"
+- Backend:
+  - "lists projects"
+  - "creates projects from an upload or a GitHub import"
+  - "renames and deletes projects"
+  - "re-syncs and links projects to repos"
   technology: REST
 */
 import { useState, useEffect, useRef, useCallback } from "react";

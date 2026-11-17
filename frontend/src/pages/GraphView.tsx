@@ -11,7 +11,9 @@ description: |
 short_desc: Per-project screen — hosts the graph, share modal, and current C4 level
 uses:
 - Architecture Visualizer: "embeds the graph canvas for the level currently selected in the view store"
-- Backend: "reads the repo and branch for source links and manages the share token"
+- Backend:
+  - "reads the repo and branch for source links"
+  - "mints, reads and revokes the share token"
   technology: REST
 */
 import { useEffect, useState } from "react";

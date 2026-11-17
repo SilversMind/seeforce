@@ -10,7 +10,9 @@ description: |
   - Summarises every change of the comparison as one list
 short_desc: Decorates a rendered view with per-element comparison state
 uses:
-- Graph transformer: "renders the head workspace view and builds the ghost nodes"
+- Graph transformer:
+  - "renders the head workspace view"
+  - "builds the ghost nodes"
 - Delta Reporter: "reads the added, removed and changed elements and relations"
 """
 from c4parser.delta import Delta, Element, FieldChange

@@ -10,7 +10,9 @@ description: |
   - Returns the GitHub App install/configure URL
 short_desc: Checks the session, logs out and reports GitHub App status
 uses:
-  - GitHub: "OAuth 2.0 login and identity resolution"
+  - GitHub:
+    - "logs users in with OAuth 2.0"
+    - "resolves their GitHub identity"
     technology: HTTPS
   - Database: "reads the user's GitHub SocialAccount and GitHubAppInstallation rows"
 """

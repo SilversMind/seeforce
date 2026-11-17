@@ -10,7 +10,9 @@ description: |
   - Gates routes behind sign-in
 short_desc: Renders the architecture graph and handles auth-gated routing
 uses:
-  - Backend: "Fetches graph data and manages user session (auth)"
+  - Backend:
+    - "fetches graph data"
+    - "manages the user session"
     technology: REST
 */
 import { StrictMode } from "react";

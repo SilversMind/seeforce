@@ -8,7 +8,9 @@ description: |
   - Shows a term's definition in a bottom panel on click
 short_desc: Per-project glossary — highlights and defines terms in the graph
 uses:
-- Edit API: "fetches and mutates lexicon entries"
+- Edit API:
+  - "fetches lexicon entries"
+  - "saves lexicon entry changes"
   technology: REST
 - Architecture Visualizer: "injects lexicon context into the ReactFlow node tree"
 */

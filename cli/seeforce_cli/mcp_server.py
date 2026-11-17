@@ -12,7 +12,7 @@ description: |
   - Ships as the seeforce-mcp entry point of the seeforce-cli package
 short_desc: Exposes SeeForce architecture context to AI coding assistants via MCP
 uses:
-    - Backend: "Fetches workspace architecture data via REST API"
+    - Backend: "fetches workspace architecture data"
       technology: REST
 """
 
@@ -29,7 +29,7 @@ description: |
   - Serves the guides behind annotate_codebase and catalogue_features
 short_desc: Implements the MCP tools assistants call to query architecture
 uses:
-    - Backend: "Fetches workspace architecture data via REST API"
+    - Backend: "fetches workspace architecture data"
       technology: REST
 """
 

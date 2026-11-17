@@ -7,7 +7,10 @@ description: |
   - Applies the project's node and edge overlays
   - Adds placeholder nodes for relationship targets outside the view
 short_desc: Converts workspace.json into ReactFlow nodes and edges per view
+uses:
+- Workspace Builder: "merges the labels of parallel edges into one list of flows"
 """
+from c4parser import merge_flows
 
 _GRID_COLS = 4
 _GRID_X = 300
@@ -115,10 +118,9 @@ def _merge_parallel_edges(edges: list[dict]) -> list[dict]:
             result.append(seen[key])
         else:
             existing = seen[key]
-            new_label = edge.get("label", "")
-            existing_label = existing.get("label", "")
-            if new_label and new_label not in existing_label:
-                existing["label"] = f"{existing_label}, {new_label}" if existing_label else new_label
+            labels = [label for label in (existing.get("label", ""), edge.get("label", "")) if label]
+            if labels:
+                existing["label"] = merge_flows(labels)
             new_tech = edge.get("data", {}).get("technology", "")
             existing_tech = existing.get("data", {}).get("technology", "")
             if new_tech and new_tech not in existing_tech:

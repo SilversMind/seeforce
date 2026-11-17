@@ -69,7 +69,9 @@ description: |
   - Signs users in
   - Keeps sessions alive
 uses:
-  - Database: "reads user records"
+  - Database:
+    - "reads user records"
+    - "stores session tokens"
     technology: PostgreSQL
 """
 ```

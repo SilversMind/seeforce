@@ -8,7 +8,7 @@ description: |
   - Picks the project from the configured UUID, else the most recently updated one
 short_desc: Fetches the current project's workspace.json from the Backend
 uses:
-- Backend: "fetches workspace architecture data via REST API"
+- Backend: "fetches workspace architecture data"
   technology: REST
 """
 

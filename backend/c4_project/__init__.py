@@ -17,7 +17,11 @@ description: |
   - Opens share links to other people's diagrams, read-only
 short_desc: Maps a codebase, then explores and enriches the diagram
 uses:
-- SeeForce: "signs in, imports workspaces, explores and edits diagrams, opens share links"
+- SeeForce:
+  - "signs in with GitHub"
+  - "imports workspaces"
+  - "explores and edits diagrams"
+  - "opens share links"
   technology: HTTPS
 """
 
@@ -40,8 +44,11 @@ description: |
   - Persists data in the Database
 short_desc: Serves the REST API behind the app and stores every project
 uses:
-    - Database: "Reads and writes architecture graph data via Django ORM"
-    - GitHub: "signs users in with OAuth and fetches repo content with installation tokens"
+    - Database: "reads and writes architecture graph data"
+    - GitHub:
+      - "signs users in with OAuth"
+      - "fetches repo content with installation tokens"
+      - "lists and reads pull requests for the delta view"
       technology: HTTPS
-    - Annotation Parser: "parses and builds workspace.json when scanning a repo locally via manage.py scan"
+    - Annotation Parser: "builds workspace.json on manage.py scan"
 """

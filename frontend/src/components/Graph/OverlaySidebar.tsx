@@ -10,7 +10,9 @@ description: |
 short_desc: Sidebar panel to view and edit a node or edge's overlay details
 uses:
 - Lexicon: "reads the shared glossary via context to find terms relevant to the node being edited"
-- Edit API: "saves node/edge overlay edits and lexicon entry changes"
+- Edit API:
+  - "saves node/edge overlay edits"
+  - "saves lexicon entry changes"
   technology: REST
 */
 import { useState, useEffect } from "react";
@@ -442,16 +444,17 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
             </Section>
             <Section label="Relation">
               {editing ? (
-                <input
+                <textarea
                   value={edgeLabel}
                   onChange={(e) => setEdgeLabel(e.target.value)}
                   placeholder={(target!.edge.label as string) || "Override label…"}
-                  style={inputStyle}
+                  rows={3}
+                  style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                   autoFocus
                 />
               ) : (
                 <ReadValue>
-                  {(target!.edge.data?.overlay_label as string) || (target!.edge.label as string) || "—"}
+                  <DescriptionList text={(target!.edge.data?.overlay_label as string) || (target!.edge.label as string) || "—"} />
                 </ReadValue>
               )}
             </Section>

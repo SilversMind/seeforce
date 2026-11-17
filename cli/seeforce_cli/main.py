@@ -11,8 +11,12 @@ description: |
   - Installs the MCP server and the drift-sync tooling (Stop hook, skill, CLAUDE.md rule)
 short_desc: Logs in, scans repos and installs the drift-sync tooling
 uses:
-    - Annotation Parser: "builds workspace.json on `seeforce scan` and compares snapshots on `seeforce delta`"
-    - Backend: "authenticates the user and fetches the project id the MCP server registers against"
+    - Annotation Parser:
+      - "builds workspace.json on `seeforce scan`"
+      - "compares snapshots on `seeforce delta`"
+    - Backend:
+      - "authenticates the user"
+      - "fetches the project id the MCP server registers against"
       technology: REST
 """
 import click
