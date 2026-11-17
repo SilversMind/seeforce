@@ -8,7 +8,9 @@ description: |
   - Stores the API url and token in the user's config
 short_desc: Authenticates via GitHub OAuth and stores the API token locally
 uses:
-- Backend: "runs the OAuth exchange and returns the API token"
+- Backend:
+  - "runs the OAuth exchange"
+  - "returns the API token"
   technology: REST
 """
 import http.server

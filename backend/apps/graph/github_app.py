@@ -8,7 +8,9 @@ description: |
   - Caches each token for 50 minutes so a burst of calls mints once
 short_desc: Mints and caches short-lived GitHub App installation tokens
 uses:
-  - GitHub: "exchanges the signed app JWT for an installation token and reads its owner"
+  - GitHub:
+    - "exchanges the signed app JWT for an installation token"
+    - "reads the installation's owning account"
     technology: HTTPS
 """
 import os

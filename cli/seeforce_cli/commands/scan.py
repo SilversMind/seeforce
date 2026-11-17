@@ -10,7 +10,9 @@ description: |
 short_desc: Scans the repo for annotations and writes .seeforce/workspace.json
 uses:
 - Annotation Scanner: "parses the annotation blocks out of the repo's source files"
-- Workspace Builder: "resolves the references between parsed elements and assembles the workspace"
+- Workspace Builder:
+  - "resolves the references between parsed elements"
+  - "assembles the workspace"
 """
 import json
 import sys

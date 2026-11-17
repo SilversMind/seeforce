@@ -17,6 +17,8 @@ from .builder import (
     find_long_short_descriptions,
     find_orphans,
     find_unreadable_descriptions,
+    merge_flows,
+    split_flows,
 )
 from .delta import (
     Delta,
@@ -65,8 +67,10 @@ __all__ = [
     "flatten",
     "format_description",
     "load_catalogue",
+    "merge_flows",
     "render_broken_features",
     "render_markdown",
     "review_flags",
     "scan",
+    "split_flows",
 ]

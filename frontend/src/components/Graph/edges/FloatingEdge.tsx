@@ -14,6 +14,7 @@ import { useStore, getBezierPath, Position, EdgeLabelRenderer, BaseEdge, type Ed
 import type { InternalNode } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "../nodes/DescriptionWithHighlights";
+import { parseBullets } from "../../../lib/description";
 
 function getCenter(node: InternalNode) {
   const pos = node.internals.positionAbsolute;
@@ -66,6 +67,7 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
   const changed = delta !== undefined && delta.state !== "unchanged";
   // The mark carries the state without colour, the way a node's badge does.
   const mark = { added: "+", modified: "~", removed: "−" }[delta?.state ?? ""] ?? "";
+  const flows = baseLabel ? parseBullets(baseLabel) : null;
   const displayLabel = changed ? `${mark} ${baseLabel}`.trim() : baseLabel;
   const edgeStyle = {
     stroke: changed ? `var(--c4-delta-${delta!.state})` : "var(--c4-edge-stroke)",
@@ -114,14 +116,25 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
               WebkitLineClamp: hovered || selected ? undefined : 2,
             }}
           >
-            <DescriptionWithHighlights
-              text={displayLabel}
-              style={{
-                fontSize: 11,
-                color: "var(--c4-edge-label-text)",
-                padding: "1px 4px",
-              }}
-            />
+            {flows ? (
+              <div style={{ fontSize: 11, color: "var(--c4-edge-label-text)", padding: "1px 4px" }}>
+                {changed && <span>{mark} </span>}
+                <ul style={{ margin: 0, paddingLeft: 14 }}>
+                  {flows.map((f, i) => (
+                    <li key={i}><DescriptionWithHighlights text={f.text} /></li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <DescriptionWithHighlights
+                text={displayLabel}
+                style={{
+                  fontSize: 11,
+                  color: "var(--c4-edge-label-text)",
+                  padding: "1px 4px",
+                }}
+              />
+            )}
           </div>
         </EdgeLabelRenderer>
       )}

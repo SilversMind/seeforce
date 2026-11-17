@@ -11,7 +11,9 @@ description: |
   - Refreshes both on `update`, without re-running onboarding
 short_desc: Registers and refreshes the MCP server plus the drift-sync hook/skill
 uses:
-    - Backend: "Fetches the project id and validates the auth token via `seeforce mcp install`"
+    - Backend:
+      - "fetches the project id"
+      - "validates the auth token"
       technology: REST
 """
 import json

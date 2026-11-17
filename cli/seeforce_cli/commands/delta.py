@@ -9,7 +9,9 @@ description: |
   - Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise
 short_desc: Compares two revisions' workspaces and fails CI on a broken feature
 uses:
-- Delta Reporter: "compares the two snapshots and intersects the catalogue against the removed elements"
+- Delta Reporter:
+  - "compares the two snapshots"
+  - "finds the catalogue features that lost an element"
 - Feature Catalogue: "loads and validates the working tree's catalogue against the head snapshot"
 """
 import dataclasses

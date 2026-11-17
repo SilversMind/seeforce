@@ -14,6 +14,7 @@ short_desc: Resolves relationships into workspace.json; the structural drift gat
 import re
 
 from .exceptions import C4ValidationError
+from .scanner import format_description
 from .types import C4Component, C4Container, C4Element, C4Lexicon, C4Person, C4System
 
 
@@ -30,8 +31,22 @@ def _use_name(entry: str | dict) -> str:
 def _use_description(entry: str | dict) -> str:
     if isinstance(entry, dict):
         name_key = next((k for k in entry if k != "technology"), None)
-        return str(entry[name_key]) if name_key is not None else ""
+        return format_description(entry[name_key]) if name_key is not None else ""
     return ""
+
+
+def split_flows(label: str) -> list[str]:
+    """Return the flows an edge label carries, one per `- ` line, or the whole label when it is one phrase."""
+    lines = [line.strip() for line in label.splitlines() if line.strip()]
+    return [line[2:].strip() if line.startswith("- ") else line for line in lines]
+
+
+def merge_flows(labels: list[str]) -> str:
+    """Merge edge labels into one: a single flow stays a phrase, several become `- ` lines."""
+    flows: list[str] = []
+    for label in labels:
+        flows += [f for f in split_flows(label) if f not in flows]
+    return flows[0] if len(flows) == 1 else "\n".join(f"- {f}" for f in flows)
 
 
 def _use_technology(entry: str | dict) -> str:
@@ -122,10 +137,14 @@ def find_unreadable_descriptions(workspace: dict, edge_limit: int = EDGE_DESC_LI
         if desc and not node.get("short_desc"):
             warnings.append(f"{kind} '{node['name']}' has no short_desc — the node card needs a one-line summary")
         for rel in node.get("relationships", []):
-            if len(rel.get("description", "")) > edge_limit:
-                warnings.append(
-                    f"{kind} '{node['name']}' has a {len(rel['description'])}-char edge description (limit {edge_limit}) — say only what flows"
-                )
+            label = rel.get("description", "")
+            if "; " in label:
+                warnings.append(f"{kind} '{node['name']}' has an edge label joining flows with ';' — write one `- ` line per flow")
+            for flow in split_flows(label):
+                if len(flow) > edge_limit:
+                    warnings.append(
+                        f"{kind} '{node['name']}' has a {len(flow)}-char edge flow (limit {edge_limit}) — say only what flows"
+                    )
 
     for person in workspace["model"].get("people", []):
         _check_node("Person", person)
@@ -364,24 +383,31 @@ def build(elements: list[C4Element]) -> dict:
         order: list[str] = []
         descriptions: dict[str, list[str]] = {}
         for cont in sys_node["containers"]:
-            child_rels = cont["relationships"] + [
-                r for comp in cont["components"] for r in comp["relationships"]
-            ]
-            for rel in child_rels:
-                dest_sys = element_system.get(rel["destinationId"])
-                if not dest_sys or dest_sys == sys_id:
-                    continue
-                if dest_sys not in descriptions:
-                    descriptions[dest_sys] = []
-                    order.append(dest_sys)
-                desc = (rel.get("description") or "").strip()
-                if desc and desc not in descriptions[dest_sys]:
-                    descriptions[dest_sys].append(desc)
+            # A container's own edge already sums up its components', so theirs only count where it has none.
+            own: dict[str, list[str]] = {}
+            inner: dict[str, list[str]] = {}
+            for rels, bucket in (
+                (cont["relationships"], own),
+                ([r for comp in cont["components"] for r in comp["relationships"]], inner),
+            ):
+                for rel in rels:
+                    dest_sys = element_system.get(rel["destinationId"])
+                    if not dest_sys or dest_sys == sys_id:
+                        continue
+                    if dest_sys not in descriptions:
+                        descriptions[dest_sys] = []
+                        order.append(dest_sys)
+                    desc = (rel.get("description") or "").strip()
+                    bucket.setdefault(dest_sys, [])
+                    if desc:
+                        bucket[dest_sys].append(desc)
+            for dest_sys in {**own, **inner}:
+                descriptions[dest_sys] += own[dest_sys] if dest_sys in own else inner[dest_sys]
         return [
             {
                 "id": f"rel-{sys_id}-{dest_sys}",
                 "destinationId": dest_sys,
-                "description": "; ".join(descriptions[dest_sys]),
+                "description": merge_flows(descriptions[dest_sys]),
                 "tags": "Relationship",
             }
             for dest_sys in order
