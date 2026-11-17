@@ -3,10 +3,17 @@
 name: Sharing API
 container: Backend
 technology: Python / Django REST Framework
-description: Opens a project to someone who does not own it — mints, reads and revokes a project's share token, redeems a token into a lasting access grant for the signed-in user, and serves the shared map, its lexicon and its tags to a token holder without requiring an account. The read paths accept the token in place of ownership, so they are the one surface where a project is readable by someone the owner never named.
+description: |
+  - Mints, reads and revokes a project's share token
+  - Redeems a token into a lasting access grant for the signed-in user
+  - Serves the shared map, its lexicon and its tags to a token holder, no account needed
 short_desc: Mints and redeems share tokens, and serves a shared map to a token holder
 uses:
-- Database/Database: "creates and revokes ShareToken rows, records ProjectAccess grants, and reads the shared ProjectMap"
+- Database/Database:
+  - "creates and revokes ShareToken rows"
+  - "records ProjectAccess grants"
+  - "reads the shared ProjectMap"
+  short_desc: "stores share tokens and access grants"
 - Graph transformer: "renders the shared project's workspace into the view a token holder receives"
 """
 

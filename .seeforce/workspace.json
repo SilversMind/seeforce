@@ -52,7 +52,7 @@
               {
                 "id": "seeforce-database-database",
                 "name": "Database",
-                "description": "Holds everything a project owns once it has been imported — the workspace snapshot, the node and edge overlays a reader hand-edits, the share tokens and access grants that open a map to someone else, the lexicon entries, and the GitHub App installations that authorise a repo fetch. This is the schema the Database container stores, so a component that persists or reads project state names this element rather than the container.",
+                "description": "- Holds everything a project owns once imported:\n  - Workspace snapshot\n  - Node and edge overlays\n  - Share tokens and access grants\n  - Lexicon entries\n  - GitHub App installations\n- Is the element a component names when it persists or reads project state",
                 "short_desc": "Stores project snapshots, overlays, sharing grants and lexicon entries",
                 "technology": "PostgreSQL",
                 "source_file": "backend/apps/graph/models.py",
@@ -232,7 +232,7 @@
               {
                 "id": "seeforce-backend-cli-token-exchange",
                 "name": "CLI Token Exchange",
-                "description": "Hands a signed-in browser session over to a local CLI — sends an unauthenticated caller through the GitHub login first, then mints the user's API token and redirects the browser to the port the CLI is listening on so the command line ends up authenticated without ever prompting for a password.",
+                "description": "- Sends an unauthenticated caller through the GitHub login first\n- Mints the signed-in user's API token\n- Redirects the browser to the port the local CLI listens on",
                 "short_desc": "Mints the API token and redirects it to the waiting local CLI",
                 "technology": "Python / Django",
                 "source_file": "backend/apps/graph/views/cli_auth.py",
@@ -407,7 +407,7 @@
               {
                 "id": "seeforce-backend-sharing-api",
                 "name": "Sharing API",
-                "description": "Opens a project to someone who does not own it — mints, reads and revokes a project's share token, redeems a token into a lasting access grant for the signed-in user, and serves the shared map, its lexicon and its tags to a token holder without requiring an account. The read paths accept the token in place of ownership, so they are the one surface where a project is readable by someone the owner never named.",
+                "description": "- Mints, reads and revokes a project's share token\n- Redeems a token into a lasting access grant for the signed-in user\n- Serves the shared map, its lexicon and its tags to a token holder, no account needed",
                 "short_desc": "Mints and redeems share tokens, and serves a shared map to a token holder",
                 "technology": "Python / Django REST Framework",
                 "source_file": "backend/apps/graph/views/sharing.py",
@@ -416,8 +416,8 @@
                   {
                     "id": "rel-seeforce-backend-sharing-api-seeforce-database-database",
                     "destinationId": "seeforce-database-database",
-                    "description": "creates and revokes ShareToken rows, records ProjectAccess grants, and reads the shared ProjectMap",
-                    "short_desc": "",
+                    "description": "- creates and revokes ShareToken rows\n- records ProjectAccess grants\n- reads the shared ProjectMap",
+                    "short_desc": "stores share tokens and access grants",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -779,8 +779,8 @@
                   {
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-change-list",
                     "destinationId": "seeforce-frontend-change-list",
-                    "description": "mounts the comparison's change list and selects the node an item names",
-                    "short_desc": "",
+                    "description": "- mounts the comparison's change list\n- selects the node an item names",
+                    "short_desc": "mounts the change list, selects nodes",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -975,7 +975,7 @@
               {
                 "id": "seeforce-frontend-api-client",
                 "name": "API Client",
-                "description": "The single place the frontend talks to the backend — every HTTP call the application makes goes through here, so no page or graph component issues a fetch of its own. Holds the project, overlay, lexicon, tag, delta, GitHub and sharing calls, and builds the share and view URLs the read-only pages use.",
+                "description": "- Makes every HTTP call of the frontend:\n  - Projects, overlays, lexicon and tags\n  - Delta views\n  - GitHub import, sync and link\n  - Sharing\n- Builds the share and view URLs of the read-only pages",
                 "short_desc": "The frontend's only HTTP surface onto the backend",
                 "technology": "TypeScript",
                 "source_file": "frontend/src/services/api.ts",
@@ -984,40 +984,40 @@
                   {
                     "id": "rel-seeforce-frontend-api-client-seeforce-backend-edit-api",
                     "destinationId": "seeforce-backend-edit-api",
-                    "description": "reads and writes projects, node and edge overlays, lexicon entries and tags, and fetches the rendered view for a level",
-                    "short_desc": "",
+                    "description": "- reads and writes projects\n- reads and writes overlays, lexicon entries and tags\n- fetches the rendered view for a level",
+                    "short_desc": "manages projects and edits, fetches views",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
                   {
                     "id": "rel-seeforce-frontend-api-client-seeforce-backend-auth-api",
                     "destinationId": "seeforce-backend-auth-api",
-                    "description": "reads the signed-in user and ends the session",
-                    "short_desc": "",
+                    "description": "- reads the signed-in user\n- ends the session",
+                    "short_desc": "reads the user, signs out",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
                   {
                     "id": "rel-seeforce-frontend-api-client-seeforce-backend-delta-view-api",
                     "destinationId": "seeforce-backend-delta-view-api",
-                    "description": "lists the linked repository's open pull requests and fetches the decorated delta view",
-                    "short_desc": "",
+                    "description": "- lists the linked repository's open pull requests\n- fetches the decorated delta view",
+                    "short_desc": "lists pull requests, fetches the delta view",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
                   {
                     "id": "rel-seeforce-frontend-api-client-seeforce-backend-github-import",
                     "destinationId": "seeforce-backend-github-import",
-                    "description": "imports a repository, re-syncs it, and links an existing project to one",
-                    "short_desc": "",
+                    "description": "- imports a repository\n- re-syncs a project\n- links an existing project to a repository",
+                    "short_desc": "imports, re-syncs and links repositories",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
                   {
                     "id": "rel-seeforce-frontend-api-client-seeforce-backend-sharing-api",
                     "destinationId": "seeforce-backend-sharing-api",
-                    "description": "mints, reads and revokes a share token, and reads a shared project through one",
-                    "short_desc": "",
+                    "description": "- mints, reads and revokes a share token\n- reads a shared project through a token",
+                    "short_desc": "manages share tokens, reads shared projects",
                     "technology": "REST",
                     "tags": "Relationship"
                   }

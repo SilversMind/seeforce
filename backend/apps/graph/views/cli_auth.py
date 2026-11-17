@@ -3,7 +3,10 @@
 name: CLI Token Exchange
 container: Backend
 technology: Python / Django
-description: Hands a signed-in browser session over to a local CLI — sends an unauthenticated caller through the GitHub login first, then mints the user's API token and redirects the browser to the port the CLI is listening on so the command line ends up authenticated without ever prompting for a password.
+description: |
+  - Sends an unauthenticated caller through the GitHub login first
+  - Mints the signed-in user's API token
+  - Redirects the browser to the port the local CLI listens on
 short_desc: Mints the API token and redirects it to the waiting local CLI
 uses:
 - Database/Database: "gets or creates the DRF auth token row for the signed-in user"

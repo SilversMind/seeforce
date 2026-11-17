@@ -15,7 +15,10 @@ uses:
 - Edge manager: "Renders directional relationship edges between nodes"
 - Overlay Editor: "opens the detail/edit panel for the clicked node or edge"
 - Comparison Selector: "mounts the control that picks which merge request the canvas is showing"
-- Change List: "mounts the comparison's change list and selects the node an item names"
+- Change List:
+  - "mounts the comparison's change list"
+  - "selects the node an item names"
+  short_desc: "mounts the change list, selects nodes"
 */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
