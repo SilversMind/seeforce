@@ -32,7 +32,7 @@
           {
             "id": "rel-seeforce-github",
             "destinationId": "github",
-            "description": "Delegates user authentication via GitHub OAuth 2.0 (django-allauth); also mints short-lived GitHub App installation tokens (JWT-signed) to fetch repo content for import/sync; Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens; OAuth 2.0 login and identity resolution; lists the repository's open pull requests through the Pulls API; Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise",
+            "description": "Delegates user authentication via GitHub OAuth 2.0 (django-allauth); also mints short-lived GitHub App installation tokens (JWT-signed) to fetch repo content for import/sync; Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens; OAuth 2.0 login and identity resolution; lists the repository's open pull requests, and reads one by number, through the Pulls API; Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise",
             "tags": "Relationship"
           }
         ],
@@ -108,8 +108,8 @@
               {
                 "id": "seeforce-backend-github-app-token-manager",
                 "name": "GitHub App Token Manager",
-                "description": "Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token.",
-                "short_desc": "Mints short-lived GitHub App installation tokens for API calls",
+                "description": "Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token. The token is cached for 50 of its 60 minutes, so a burst of API calls mints once instead of once per call.",
+                "short_desc": "Mints and caches short-lived GitHub App installation tokens",
                 "technology": "",
                 "source_file": "backend/apps/graph/github_app.py",
                 "tags": "Element,Component",
@@ -193,7 +193,7 @@
               {
                 "id": "seeforce-backend-delta-view-api",
                 "name": "Delta View API",
-                "description": "Serves the architecture delta of a merge request — lists the linked repository's open pull requests, then for a chosen one reads .seeforce/workspace.json at the two commits it names, runs the comparison, and returns the decorated C1/C2/C3 view. Read-only — nothing is stored, no snapshot is kept per commit, and no cache is built. The repository is always read under the requesting user's own installation token, so access is decided by GitHub for the person actually looking rather than by the project's owner.",
+                "description": "Serves the architecture delta of a merge request — lists the linked repository's open pull requests, then for a chosen one reads that single pull request and .seeforce/workspace.json at the two commits it names, runs the comparison, and returns the decorated C1/C2/C3 view. Read-only — nothing is stored and no snapshot is kept per commit, but each commit's workspace.json is cached in memory for a day, so drilling from C1 to C3 on one pull request re-reads GitHub only once. The repository is always read under the requesting user's own installation token, so access is decided by GitHub for the person actually looking rather than by the project's owner, and the cache is keyed by that token so one installation's read is never served to another.",
                 "short_desc": "Serves open pull requests and the decorated delta view",
                 "technology": "Django REST Framework",
                 "source_file": "backend/apps/graph/views/delta.py",
@@ -209,7 +209,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-github",
                     "destinationId": "github",
-                    "description": "lists the repository's open pull requests through the Pulls API",
+                    "description": "lists the repository's open pull requests, and reads one by number, through the Pulls API",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   },
@@ -271,7 +271,7 @@
               {
                 "id": "seeforce-backend-github-import",
                 "name": "GitHub Import",
-                "description": "Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap. Blob links are built client-side from github_repo/github_branch, not here.",
+                "description": "Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap; a read pinned to a commit SHA is cached in memory for a day, keyed by the token that read it, while a read of a moving branch never is. Blob links are built client-side from github_repo/github_branch, not here.",
                 "short_desc": "Imports, re-syncs, and links project architecture from GitHub",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
@@ -287,7 +287,7 @@
                   {
                     "id": "rel-seeforce-backend-github-import-seeforce-backend-github-app-token-manager",
                     "destinationId": "seeforce-backend-github-app-token-manager",
-                    "description": "Requests a fresh installation token before each Contents API call",
+                    "description": "Requests the installation token before each Contents API call",
                     "technology": "",
                     "tags": "Relationship"
                   },
