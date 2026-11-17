@@ -106,6 +106,39 @@ def build(elements: list[C4Element]) -> dict:
     systems: dict[str, C4System] = {}
     # Containers keyed by name
     containers: dict[str, C4Container] = {}
+EDGE_DESC_LIMIT = 100
+_BULLET_RE = re.compile(r"^\s*- \S")
+
+
+def find_unreadable_descriptions(workspace: dict, edge_limit: int = EDGE_DESC_LIMIT) -> list[str]:
+    """Return warnings for a description that is not a `- ` bullet list, a node with no short_desc, or an overlong edge label."""
+    warnings: list[str] = []
+
+    def _check_node(kind: str, node: dict) -> None:
+        desc = node.get("description", "")
+        lines = [line for line in desc.splitlines() if line.strip()]
+        if lines and not all(_BULLET_RE.match(line) for line in lines):
+            warnings.append(f"{kind} '{node['name']}' description is not a bullet list — write one `- ` line per thing it does")
+        if desc and not node.get("short_desc"):
+            warnings.append(f"{kind} '{node['name']}' has no short_desc — the node card needs a one-line summary")
+        for rel in node.get("relationships", []):
+            if len(rel.get("description", "")) > edge_limit:
+                warnings.append(
+                    f"{kind} '{node['name']}' has a {len(rel['description'])}-char edge description (limit {edge_limit}) — say only what flows"
+                )
+
+    for person in workspace["model"].get("people", []):
+        _check_node("Person", person)
+    for sys_node in workspace["model"]["softwareSystems"]:
+        # System edges are rolled up from container edges, so only the description is checked here.
+        _check_node("System", {**sys_node, "relationships": []})
+        for cont in sys_node.get("containers", []):
+            _check_node("Container", cont)
+            for comp in cont.get("components", []):
+                _check_node("Component", comp)
+    return warnings
+
+
     # Components keyed by (container_name, component_name) to allow same-named
     # components across different containers
     components: dict[tuple[str, str], C4Component] = {}

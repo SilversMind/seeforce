@@ -35,11 +35,16 @@ Output: `.seeforce/workspace.json` in the first scanned path. Commit it to your 
 
 ### Annotation format
 
+Each element has a one-line `short_desc` (shown on the node) and a `description` written as a bullet list of what it does (shown in the sidebar).
+
 ```python
 """
 @c1:system
 name: My System
-description: Does something useful.
+short_desc: Does something useful
+description: |
+  - Does something useful
+  - Answers "what does this system exist for?"
 """
 
 """
@@ -47,14 +52,22 @@ description: Does something useful.
 name: API Server
 system: My System
 technology: Python / Django
-description: Handles HTTP requests.
+short_desc: Serves the HTTP API
+description: |
+  - Serves the REST API for:
+    - Accounts
+    - Orders
+  - Persists orders in the Database
 """
 
 """
 @c3:component
 name: Auth Service
 container: API Server
-description: Manages login and sessions.
+short_desc: Manages login and sessions
+description: |
+  - Signs users in
+  - Keeps sessions alive
 uses:
   - Database: "reads user records"
     technology: PostgreSQL

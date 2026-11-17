@@ -18,6 +18,7 @@ import { useViewStore } from "../../store/viewStore";
 type SidebarTarget =
   | { kind: "node"; node: RFNode }
   | { kind: "edge"; edge: RFEdge };
+import { DescriptionList } from "./DescriptionList";
 
 interface Props {
   target: SidebarTarget | null;
@@ -263,12 +264,12 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={target!.node.data.description || "Add a description…"}
-                  rows={4}
+                  rows={8}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                 />
               ) : (
                 <ReadValue>
-                  {target!.node.data.overlay_description || target!.node.data.description || "—"}
+                  <DescriptionList text={target!.node.data.overlay_description || target!.node.data.description || "—"} />
                 </ReadValue>
               )}
             </Section>
@@ -547,7 +548,15 @@ function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState
 
       {delta.fields.length > 0 && (
         <Section label="Fields">
-          {delta.fields.map((f) => (
+          {delta.fields.map((f) => f.field === "description" ? (
+            <div key={f.field} style={{ fontSize: 12, marginTop: 2, display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ color: "var(--c4-sidebar-muted)" }}>{f.field}:</span>
+              <div style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
+                <DescriptionList text={f.before || "—"} />
+              </div>
+              <DescriptionList text={f.after || "—"} />
+            </div>
+          ) : (
             <div key={f.field} style={{ fontSize: 12, marginTop: 2 }}>
               <span style={{ color: "var(--c4-sidebar-muted)" }}>{f.field}: </span>
               <span style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
