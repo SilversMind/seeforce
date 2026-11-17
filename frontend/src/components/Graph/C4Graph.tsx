@@ -165,6 +165,20 @@ function C4GraphInner() {
       return;
     }
 
+    const savedComparison = projectMapId && pullRequest != null
+      ? loadPositions(projectMapId, level, systemId, containerId, pullRequest)
+      : null;
+    if (
+      savedComparison !== null &&
+      fetchedNodes.every((n) => savedComparison[n.id] !== undefined)
+    ) {
+      setNodes(fetchedNodes.map((n) => ({ ...n, position: savedComparison[n.id] })));
+      setEdges(fetchedEdges);
+      setAwaitingMeasurement(false);
+      fitAll();
+      return;
+    }
+
     const saved = projectMapId
       ? loadPositions(projectMapId, level, systemId, containerId)
       : null;
@@ -229,13 +243,13 @@ function C4GraphInner() {
         setNodes(laidOut);
         setEdges(routedEdges);
         fitAll();
-        // A comparison shows nodes the ordinary map does not have, so writing this layout back would re-arrange that map on the next visit.
-        if (projectMapId && pullRequest == null) {
+        // A comparison saves under its own key, since the ordinary map does not have the nodes it adds.
+        if (projectMapId) {
           const positions: Record<string, { x: number; y: number }> = {};
           laidOut.forEach((n) => {
             positions[n.id] = n.position;
           });
-          savePositions(projectMapId, level, positions, systemId, containerId);
+          savePositions(projectMapId, level, positions, systemId, containerId, pullRequest);
         }
       })
       .finally(() => {
@@ -245,12 +259,20 @@ function C4GraphInner() {
   }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, pullRequest, fitAll]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
-    if (!projectMapId || pullRequest != null) return;
+    if (!projectMapId) return;
     const positions: Record<string, { x: number; y: number }> = {};
     nodes.forEach((n) => {
       positions[n.id] = n.position;
     });
-    savePositions(projectMapId, level, positions, systemId, containerId);
+    savePositions(projectMapId, level, positions, systemId, containerId, pullRequest);
+    if (pullRequest == null) return;
+    // A node moved in a comparison also moves on the ordinary map, but only if that map already knows it.
+    const base = loadPositions(projectMapId, level, systemId, containerId);
+    if (!base) return;
+    for (const id of Object.keys(base)) {
+      if (positions[id]) base[id] = positions[id];
+    }
+    savePositions(projectMapId, level, base, systemId, containerId);
   }, [nodes, projectMapId, level, systemId, containerId, pullRequest]);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback(

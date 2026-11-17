@@ -7,8 +7,10 @@ type PositionMap = Record<string, { x: number; y: number }>;
  */
 const LAYOUT_VERSION = 2;
 
-function key(workspaceId: string, level: string, systemId?: string | null, containerId?: string | null): string {
-  return `c4:layout:v${LAYOUT_VERSION}:${workspaceId}:${level}:${systemId ?? ""}:${containerId ?? ""}`;
+// A comparison gets its own slot so the elements it adds never leak into the ordinary map's layout.
+function key(workspaceId: string, level: string, systemId?: string | null, containerId?: string | null, pullRequest?: number | null): string {
+  const base = `c4:layout:v${LAYOUT_VERSION}:${workspaceId}:${level}:${systemId ?? ""}:${containerId ?? ""}`;
+  return pullRequest != null ? `${base}:pr${pullRequest}` : base;
 }
 
 export function loadPositions(
@@ -16,9 +18,10 @@ export function loadPositions(
   level: string,
   systemId?: string | null,
   containerId?: string | null,
+  pullRequest?: number | null,
 ): PositionMap | null {
   try {
-    const raw = localStorage.getItem(key(workspaceId, level, systemId, containerId));
+    const raw = localStorage.getItem(key(workspaceId, level, systemId, containerId, pullRequest));
     return raw ? (JSON.parse(raw) as PositionMap) : null;
   } catch {
     return null;
@@ -31,9 +34,10 @@ export function savePositions(
   positions: PositionMap,
   systemId?: string | null,
   containerId?: string | null,
+  pullRequest?: number | null,
 ): void {
   try {
-    localStorage.setItem(key(workspaceId, level, systemId, containerId), JSON.stringify(positions));
+    localStorage.setItem(key(workspaceId, level, systemId, containerId, pullRequest), JSON.stringify(positions));
   } catch {
     // storage full or unavailable
   }
