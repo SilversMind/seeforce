@@ -3,7 +3,10 @@
 name: Workspace API Client
 container: MCP Server
 technology: Python / httpx
-description: Fetches the current project's workspace.json from the Backend over REST, resolving which project to fetch via a configured project UUID or falling back to the most recently updated one.
+description: |
+  - Fetches the project's workspace.json from the Backend
+  - Picks the project from the configured UUID, else the most recently updated one
+short_desc: Fetches the current project's workspace.json from the Backend
 uses:
 - Backend: "fetches workspace architecture data via REST API"
   technology: REST

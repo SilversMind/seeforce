@@ -2,7 +2,11 @@
 @c3:component
 name: Scan Command
 container: SeeForce CLI
-description: The `seeforce scan` command — walks the repo for annotation blocks, assembles the workspace, prints the advisory warnings (orphan component, container with no component, overlong short_desc) and writes `.seeforce/workspace.json`. Exits non-zero on a parse error or a reference that resolves to nothing, so a rescan that is not a no-op is what tells CI the committed workspace is stale.
+description: |
+  - Runs `seeforce scan` over the repo
+  - Writes .seeforce/workspace.json
+  - Prints advisory warnings: orphans, empty containers, unreadable descriptions
+  - Exits non-zero on a parse error or an unresolved reference
 short_desc: Scans the repo for annotations and writes .seeforce/workspace.json
 uses:
 - Annotation Scanner: "parses the annotation blocks out of the repo's source files"
@@ -73,12 +77,12 @@ def scan(path: str, dry_run: bool, output: str | None, extra_extensions: tuple[s
         click.echo(f"Warning: {warning}", err=True)
     for warning in c4parser.find_long_short_descriptions(workspace):
         click.echo(f"Warning: {warning}", err=True)
+    for warning in c4parser.find_unreadable_descriptions(workspace):
+        click.echo(f"Warning: {warning}", err=True)
     click.echo(f"Workspace: {workspace['name']}")
 
     if dry_run:
         click.echo(json.dumps(workspace, indent=2))
-    for warning in c4parser.find_unreadable_descriptions(workspace):
-        click.echo(f"Warning: {warning}", err=True)
         return
 
     out_path = Path(output) if output else root / ".seeforce" / "workspace.json"

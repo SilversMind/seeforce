@@ -1,8 +1,13 @@
 """
 @c1:external
 name: GitHub
-description: Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph
-short_desc: Source of truth for architecture data and OAuth identity provider
+description: |
+  - Hosts each repo's .seeforce/workspace.json, read on import and sync
+  - Signs SeeForce users in through OAuth 2.0
+  - Issues installation tokens for the SeeForce GitHub App
+  - Serves the pull requests compared in the delta view
+  - Serves the source files nodes link to
+short_desc: Hosts the scanned repos and signs SeeForce users in
 """
 
 import os

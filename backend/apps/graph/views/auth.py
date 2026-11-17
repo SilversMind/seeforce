@@ -2,8 +2,13 @@
 @c3:component
 name: Auth API
 container: Backend
-description: Exposes /api/auth/me/ and /api/auth/logout/; delegates GitHub OAuth flow to django-allauth, reports whether the user has a GitHub App installation, and hands back the GitHub App's install/configure URL
-short_desc: Session check, logout, and GitHub App install status/URL
+description: |
+  - Serves the auth endpoints:
+    - /api/auth/me/ session check
+    - /api/auth/logout/
+  - Reports whether the user has a GitHub App installation
+  - Returns the GitHub App install/configure URL
+short_desc: Checks the session, logs out and reports GitHub App status
 uses:
   - GitHub: "OAuth 2.0 login and identity resolution"
     technology: HTTPS

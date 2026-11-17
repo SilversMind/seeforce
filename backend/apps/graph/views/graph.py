@@ -2,8 +2,14 @@
 @c3:component
 name: Edit API
 container: Backend
-description: Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level.
-short_desc: User mutations — node/edge overlays, lexicon CRUD, project CRUD
+description: |
+  - Saves user edits on a project map:
+    - Node description overlays
+    - Edge label overlays
+    - Lexicon entries
+  - Serves project CRUD
+  - Serves the rendered graph for a given C4 level
+short_desc: Saves user edits and serves project CRUD and graph views
 uses:
 - Database: "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows"
 - Graph transformer: "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint"

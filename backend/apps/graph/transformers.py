@@ -2,7 +2,10 @@
 @c3:component
 name: Graph transformer
 container: Backend
-description: Takes an already-built workspace.json (read from ProjectMap.source_json — never re-parses source files itself) and converts the requested C1/C2/C3 view into ReactFlow-ready nodes and edges, including placeholder nodes for out-of-view relationship targets.
+description: |
+  - Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view
+  - Applies the project's node and edge overlays
+  - Adds placeholder nodes for relationship targets outside the view
 short_desc: Converts workspace.json into ReactFlow nodes and edges per view
 """
 

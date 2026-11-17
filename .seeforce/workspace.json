@@ -6,7 +6,7 @@
       {
         "id": "person-developer",
         "name": "Developer",
-        "description": "Annotates their own codebase, scans it into a workspace, imports it into SeeForce, then explores and enriches the resulting diagram. Also the one who opens a share link to someone else's diagram, read-only in that case.",
+        "description": "- Annotates their codebase and scans it into a workspace\n- Imports it into SeeForce, then explores and enriches the diagram\n- Opens share links to other people's diagrams, read-only",
         "short_desc": "Maps a codebase, then explores and enriches the diagram",
         "source_file": "backend/c4_project/__init__.py",
         "tags": "Element,Person",
@@ -14,7 +14,7 @@
           {
             "id": "rel-person-developer-seeforce",
             "destinationId": "seeforce",
-            "description": "signs in with GitHub, imports or uploads a scanned workspace, explores the diagram, edits descriptions, tags and lexicon entries, and opens share links",
+            "description": "signs in, imports workspaces, explores and edits diagrams, opens share links",
             "technology": "HTTPS",
             "tags": "Relationship"
           }
@@ -25,14 +25,14 @@
       {
         "id": "seeforce",
         "name": "SeeForce",
-        "description": "Turns C4 annotations embedded in a codebase's own source files into an interactive architecture diagram. Used to answer \"what does this codebase actually do, and how do its pieces talk to each other?\"",
+        "description": "- Turns C4 annotations in a codebase's source files into an interactive architecture diagram\n- Shows what a pull request changes in that architecture\n- Answers \"what does this codebase actually do, and how do its pieces talk to each other?\"",
         "short_desc": "Turns C4 annotations in your code into an interactive architecture diagram",
         "tags": "Element,Software System",
         "relationships": [
           {
             "id": "rel-seeforce-github",
             "destinationId": "github",
-            "description": "Delegates user authentication via GitHub OAuth 2.0 (django-allauth); also mints short-lived GitHub App installation tokens (JWT-signed) to fetch repo content for import/sync; Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens; OAuth 2.0 login and identity resolution; lists the repository's open pull requests, and reads one by number, through the Pulls API; Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise",
+            "description": "signs users in with OAuth and fetches repo content with installation tokens; exchanges the signed app JWT for an installation token and reads its owner; OAuth 2.0 login and identity resolution; lists the repository's open pull requests, and reads one by number, through the Pulls API; fetches .seeforce/workspace.json through the Contents API",
             "tags": "Relationship"
           }
         ],
@@ -40,8 +40,8 @@
           {
             "id": "seeforce-database",
             "name": "Database",
-            "description": "Store graph data",
-            "short_desc": "",
+            "description": "- Stores projects and their workspace.json\n- Stores node/edge overlays and lexicon entries\n- Stores share tokens and project access\n- Stores users' GitHub App installations",
+            "short_desc": "Stores projects, overlays, lexicon and access",
             "technology": "",
             "source_file": "backend/apps/graph/migrations/__init__.py",
             "tags": "Element,Container",
@@ -51,8 +51,8 @@
           {
             "id": "seeforce-backend",
             "name": "Backend",
-            "description": "Serves the REST API for project CRUD, node/edge overlays, lexicon entries, sharing, and GitHub import/sync/link. Persists everything to the Database and delegates codebase parsing to Annotation Parser — it does not parse source files itself.",
-            "short_desc": "REST API for project CRUD, overlays, lexicon, and GitHub import/sync",
+            "description": "- Serves the REST API for:\n  - Project CRUD\n  - Node/edge overlays\n  - Lexicon entries\n  - Share links\n  - Pull request architecture deltas\n  - GitHub:\n    - Import\n    - Sync\n    - Link\n- Persists data in the Database",
+            "short_desc": "Serves the REST API behind the app and stores every project",
             "technology": "Python Django",
             "source_file": "backend/c4_project/__init__.py",
             "tags": "Element,Container",
@@ -67,7 +67,7 @@
               {
                 "id": "rel-seeforce-backend-github",
                 "destinationId": "github",
-                "description": "Delegates user authentication via GitHub OAuth 2.0 (django-allauth); also mints short-lived GitHub App installation tokens (JWT-signed) to fetch repo content for import/sync",
+                "description": "signs users in with OAuth and fetches repo content with installation tokens",
                 "technology": "HTTPS",
                 "tags": "Relationship"
               },
@@ -83,7 +83,7 @@
               {
                 "id": "seeforce-backend-delta-presenter",
                 "name": "Delta Presenter",
-                "description": "Decorates an already-rendered C1/C2/C3 view with the state an architecture comparison gives each element and relation — added, removed, modified or unchanged — rolling a descendant's change up through containment so a component change is visible on its container and its system, injecting the elements a merge request removed as ghost nodes so they keep a position, and summarising every change in the comparison as one list. Pure computation over two workspace dicts and a Delta — no HTTP call, no database read, nothing written, and no risk or merge verdict anywhere in its output.",
+                "description": "- Marks each element and relation of a rendered view as added, removed, modified or unchanged\n- Rolls a component's change up to its container and system\n- Adds removed elements back as ghost nodes so they keep a position\n- Summarises every change of the comparison as one list",
                 "short_desc": "Decorates a rendered view with per-element comparison state",
                 "technology": "Python",
                 "source_file": "backend/apps/graph/delta_presenter.py",
@@ -92,14 +92,14 @@
                   {
                     "id": "rel-seeforce-backend-delta-presenter-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
-                    "description": "renders the head workspace into the ReactFlow view this module then decorates, and reuses its node builder for ghost nodes",
+                    "description": "renders the head workspace view and builds the ghost nodes",
                     "technology": "",
                     "tags": "Relationship"
                   },
                   {
                     "id": "rel-seeforce-backend-delta-presenter-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
-                    "description": "reads the Delta dataclasses — added, removed, changed elements and relations — that this module projects onto the view",
+                    "description": "reads the added, removed and changed elements and relations",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -108,7 +108,7 @@
               {
                 "id": "seeforce-backend-github-app-token-manager",
                 "name": "GitHub App Token Manager",
-                "description": "Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token. The token is cached for 50 of its 60 minutes, so a burst of API calls mints once instead of once per call.",
+                "description": "- Signs a JWT with the GitHub App's private key\n- Exchanges it for a 1h installation access token\n- Caches each token for 50 minutes so a burst of calls mints once",
                 "short_desc": "Mints and caches short-lived GitHub App installation tokens",
                 "technology": "",
                 "source_file": "backend/apps/graph/github_app.py",
@@ -117,7 +117,7 @@
                   {
                     "id": "rel-seeforce-backend-github-app-token-manager-github",
                     "destinationId": "github",
-                    "description": "Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens",
+                    "description": "exchanges the signed app JWT for an installation token and reads its owner",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   }
@@ -126,7 +126,7 @@
               {
                 "id": "seeforce-backend-graph-transformer",
                 "name": "Graph transformer",
-                "description": "Takes an already-built workspace.json (read from ProjectMap.source_json — never re-parses source files itself) and converts the requested C1/C2/C3 view into ReactFlow-ready nodes and edges, including placeholder nodes for out-of-view relationship targets.",
+                "description": "- Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view\n- Applies the project's node and edge overlays\n- Adds placeholder nodes for relationship targets outside the view",
                 "short_desc": "Converts workspace.json into ReactFlow nodes and edges per view",
                 "technology": "",
                 "source_file": "backend/apps/graph/transformers.py",
@@ -136,7 +136,7 @@
               {
                 "id": "seeforce-backend-local-scan-command",
                 "name": "Local Scan Command",
-                "description": "The manage.py scan command — scans one or more local repo paths and upserts the resulting ProjectMap. This is the direct-CLI ingestion path; it does not go through GitHub, so github_repo/github_branch are left unset.",
+                "description": "- Runs `manage.py scan` on one or more local repo paths\n- Creates or updates the scanned project's ProjectMap",
                 "short_desc": "Scans local repo paths and upserts the resulting ProjectMap",
                 "technology": "",
                 "source_file": "backend/apps/graph/management/commands/scan.py",
@@ -168,8 +168,8 @@
               {
                 "id": "seeforce-backend-auth-api",
                 "name": "Auth API",
-                "description": "Exposes /api/auth/me/ and /api/auth/logout/; delegates GitHub OAuth flow to django-allauth, reports whether the user has a GitHub App installation, and hands back the GitHub App's install/configure URL",
-                "short_desc": "Session check, logout, and GitHub App install status/URL",
+                "description": "- Serves the auth endpoints:\n  - /api/auth/me/ session check\n  - /api/auth/logout/\n- Reports whether the user has a GitHub App installation\n- Returns the GitHub App install/configure URL",
+                "short_desc": "Checks the session, logs out and reports GitHub App status",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/auth.py",
                 "tags": "Element,Component",
@@ -193,7 +193,7 @@
               {
                 "id": "seeforce-backend-delta-view-api",
                 "name": "Delta View API",
-                "description": "Serves the architecture delta of a merge request — lists the linked repository's open pull requests, then for a chosen one reads that single pull request and .seeforce/workspace.json at the two commits it names, runs the comparison, and returns the decorated C1/C2/C3 view. Read-only — nothing is stored and no snapshot is kept per commit, but each commit's workspace.json is cached in memory for a day, so drilling from C1 to C3 on one pull request re-reads GitHub only once. The repository is always read under the requesting user's own installation token, so access is decided by GitHub for the person actually looking rather than by the project's owner, and the cache is keyed by that token so one installation's read is never served to another.",
+                "description": "- Lists the linked repository's open pull requests\n- Compares workspace.json at the two commits a pull request names\n- Returns the decorated C1/C2/C3 view of that comparison\n- Reads the repository with the requesting user's own installation token\n- Caches each commit's workspace.json in memory for a day, keyed by token",
                 "short_desc": "Serves open pull requests and the decorated delta view",
                 "technology": "Django REST Framework",
                 "source_file": "backend/apps/graph/views/delta.py",
@@ -202,7 +202,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-github-import",
                     "destinationId": "seeforce-backend-github-import",
-                    "description": "reuses its installation-token resolution and its Contents API read of .seeforce/workspace.json at a commit",
+                    "description": "resolves the installation token and reads workspace.json at a commit",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -230,7 +230,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
-                    "description": "reads the project's node and edge overlays so a compared view carries the same authored labels as the ordinary one",
+                    "description": "reads node and edge overlays so the compared view keeps authored labels",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -246,7 +246,7 @@
               {
                 "id": "seeforce-backend-github-app-setup-endpoint",
                 "name": "GitHub App Setup Endpoint",
-                "description": "Receives GitHub's post-install/post-update redirect, verifies with GitHub that the installation belongs to the logged-in user's own GitHub account, and links the installation_id to that SeeForce user.",
+                "description": "- Receives GitHub's post-install and post-update redirect\n- Verifies the installation belongs to the logged-in user's GitHub account\n- Links the installation to that SeeForce user",
                 "short_desc": "Handles GitHub's post-install redirect and links the installation",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_app.py",
@@ -255,7 +255,7 @@
                   {
                     "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-backend-github-app-token-manager",
                     "destinationId": "seeforce-backend-github-app-token-manager",
-                    "description": "Reads the installation's owning GitHub account to verify the caller actually performed this installation",
+                    "description": "reads the installation's owning GitHub account",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -271,7 +271,7 @@
               {
                 "id": "seeforce-backend-github-import",
                 "name": "GitHub Import",
-                "description": "Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap; a read pinned to a commit SHA is cached in memory for a day, keyed by the token that read it, while a read of a moving branch never is. Blob links are built client-side from github_repo/github_branch, not here.",
+                "description": "- Imports, re-syncs and links a project to a GitHub repository\n- Picks the user's installation matching the repo owner, falling back to public access\n- Stores the fetched .seeforce/workspace.json as a ProjectMap\n- Caches reads pinned to a commit for a day, keyed by token",
                 "short_desc": "Imports, re-syncs, and links project architecture from GitHub",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
@@ -280,7 +280,7 @@
                   {
                     "id": "rel-seeforce-backend-github-import-github",
                     "destinationId": "github",
-                    "description": "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise",
+                    "description": "fetches .seeforce/workspace.json through the Contents API",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   },
@@ -303,8 +303,8 @@
               {
                 "id": "seeforce-backend-edit-api",
                 "name": "Edit API",
-                "description": "Handles all user-driven mutations on a project map — node description overlays, edge label overlays, and per-project lexicon entries (create, update, delete). Also serves project CRUD and the view endpoint that returns a rendered graph for a given level.",
-                "short_desc": "User mutations — node/edge overlays, lexicon CRUD, project CRUD",
+                "description": "- Saves user edits on a project map:\n  - Node description overlays\n  - Edge label overlays\n  - Lexicon entries\n- Serves project CRUD\n- Serves the rendered graph for a given C4 level",
+                "short_desc": "Saves user edits and serves project CRUD and graph views",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/graph.py",
                 "tags": "Element,Component",
@@ -330,8 +330,8 @@
           {
             "id": "seeforce-seeforce-cli",
             "name": "SeeForce CLI",
-            "description": "Local command-line entry point — logs in, scans a repo for @c1/@c2/@c3/@lexicon annotations, launches an LLM-guided annotation pass, and installs the SeeForce MCP server plus the drift-sync tooling (Stop hook, skill, CLAUDE.md rule) that keeps a project's annotations from drifting from its code going forward.",
-            "short_desc": "CLI — login, scan, annotate, and installs the drift-sync tooling",
+            "description": "- Logs in to SeeForce\n- Scans a repo's annotations into workspace.json\n- Compares workspaces across revisions and checks the feature catalogue\n- Starts an annotation pass in the user's AI assistant\n- Installs the MCP server and the drift-sync tooling (Stop hook, skill, CLAUDE.md rule)",
+            "short_desc": "Logs in, scans repos and installs the drift-sync tooling",
             "technology": "Python / Click",
             "source_file": "cli/seeforce_cli/main.py",
             "tags": "Element,Container",
@@ -339,14 +339,14 @@
               {
                 "id": "rel-seeforce-seeforce-cli-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
-                "description": "parses and builds workspace.json when scanning a repo locally via `seeforce scan` or comparing snapshots via `seeforce delta`",
+                "description": "builds workspace.json on `seeforce scan` and compares snapshots on `seeforce delta`",
                 "technology": "",
                 "tags": "Relationship"
               },
               {
                 "id": "rel-seeforce-seeforce-cli-seeforce-backend",
                 "destinationId": "seeforce-backend",
-                "description": "authenticates the user, fetches the project id, and registers the MCP server against it via `seeforce mcp install`",
+                "description": "authenticates the user and fetches the project id the MCP server registers against",
                 "technology": "REST",
                 "tags": "Relationship"
               }
@@ -355,7 +355,7 @@
               {
                 "id": "seeforce-seeforce-cli-annotate-command",
                 "name": "Annotate Command",
-                "description": "The `seeforce annotate` command — prints the instructions for starting an annotation pass in the user's own coding assistant, which then fetches the guide over MCP. It calls no model and writes no annotation itself; this is the boundary that keeps every other command in this CLI deterministic.",
+                "description": "- Runs `seeforce annotate`\n- Prints how to start an annotation pass in the user's own coding assistant",
                 "short_desc": "Prints how to start an annotation pass in the user's AI assistant",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/annotate.py",
@@ -373,7 +373,7 @@
               {
                 "id": "seeforce-seeforce-cli-delta-command",
                 "name": "Delta Command",
-                "description": "The `seeforce delta` command — reads a `.seeforce/workspace.json` at two revisions out of git, prints what changed architecturally, and then reports every catalogue feature that names an element the comparison removed. Exits 1 when a feature is broken, 2 on a revision that does not exist or a failed load, and 0 when the model changed but no feature did — a changed architecture is not a failure. Writes nothing and repairs nothing.",
+                "description": "- Runs `seeforce delta` between two git revisions\n- Prints what changed in the architecture\n- Reports every catalogue feature that lost an element\n- Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise",
                 "short_desc": "Compares two revisions' workspaces and fails CI on a broken feature",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/delta.py",
@@ -398,7 +398,7 @@
               {
                 "id": "seeforce-seeforce-cli-features-command",
                 "name": "Features Command",
-                "description": "The `seeforce features` command — loads the catalogue and the model from the working tree, applies every fatal validation rule, and lists what the repo lets you do with capabilities and prerequisites in separate blocks. Exits 2 on a validation failure or a missing model, and 0 with an explanatory line when the repo has no catalogue yet. Reads only; it never writes or repairs the catalogue.",
+                "description": "- Runs `seeforce features`\n- Validates the catalogue against the working tree's model\n- Lists what the repo lets you do, capabilities and prerequisites apart\n- Exits 2 on a validation failure or a missing model",
                 "short_desc": "Validates the feature catalogue and lists what the repo lets you do",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/features.py",
@@ -416,7 +416,7 @@
               {
                 "id": "seeforce-seeforce-cli-login-command",
                 "name": "Login Command",
-                "description": "The `seeforce login` command — runs the GitHub OAuth flow against the backend through a short-lived local callback server, then stores the API url and token in the user's config so the other commands and the MCP server can authenticate.",
+                "description": "- Runs `seeforce login` through the GitHub OAuth flow\n- Receives the callback on a short-lived local server\n- Stores the API url and token in the user's config",
                 "short_desc": "Authenticates via GitHub OAuth and stores the API token locally",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/login.py",
@@ -434,7 +434,7 @@
               {
                 "id": "seeforce-seeforce-cli-mcp-install-command",
                 "name": "MCP Install Command",
-                "description": "Registers the SeeForce MCP server in ~/.claude.json and writes the drift-sync tooling (arch-sync-check.sh Stop hook, seeforce-arch-check skill, CLAUDE.md rule section) into the target repo — the delivery mechanism that makes ongoing drift checking happen in a user's own project, not just a one-time annotate_codebase pass. `update` re-points an existing entry at the current config and rewrites the managed files without re-running onboarding, so a re-login or a package upgrade propagates without a reinstall.",
+                "description": "- Registers the SeeForce MCP server in ~/.claude.json\n- Writes the drift-sync tooling into the target repo:\n  - arch-sync-check.sh Stop hook\n  - seeforce-arch-check skill\n  - CLAUDE.md rule section\n- Refreshes both on `update`, without re-running onboarding",
                 "short_desc": "Registers and refreshes the MCP server plus the drift-sync hook/skill",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/mcp.py",
@@ -452,7 +452,7 @@
               {
                 "id": "seeforce-seeforce-cli-scan-command",
                 "name": "Scan Command",
-                "description": "The `seeforce scan` command — walks the repo for annotation blocks, assembles the workspace, prints the advisory warnings (orphan component, container with no component, overlong short_desc) and writes `.seeforce/workspace.json`. Exits non-zero on a parse error or a reference that resolves to nothing, so a rescan that is not a no-op is what tells CI the committed workspace is stale.",
+                "description": "- Runs `seeforce scan` over the repo\n- Writes .seeforce/workspace.json\n- Prints advisory warnings: orphans, empty containers, unreadable descriptions\n- Exits non-zero on a parse error or an unresolved reference",
                 "short_desc": "Scans the repo for annotations and writes .seeforce/workspace.json",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/scan.py",
@@ -479,7 +479,7 @@
           {
             "id": "seeforce-mcp-server",
             "name": "MCP Server",
-            "description": "Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, annotate_codebase and catalogue_features let assistants query containers, components, and file ownership without reading source files, and fetch the guides they follow to write annotations or a feature catalogue themselves. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.",
+            "description": "- Serves architecture context to AI coding assistants over MCP (stdio):\n  - System overview and component search\n  - File ownership and drift checks for edited files\n  - Static import facts for files\n- Serves the guides for writing annotations and a feature catalogue\n- Ships as the seeforce-mcp entry point of the seeforce-cli package",
             "short_desc": "Exposes SeeForce architecture context to AI coding assistants via MCP",
             "technology": "Python / MCP stdio",
             "source_file": "cli/seeforce_cli/mcp_server.py",
@@ -497,8 +497,8 @@
               {
                 "id": "seeforce-mcp-server-workspace-api-client",
                 "name": "Workspace API Client",
-                "description": "Fetches the current project's workspace.json from the Backend over REST, resolving which project to fetch via a configured project UUID or falling back to the most recently updated one.",
-                "short_desc": "",
+                "description": "- Fetches the project's workspace.json from the Backend\n- Picks the project from the configured UUID, else the most recently updated one",
+                "short_desc": "Fetches the current project's workspace.json from the Backend",
                 "technology": "Python / httpx",
                 "source_file": "cli/seeforce_cli/mcp_client.py",
                 "tags": "Element,Component",
@@ -515,8 +515,8 @@
               {
                 "id": "seeforce-mcp-server-ownership-inference",
                 "name": "Ownership Inference",
-                "description": "Infers which C4 component or container owns a given file path — via exact source_file match, same-directory proximity, or nearest-parent-directory fallback when nothing is annotated yet.",
-                "short_desc": "",
+                "description": "- Infers the C4 component or container that owns a file path, by:\n  - Exact source_file match\n  - Same-directory proximity\n  - Nearest annotated parent directory",
+                "short_desc": "Finds which component or container owns a file",
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_ownership.py",
                 "tags": "Element,Component",
@@ -525,7 +525,7 @@
               {
                 "id": "seeforce-mcp-server-tool-handlers",
                 "name": "Tool Handlers",
-                "description": "Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass), and catalogue_features (the guide for writing .seeforce/features.json). Both guide-serving tools write nothing and call no model — the assistant writes the file and the CLI validates it afterwards. get_static_facts_for_files is handled separately by Static Facts Query Handler.",
+                "description": "- Answers the MCP tools assistants call:\n  - get_context: system overview\n  - find_component: search by keyword\n  - get_file_owner: component owning a file\n  - get_architecture_for_files: drift check for edited files\n- Serves the guides behind annotate_codebase and catalogue_features",
                 "short_desc": "Implements the MCP tools assistants call to query architecture",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
@@ -543,8 +543,8 @@
               {
                 "id": "seeforce-mcp-server-static-facts-query-handler",
                 "name": "Static Facts Query Handler",
-                "description": "Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, formatting both as tool output for the calling AI assistant.",
-                "short_desc": "",
+                "description": "- Implements the get_static_facts_for_files MCP tool\n- Collapses import facts into component-level candidate edges\n- Drops edges between files of the same component",
+                "short_desc": "Answers get_static_facts_for_files with candidate edges",
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
                 "tags": "Element,Component",
@@ -552,7 +552,7 @@
                   {
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend",
                     "destinationId": "seeforce-backend",
-                    "description": "Fetches workspace architecture data via REST API, needed to resolve candidate edges to known components",
+                    "description": "fetches the workspace to resolve candidate edges to known components",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
@@ -577,7 +577,7 @@
           {
             "id": "seeforce-frontend",
             "name": "Frontend",
-            "description": "Display architecture data as a comprehensive graph; handles auth-gated routing",
+            "description": "- Renders a project's architecture graph\n- Shows what a pull request changes in the architecture\n- Lets users edit overlays, tags and lexicon entries\n- Gates routes behind sign-in",
             "short_desc": "Renders the architecture graph and handles auth-gated routing",
             "technology": "React",
             "source_file": "frontend/src/main.tsx",
@@ -595,7 +595,7 @@
               {
                 "id": "seeforce-frontend-architecture-visualizer",
                 "name": "Architecture Visualizer",
-                "description": "Display architecture and manage user interaction such as drilling down on specific component",
+                "description": "- Renders the C1/C2/C3 graph of a project\n- Drills down from a node into the level below\n- Shows the selected pull request's changes on the canvas",
                 "short_desc": "Renders the graph and handles drill-down between C1/C2/C3 views",
                 "technology": "ReactFlow",
                 "source_file": "frontend/src/components/Graph/C4Graph.tsx",
@@ -641,7 +641,7 @@
               {
                 "id": "seeforce-frontend-change-list",
                 "name": "Change List",
-                "description": "Lists every change the selected merge request makes to the architecture, at every C4 level rather than only the one on screen, so a reviewer reads the change set instead of hunting it on the canvas. Selecting an item opens that element on the current level when it is there, and otherwise says which level holds it.",
+                "description": "- Lists every change of the selected merge request, at every C4 level\n- Opens the element an item names, or says which level holds it",
                 "short_desc": "Lists the whole comparison's changes, grouped by level",
                 "technology": "React",
                 "source_file": "frontend/src/components/Graph/DeltaChangeList.tsx",
@@ -651,7 +651,7 @@
               {
                 "id": "seeforce-frontend-comparison-selector",
                 "name": "Comparison Selector",
-                "description": "Lets a reviewer pick which open pull request to see on the map and leave the comparison again, lists the repository's open pull requests with the branch each one targets, names both commits actually compared so \"compared against what?\" is answered on screen, and explains the four state badges in a legend. Shows plainly why no comparison is available — no repository link, no open pull request, or no repository access for this account — instead of an empty control.",
+                "description": "- Lists the repository's open pull requests and the branch each targets\n- Enters and leaves the comparison\n- Names both commits being compared\n- Explains the four state badges in a legend\n- Says why no comparison is available when there is none",
                 "short_desc": "Picks the pull request to compare and explains the states",
                 "technology": "React",
                 "source_file": "frontend/src/components/Graph/DeltaSelector.tsx",
@@ -669,7 +669,7 @@
               {
                 "id": "seeforce-frontend-overlay-editor",
                 "name": "Overlay Editor",
-                "description": "Sliding detail panel for the selected node or edge — shows name, description, tags, and source-file link; in edit mode, saves overlay edits and manages the lexicon terms relevant to the node's description (add, edit, delete).",
+                "description": "- Shows the selected node's or edge's name, description, tags and source link\n- Shows what the selected pull request changed on it\n- Saves overlay edits in edit mode\n- Manages the lexicon terms found in the node's description",
                 "short_desc": "Sidebar panel to view and edit a node or edge's overlay details",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/OverlaySidebar.tsx",
@@ -694,7 +694,7 @@
               {
                 "id": "seeforce-frontend-edge-manager",
                 "name": "Edge manager",
-                "description": "Renders directional relationship edges between nodes using floating edge geometry — connects to nearest border point of each node.",
+                "description": "- Draws directional relationship edges between nodes\n- Attaches each edge to the nearest border point of its nodes",
                 "short_desc": "Renders relationship edges between nodes with floating geometry",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/edges/FloatingEdge.tsx",
@@ -712,7 +712,7 @@
               {
                 "id": "seeforce-frontend-node-manager",
                 "name": "Node manager",
-                "description": "Handles node management",
+                "description": "- Renders System, Container, Component, Person and External nodes\n- Shows each node's name, technology and short description",
                 "short_desc": "Renders System/Container/Component nodes on the graph canvas",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/nodes/ComponentNode.tsx",
@@ -730,7 +730,7 @@
               {
                 "id": "seeforce-frontend-auth-context",
                 "name": "Auth Context",
-                "description": "React context that manages authentication state; checks session on load and exposes logout",
+                "description": "- Checks the session when the app loads\n- Exposes the signed-in user and logout to the app",
                 "short_desc": "React auth state — checks session on load, exposes logout",
                 "technology": "",
                 "source_file": "frontend/src/contexts/AuthContext.tsx",
@@ -748,7 +748,7 @@
               {
                 "id": "seeforce-frontend-lexicon",
                 "name": "Lexicon",
-                "description": "Provides per-project glossary to the graph — loads terms via SWR, distributes them through React context, highlights matching terms in blue within node descriptions and edge relationship labels, and shows the definition in a slide-up bottom panel on click.",
+                "description": "- Loads the project's glossary\n- Highlights glossary terms in node descriptions and edge labels\n- Shows a term's definition in a bottom panel on click",
                 "short_desc": "Per-project glossary — highlights and defines terms in the graph",
                 "technology": "",
                 "source_file": "frontend/src/contexts/LexiconContext.ts",
@@ -773,7 +773,7 @@
               {
                 "id": "seeforce-frontend-project-workspace",
                 "name": "Project Workspace",
-                "description": "The screen a user lands on for one project — hosts the graph canvas, keeps the current C4 level and drill-down target in the view store, resolves the project's GitHub repo and branch so nodes can link to their source file, and owns the share modal where the owner mints, copies or revokes a share link.",
+                "description": "- Hosts the graph canvas for one project\n- Keeps the current C4 level and drill-down target\n- Resolves the project's GitHub repo and branch for source links\n- Mints, copies and revokes share links",
                 "short_desc": "Per-project screen — hosts the graph, share modal, and current C4 level",
                 "technology": "React",
                 "source_file": "frontend/src/pages/GraphView.tsx",
@@ -789,7 +789,7 @@
                   {
                     "id": "rel-seeforce-frontend-project-workspace-seeforce-backend",
                     "destinationId": "seeforce-backend",
-                    "description": "reads the project's repo and branch for source links, and creates, reads or revokes its share token",
+                    "description": "reads the repo and branch for source links and manages the share token",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -798,7 +798,7 @@
               {
                 "id": "seeforce-frontend-project-library",
                 "name": "Project Library",
-                "description": "The signed-in landing screen — lists the projects a user owns and those shared with them, and is where a project enters SeeForce in the first place, either by uploading a scanned workspace.json or by importing one from a GitHub repo. Also handles rename, delete, re-sync from GitHub, linking a project to a repo, and the GitHub App install prompt.",
+                "description": "- Lists owned and shared projects\n- Creates a project from an uploaded workspace.json or a GitHub import\n- Renames, deletes, re-syncs and links projects to repos\n- Prompts the GitHub App install",
                 "short_desc": "Lists projects and is where upload or GitHub import creates one",
                 "technology": "React",
                 "source_file": "frontend/src/pages/HomePage.tsx",
@@ -814,7 +814,7 @@
                   {
                     "id": "rel-seeforce-frontend-project-library-seeforce-backend",
                     "destinationId": "seeforce-backend",
-                    "description": "lists owned and shared projects, uploads or imports a workspace, then renames, deletes, re-syncs or links one to a repo",
+                    "description": "lists, creates, renames, deletes, re-syncs and links projects",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -825,7 +825,7 @@
           {
             "id": "seeforce-annotation-parser",
             "name": "Annotation Parser",
-            "description": "Standalone library (published as seeforce-c4parser) that parses @c1/@c2/@c3/@lexicon annotations from a repo's source files and assembles the resulting workspace.json. Independently packaged and shared by the Backend and the SeeForce CLI, not owned by either.",
+            "description": "- Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files\n- Assembles them into workspace.json\n- Compares workspace snapshots and checks the feature catalogue\n- Extracts static import facts and entry points from source files\n- Ships as the standalone seeforce-c4parser package",
             "short_desc": "Parses C4 annotations from source files into workspace.json",
             "technology": "Python",
             "source_file": "packages/c4parser/c4parser/__init__.py",
@@ -835,7 +835,7 @@
               {
                 "id": "seeforce-annotation-parser-workspace-builder",
                 "name": "Workspace Builder",
-                "description": "Takes the flat element list from Annotation Scanner, resolves every \"uses:\" reference into a concrete element id, and assembles the final workspace.json structure — systems, people, containers, components, relationships, and views. Also the structural drift gate — find_orphans and find_empty_containers catch level-mixing, ambiguous refs, orphan elements, C2s with zero C3s, and persons pointing at anything other than a system, before the workspace is written.",
+                "description": "- Resolves every uses: reference to an element id\n- Assembles systems, people, containers, components, relationships and views into workspace.json\n- Flags structural drift before the workspace is written:\n  - Level-mixing and ambiguous references\n  - Orphan elements and containers with no component\n  - Unreadable descriptions",
                 "short_desc": "Resolves relationships into workspace.json; the structural drift gate",
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/builder.py",
@@ -845,7 +845,7 @@
               {
                 "id": "seeforce-annotation-parser-delta-reporter",
                 "name": "Delta Reporter",
-                "description": "Compares two workspace.json snapshots and reports what changed at the architecture level — pairs elements on (kind, source_file) so a rename reads as a rename rather than a remove plus an add, resolves relation endpoints through that same pairing so renaming an element does not mark all its inbound edges as changed, and renders the result as markdown. Also checks the feature catalogue against that same delta — a feature is broken when the model elements it names intersect the elements the delta removed, reusing the pairing instead of a second comparison path. Pure computation over two dicts, with no backend call, no token, nothing written to disk.",
+                "description": "- Compares two workspace.json snapshots at the architecture level\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Renders the delta as markdown\n- Reports catalogue features that lost an element",
                 "short_desc": "Compares two workspace snapshots into an architecture delta",
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/delta.py",
@@ -855,7 +855,7 @@
               {
                 "id": "seeforce-annotation-parser-entry-point-discovery",
                 "name": "Entry Point Discovery",
-                "description": "Finds every deterministic way into a repo — HTTP routes, REST collection registrations, CLI commands, MCP tools and page routes — by querying call sites and decorators in the syntax tree rather than module-level list literals, which a URL conf assembled inside a function would hide entirely. Counts one router registration as one entry point rather than one per generated method route, and excludes catch-all fallback routes. Output is sorted so two runs over one tree agree byte for byte. Feeds new-feature detection, which keys on entry points because regenerating the catalogue is not reproducible.",
+                "description": "- Lists every deterministic way into a repo:\n  - HTTP routes and REST collections\n  - CLI commands\n  - MCP tools\n  - Page routes\n- Counts one router registration as one entry point\n- Sorts the output so two runs agree byte for byte",
                 "short_desc": "Extracts a repo's routes, commands and tools as sorted entry points",
                 "technology": "Python / tree-sitter",
                 "source_file": "packages/c4parser/c4parser/entrypoints.py",
@@ -865,7 +865,7 @@
               {
                 "id": "seeforce-annotation-parser-feature-catalogue",
                 "name": "Feature Catalogue",
-                "description": "Loads, validates and serialises the feature catalogue — the list of intentions a repo serves, grouped into categories, each naming the set of model elements it touches. Resolves every element the catalogue names against a workspace snapshot flattened by Delta Reporter, so the catalogue stays a reading of the model and can assert no structure of its own. Refuses to load rather than degrade — an unknown schema version, an element that resolves to nothing, or two model elements colliding on one path all raise instead of yielding a partial catalogue. Also owns the append-only merge that keeps a human-reviewed feature byte-identical across regenerations.",
+                "description": "- Loads, validates and saves the feature catalogue\n- Resolves each element a feature names against a workspace snapshot\n- Refuses a catalogue with an unknown version or an unresolved element\n- Merges regenerations without touching human-reviewed features",
                 "short_desc": "Loads and validates the feature catalogue against a workspace snapshot",
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/features.py",
@@ -883,7 +883,7 @@
               {
                 "id": "seeforce-annotation-parser-annotation-scanner",
                 "name": "Annotation Scanner",
-                "description": "Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.",
+                "description": "- Walks a repo's source files\n- Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list\n- Normalizes descriptions into `- ` bullet text",
                 "short_desc": "Walks source files and extracts @c1/@c2/@c3/@lexicon blocks",
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/scanner.py",
@@ -893,8 +893,8 @@
               {
                 "id": "seeforce-annotation-parser-static-facts-extractor",
                 "name": "Static Facts Extractor",
-                "description": "Statically extracts imports, top-level definitions, and adjacent docstrings from source files (Python, TypeScript) as an unverified candidate signal — never a source of truth. Isolated in its own subpackage behind extract_facts() so tree-sitter (an optional dependency) can be dropped without breaking annotation scanning or building.",
-                "short_desc": "",
+                "description": "- Extracts imports, top-level definitions and adjacent docstrings from Python and TypeScript\n- Isolated behind extract_facts() so tree-sitter stays optional",
+                "short_desc": "Extracts imports and definitions as candidate signals",
                 "technology": "tree-sitter",
                 "source_file": "packages/c4parser/c4parser/static_facts/__init__.py",
                 "tags": "Element,Component",
@@ -907,8 +907,8 @@
       {
         "id": "github",
         "name": "GitHub",
-        "description": "Source of truth for project architecture (via .seeforce/workspace.json in repos) and OAuth 2.0 identity provider for SeeForce users; also target of source file links from the graph",
-        "short_desc": "Source of truth for architecture data and OAuth identity provider",
+        "description": "- Hosts each repo's .seeforce/workspace.json, read on import and sync\n- Signs SeeForce users in through OAuth 2.0\n- Issues installation tokens for the SeeForce GitHub App\n- Serves the pull requests compared in the delta view\n- Serves the source files nodes link to",
+        "short_desc": "Hosts the scanned repos and signs SeeForce users in",
         "tags": "Element,Software System,External",
         "relationships": [],
         "containers": []

@@ -3,7 +3,13 @@
 name: MCP Server
 system: SeeForce
 technology: Python / MCP stdio
-description: Exposes SeeForce architecture context to AI coding assistants (Claude Code, Cursor, etc.) via the Model Context Protocol over stdio — get_context, find_component, get_file_owner, get_architecture_for_files, get_static_facts_for_files, annotate_codebase and catalogue_features let assistants query containers, components, and file ownership without reading source files, and fetch the guides they follow to write annotations or a feature catalogue themselves. Ships as the seeforce-mcp entry point inside the seeforce-cli pip package.
+description: |
+  - Serves architecture context to AI coding assistants over MCP (stdio):
+    - System overview and component search
+    - File ownership and drift checks for edited files
+    - Static import facts for files
+  - Serves the guides for writing annotations and a feature catalogue
+  - Ships as the seeforce-mcp entry point of the seeforce-cli package
 short_desc: Exposes SeeForce architecture context to AI coding assistants via MCP
 uses:
     - Backend: "Fetches workspace architecture data via REST API"
@@ -14,7 +20,13 @@ uses:
 @c3:component
 name: Tool Handlers
 container: MCP Server
-description: Answers the architecture questions an AI assistant can ask — get_context (system overview), find_component (search by keyword), get_file_owner (which component owns a file), get_architecture_for_files (drift check for edited files), annotate_codebase (the C4 annotation guide plus source files, for a first-time annotation pass), and catalogue_features (the guide for writing .seeforce/features.json). Both guide-serving tools write nothing and call no model — the assistant writes the file and the CLI validates it afterwards. get_static_facts_for_files is handled separately by Static Facts Query Handler.
+description: |
+  - Answers the MCP tools assistants call:
+    - get_context: system overview
+    - find_component: search by keyword
+    - get_file_owner: component owning a file
+    - get_architecture_for_files: drift check for edited files
+  - Serves the guides behind annotate_codebase and catalogue_features
 short_desc: Implements the MCP tools assistants call to query architecture
 uses:
     - Backend: "Fetches workspace architecture data via REST API"
@@ -269,9 +281,13 @@ def _summarize_docstring(docstring: str) -> str:
 name: Static Facts Query Handler
 container: MCP Server
 technology: Python
-description: Implements the get_static_facts_for_files MCP tool — extracts import/definition facts for the requested files via Static Facts Extractor, then collapses them into component-level candidate edges by resolving each endpoint through Ownership Inference and dropping intra-component pairs, formatting both as tool output for the calling AI assistant.
+description: |
+  - Implements the get_static_facts_for_files MCP tool
+  - Collapses import facts into component-level candidate edges
+  - Drops edges between files of the same component
+short_desc: Answers get_static_facts_for_files with candidate edges
 uses:
-- Backend: "Fetches workspace architecture data via REST API, needed to resolve candidate edges to known components"
+- Backend: "fetches the workspace to resolve candidate edges to known components"
   technology: REST
 - Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
 - Ownership Inference: "resolves each candidate edge endpoint's owning component"

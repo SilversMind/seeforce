@@ -2,7 +2,9 @@
 @c3:component
 name: Node manager
 container: Frontend
-description: Handles node management
+description: |
+  - Renders System, Container, Component, Person and External nodes
+  - Shows each node's name, technology and short description
 short_desc: Renders System/Container/Component nodes on the graph canvas
 uses:
 - Lexicon: "highlights and links glossary terms found in node description"
@@ -11,9 +13,9 @@ uses:
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
+import { cardText } from "../../../lib/description";
 
 export function ComponentNode({ data }: NodeProps) {
-import { cardText } from "../../../lib/description";
   const mode = useGraphMode();
   const label = mode === "enriched" ? ((data.overlay_label as string) || (data.label as string)) : (data.label as string);
   const desc = cardText(data, mode);

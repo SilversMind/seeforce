@@ -3,15 +3,20 @@
 name: Delta View API
 container: Backend
 technology: Django REST Framework
-description: Serves the architecture delta of a merge request — lists the linked repository's open pull requests, then for a chosen one reads that single pull request and .seeforce/workspace.json at the two commits it names, runs the comparison, and returns the decorated C1/C2/C3 view. Read-only — nothing is stored and no snapshot is kept per commit, but each commit's workspace.json is cached in memory for a day, so drilling from C1 to C3 on one pull request re-reads GitHub only once. The repository is always read under the requesting user's own installation token, so access is decided by GitHub for the person actually looking rather than by the project's owner, and the cache is keyed by that token so one installation's read is never served to another.
+description: |
+  - Lists the linked repository's open pull requests
+  - Compares workspace.json at the two commits a pull request names
+  - Returns the decorated C1/C2/C3 view of that comparison
+  - Reads the repository with the requesting user's own installation token
+  - Caches each commit's workspace.json in memory for a day, keyed by token
 short_desc: Serves open pull requests and the decorated delta view
 uses:
-- GitHub Import: "reuses its installation-token resolution and its Contents API read of .seeforce/workspace.json at a commit"
+- GitHub Import: "resolves the installation token and reads workspace.json at a commit"
 - GitHub: "lists the repository's open pull requests, and reads one by number, through the Pulls API"
   technology: HTTPS
 - Delta Reporter: "runs the comparison between the two commits' workspace snapshots"
 - Delta Presenter: "projects that comparison onto the rendered view it returns"
-- Graph transformer: "reads the project's node and edge overlays so a compared view carries the same authored labels as the ordinary one"
+- Graph transformer: "reads node and edge overlays so the compared view keeps authored labels"
 - Database: "reads the ProjectMap row the comparison is requested for"
 """
 import requests as http_requests

@@ -2,7 +2,13 @@
 @c3:component
 name: MCP Install Command
 container: SeeForce CLI
-description: Registers the SeeForce MCP server in ~/.claude.json and writes the drift-sync tooling (arch-sync-check.sh Stop hook, seeforce-arch-check skill, CLAUDE.md rule section) into the target repo — the delivery mechanism that makes ongoing drift checking happen in a user's own project, not just a one-time annotate_codebase pass. `update` re-points an existing entry at the current config and rewrites the managed files without re-running onboarding, so a re-login or a package upgrade propagates without a reinstall.
+description: |
+  - Registers the SeeForce MCP server in ~/.claude.json
+  - Writes the drift-sync tooling into the target repo:
+    - arch-sync-check.sh Stop hook
+    - seeforce-arch-check skill
+    - CLAUDE.md rule section
+  - Refreshes both on `update`, without re-running onboarding
 short_desc: Registers and refreshes the MCP server plus the drift-sync hook/skill
 uses:
     - Backend: "Fetches the project id and validates the auth token via `seeforce mcp install`"

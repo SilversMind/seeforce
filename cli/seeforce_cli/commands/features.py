@@ -2,7 +2,11 @@
 @c3:component
 name: Features Command
 container: SeeForce CLI
-description: The `seeforce features` command — loads the catalogue and the model from the working tree, applies every fatal validation rule, and lists what the repo lets you do with capabilities and prerequisites in separate blocks. Exits 2 on a validation failure or a missing model, and 0 with an explanatory line when the repo has no catalogue yet. Reads only; it never writes or repairs the catalogue.
+description: |
+  - Runs `seeforce features`
+  - Validates the catalogue against the working tree's model
+  - Lists what the repo lets you do, capabilities and prerequisites apart
+  - Exits 2 on a validation failure or a missing model
 short_desc: Validates the feature catalogue and lists what the repo lets you do
 uses:
 - Feature Catalogue: "loads and validates the catalogue against the scanned workspace"
