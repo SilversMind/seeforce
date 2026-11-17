@@ -66,6 +66,29 @@ def _strip_comment_stars(block: str) -> str:
 def _parse_block(content: str, file_path: str, line: int, git_root: str | None = None) -> C4Element | None:
     # The @cN: / @lexicon marker must START a line (after dedent) — summary
     # lines before it are allowed, but mid-line mentions in string literals
+def _bullet_lines(value: object, depth: int) -> list[str]:
+    indent = "  " * depth
+    if isinstance(value, list):
+        return [line for item in value for line in _bullet_lines(item, depth)]
+    if isinstance(value, dict):
+        lines: list[str] = []
+        for head, children in value.items():
+            lines.append(f"{indent}- {head}:" if children else f"{indent}- {head}")
+            if children:
+                lines.extend(_bullet_lines(children, depth + 1))
+        return lines
+    return [f"{indent}- {str(value).strip()}"]
+
+
+def format_description(value: object) -> str:
+    """Returns a description as text, turning a YAML list (nested via `item:` keys) into `- ` bullet lines."""
+    if value is None:
+        return ""
+    if isinstance(value, (list, dict)):
+        return "\n".join(_bullet_lines(value, 0))
+    return "\n".join(line.rstrip() for line in textwrap.dedent(str(value)).strip().splitlines())
+
+
     # are not, so the scanner never trips on its own error messages.
     stripped = textwrap.dedent(content).strip()
     lex_marker = re.search(r"(?m)^@lexicon\b", stripped)
@@ -106,6 +129,8 @@ def _parse_block(content: str, file_path: str, line: int, git_root: str | None =
 
     match level:
         case "1":
+    if "description" in data:
+        data["description"] = format_description(data["description"])
             if "name" not in data:
                 raise C4ParseError(f"@c1:{kind} missing required field 'name'", file_path, line)
             if kind == "person":

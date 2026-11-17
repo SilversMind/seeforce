@@ -13,9 +13,10 @@ import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 
 export function ComponentNode({ data }: NodeProps) {
+import { cardText } from "../../../lib/description";
   const mode = useGraphMode();
   const label = mode === "enriched" ? ((data.overlay_label as string) || (data.label as string)) : (data.label as string);
-  const desc = mode === "enriched" ? ((data.overlay_description as string) || (data.short_desc as string) || (data.description as string)) : ((data.short_desc as string) || (data.description as string));
+  const desc = cardText(data, mode);
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
   const nav = data.nav as { containerName?: string } | undefined;
 

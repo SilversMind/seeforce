@@ -16,6 +16,7 @@ from .delta import (
     Delta,
     broken_features,
     diff,
+    find_unreadable_descriptions,
     flatten,
     render_broken_features,
     render_markdown,
@@ -31,7 +32,7 @@ from .features import (
     load_catalogue,
     review_flags,
 )
-from .scanner import DEFAULT_EXTENSIONS, scan
+from .scanner import DEFAULT_EXTENSIONS, format_description, scan
 from .types import C4Component, C4Container, C4Element, C4System
 
 __all__ = [
@@ -60,5 +61,7 @@ __all__ = [
     "render_broken_features",
     "render_markdown",
     "review_flags",
+    "find_unreadable_descriptions",
     "scan",
+    "format_description",
 ]

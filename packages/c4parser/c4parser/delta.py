@@ -232,7 +232,8 @@ _KIND_HEADINGS = (
 def _render_field(change: FieldChange) -> str:
     if change.field == "name":
         return f'renamed from "{change.before}"'
-    if len(change.before) > _MAX_INLINE_VALUE or len(change.after) > _MAX_INLINE_VALUE:
+    values = (change.before, change.after)
+    if any(len(v) > _MAX_INLINE_VALUE or "\n" in v for v in values):
         return change.field
     return f"{change.field}: {change.before} → {change.after}"
 

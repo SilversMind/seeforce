@@ -188,7 +188,7 @@ async def find_component(query: str) -> str:
         if el.get("technology"):
             lines.append(f"Technology: {el['technology']}")
         if el.get("description"):
-            lines.append(f"Description: {el['description']}")
+            lines.append(f"Description:\n{el['description']}")
         if el.get("source_file"):
             lines.append(f"Source: {el['source_file']}")
         rels = el.get("relationships", [])

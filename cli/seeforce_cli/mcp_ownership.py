@@ -95,7 +95,7 @@ def render_owner(file_path: str, result: dict, ws: dict) -> str:
         if el.get("source_file"):
             lines.append(f"Annotated at: {el['source_file']}")
         if el.get("description"):
-            lines.append(f"Responsibility: {el['description']}")
+            lines.append(f"Responsibility:\n{el['description']}")
         rels = el.get("relationships", [])
         if rels:
             lines.append("Existing edges:")

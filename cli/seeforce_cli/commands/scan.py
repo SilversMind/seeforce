@@ -77,6 +77,8 @@ def scan(path: str, dry_run: bool, output: str | None, extra_extensions: tuple[s
 
     if dry_run:
         click.echo(json.dumps(workspace, indent=2))
+    for warning in c4parser.find_unreadable_descriptions(workspace):
+        click.echo(f"Warning: {warning}", err=True)
         return
 
     out_path = Path(output) if output else root / ".seeforce" / "workspace.json"

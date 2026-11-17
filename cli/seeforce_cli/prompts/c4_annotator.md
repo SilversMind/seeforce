@@ -103,40 +103,65 @@ Use the comment style appropriate for the language:
 
 Every field value is parsed as YAML — never start a `description:`/`term:`/`definition:` value with a `"` character (e.g. `description: "python manage.py scan" — does X`). YAML treats a leading quote as the start of a flow scalar and fails to parse anything after the matching closing quote on the same line. Quoting a command or literal mid-sentence is fine; starting the value with one is not.
 
-## Description Skeleton
+## Descriptions
 
-Every description is built from up to three slots. Write them as flowing prose — fold slots into one sentence when they fit naturally — not as a rigid template with visible labels.
+Every element carries two texts, read in two places: `short_desc` on the node card, `description` in the sidebar when the node is opened. Both are read by someone scanning the diagram, so they must cost as little reading as possible.
 
-**1. Responsibility (required, every level).** One verb-first clause naming the single thing this element is for. No lists, no "and" stacking multiple unrelated jobs — if stating the job needs a list, that's usually a sign the element should be split into separate C2/C3 elements instead.
+**`short_desc` (required, every level).** One line, verb-first, 80 characters at most — the single job of the element, phrased as an outcome ("Serves the REST API and stores every project", not "Django app with views and serializers").
 
-**2. Context (required at C1/C2; skip at C3 unless the name+container leave real ambiguity).** Why this exists relative to its parent — not what *category* of thing it is (that's the `technology:` field's job), and not a restatement of a fact the graph already shows. Don't write "shared by X and Y" when the diagram already draws incoming edges from both X and Y — the structure says that, the prose doesn't need to repeat it. At C1 specifically, context takes a fixed, separate form: a standalone closing sentence, `Used to answer "..."`, phrased as the question a stakeholder would actually ask (see the C1 rule below) — never fold this one into the responsibility sentence.
+**`description` (required, every level).** A bullet list of what the element does, one `- ` line per responsibility, written as a YAML literal block so it reads in the source exactly as it renders:
 
-**3. Boundary (optional, every level — use sparingly).** Only include it when its absence would let a reader assume something false — a real misattribution risk, not padding. Can be a full trailing sentence, or a short parenthetical when brief (`(never re-parses source files itself)`).
+```yaml
+description: |
+  - Serves the REST API for:
+    - Project CRUD
+    - Node/edge overlays
+    - GitHub import, sync and link
+  - Persists projects in the Database
+```
 
-**Never include mechanism, at any level.** *How* something works internally — algorithms, call sequences, specific functions — belongs in the code, not in any annotation. This applies even to the responsibility sentence: "parses annotations embedded in a repo's source files" describes an *approach*; "shows an interactive map of your architecture" describes the *outcome*. Prefer the outcome framing; if a reader wants the *how*, that's what the source-file link is for.
+Rules for the list:
+- **One responsibility per bullet**, verb-first, a few words. A bullet that needs "and" to say two things is two bullets.
+- **Nest only to group**: a parent bullet ending with `:` introduces the sub-items it covers (endpoints, entities, commands). Two levels at most.
+- **Only what the element does.** Never write what it does not do ("does not parse files itself"), and never restate a relation an edge already draws ("delegates parsing to X", "called by Y") — the edge says it, the reader sees it.
+- **No mechanism**: algorithms, call sequences, function names belong in the code; the source-file link is there for the *how*.
+- **No restated metadata**: the `technology:` field and the element's name already say what kind of thing it is.
+- **3–6 top-level bullets.** More means the element is doing too much and should probably be split into C3 components.
 
-**Entity lists are fine; feature/operation lists are not.** Naming what something *persists* or *owns* — "projects, overlays, lexicon entries, share links" — is one coherent concern and stays fine as a list. Naming the *operations* it performs — "handles CRUD, overlays, lexicon, sharing, and sync" — is the anti-pattern: it's a list of distinct responsibilities in disguise. Each one with real architectural weight should either be its own C3 component, or is already covered by that component's own description one level down — don't pre-summarize it here.
+A YAML list (`description:` followed by `- item` lines, nested via `item:` keys) is accepted too and renders the same, but the literal block (`|`) is safer: a bullet starting with a quote or containing `: ` cannot break the YAML.
 
-**Length stays 1–2 sentences**, plus the mandatory `Used to answer "..."` sentence at C1 and the optional boundary clause. If it doesn't fit, the description is trying to say too much — cut, don't run on.
+`seeforce scan` warns on any description that is not a bullet list, on any element with no `short_desc`, and on any edge description over 100 characters — treat those warnings as required fixes.
 
-Before finalizing any description, check it against this list: does it name a mechanism instead of an outcome? Does it restate the `technology:` field or an obvious category fact? Does it restate something already visible from the element's own edges? Does it enumerate operations instead of entities? Rewrite anything that does.
+### Edge descriptions
+
+The text of a `uses:` entry is the edge label on the canvas, so it is one short phrase, not a list:
+- Verb-first, saying **what flows** along the edge — name the domain object and what happens to it ("persists projects and overlays", "fetches workspace.json at a commit").
+- 100 characters at most. No "also", no list of operations: two unrelated flows between the same pair are two `uses:` entries (distinguished by `technology:` if needed).
+- Never explain *why* or *how* (no endpoint paths, token lifetimes, library names) — that belongs in the source.
 
 ### C1 — System
 ```python
 """
 @c1:system
 name: Payment Platform
-description: Handles all payment processing and subscription management for customers. Used to answer "can this customer be charged, and are they current on their subscription?"
+short_desc: Charges customers and keeps their subscriptions current
+description: |
+  - Charges customers for one-off purchases
+  - Manages subscriptions and renewals
+  - Answers "can this customer be charged, and are they current on their subscription?"
 """
 ```
-Rule: end the C1 system description with the single plain-language question this system exists to answer (in quotes, phrased the way a stakeholder would actually ask it — "does any machine show a match for this compromised package/version?", "can this customer be charged?"). This is the single most important sentence in the whole annotation set — it's what makes the diagram legible to someone who has never seen the codebase. Never skip it.
+Rule: end the C1 system description with an `Answers "..."` bullet: the single plain-language question this system exists to answer, phrased the way a stakeholder would actually ask it ("does any machine show a match for this compromised package/version?", "can this customer be charged?"). This is the single most important line in the whole annotation set — it's what makes the diagram legible to someone who has never seen the codebase. Never skip it.
 
 ### C1 — Person
 ```python
 """
 @c1:person
 name: Customer
-description: End user who initiates purchases and manages their subscription.
+short_desc: Buys products and manages their subscription
+description: |
+  - Initiates purchases
+  - Manages their subscription
 """
 ```
 
@@ -145,10 +170,13 @@ description: End user who initiates purchases and manages their subscription.
 """
 @c1:external
 name: Stripe
-description: Third-party payment processor, hosted by Stripe (not part of this codebase). Handles card charging and refunds; the platform calls it via the Stripe REST API to create charges and process webhook confirmations.
+short_desc: Third-party payment processor hosted by Stripe
+description: |
+  - Charges cards and issues refunds for the platform
+  - Confirms each charge back through webhooks
 """
 ```
-Rule: an external's description must answer two things a newcomer can't infer from the name alone — **where it lives** (whose infrastructure, not part of this repo) and **what role it plays** (what this system actually does with it, not just "third-party service"). "Third-party payment processor" alone is not enough — see the example above.
+Rule: an external must tell a newcomer two things they can't infer from the name alone — **where it lives** (whose infrastructure, not part of this repo; usually in `short_desc`) and **what role it plays** for this system (the bullets). "Third-party payment processor" alone is not enough — see the example above.
 
 ### C2 — Container
 ```python
@@ -157,7 +185,13 @@ Rule: an external's description must answer two things a newcomer can't infer fr
 name: API Server
 system: Payment Platform
 technology: Python / Django + Daphne
-description: Serves web and mobile clients via REST and WebSocket. Handles authentication and business logic.
+short_desc: Serves the web and mobile clients
+description: |
+  - Authenticates users
+  - Serves the REST API for:
+    - Orders
+    - Subscriptions
+  - Pushes live order updates over WebSocket
 uses:
 - Database: "reads and writes application data"
 - Redis Cache: "caches session tokens"
@@ -172,7 +206,10 @@ uses:
 name: Payment Service
 container: API Server
 technology: Django Ninja
-description: Orchestrates payment intent creation, confirmation, and webhook handling.
+short_desc: Runs a payment from intent to confirmation
+description: |
+  - Creates payment intents
+  - Confirms payments from Stripe webhooks
 uses:
 - Subscription Manager: "updates subscription state after successful payment"
 """
@@ -190,7 +227,7 @@ uses:
 **Connectivity rules:**
 - Every C2 container and every C3 component must have at least one edge in either direction (its own `uses:`, or being named in another element's `uses:`). A container or component nothing calls and that calls nothing isn't doing anything at that level — it either needs a relationship you missed, or it doesn't belong as its own C2/C3 element (fold it into whatever it's actually part of).
 - Orphan elements with no edges indicate a missing relationship — find and annotate it. `seeforce scan` will warn about any orphans it finds; treat those warnings as required fixes, not noise.
-- External services mentioned in descriptions must appear as `@c1:external` annotations and be referenced in `uses:` fields, not buried in prose.
+- External services an element talks to must appear as `@c1:external` annotations and be referenced in `uses:` fields, not named in description bullets.
 
 ---
 
@@ -204,7 +241,7 @@ When you need to distinguish transport protocols between the same endpoints, add
 name: Web App
 system: Payment Platform
 uses:
-- API Server: "authenticates users and loads game data"
+- API Server: "loads game data for the signed-in user"
   technology: REST
 - API Server: "receives live game events"
   technology: WebSocket
@@ -257,7 +294,7 @@ Follow these steps in order:
 6. **Infer relations** from imports, function calls, channel sends, HTTP clients, DB queries — runtime flow only. If the `get_static_facts_for_files` MCP tool is available, cross-check its candidate edges for the files you're annotating before finalizing relations: it catches imports you might otherwise miss (a recall aid), but it is NOT verified truth. Confirm each candidate reflects real runtime usage — not just an unused import — before annotating it. It also cannot see dynamic wiring (DI containers, plugin registries, reflection, config-driven routes, message-bus subscriptions); keep searching for those independently. A missing static candidate is not evidence that a relation doesn't exist.
 7. **Verify connectivity**: every C2 and C3 must have at least one edge in either direction; every external system must have at least one `uses:` pointing to it
 8. **Scan every description you're about to write for jargon** — domain terms, acronyms, internal conventions, protocol/format names a newcomer wouldn't know — and add a `@lexicon` entry for each
-9. **Check every description against the Description Skeleton** (see above) — mechanism instead of outcome, restated `technology:`/graph-visible facts, operation-lists instead of entity-lists, missing or superfluous context/boundary. Rewrite anything that fails before moving on.
+9. **Check every text against the Descriptions rules** (see above) — `short_desc` on one line, `description` as a bullet list of what the element does, nothing it doesn't do, no relation an edge already draws, no mechanism, edge labels under 100 characters saying what flows. Rewrite anything that fails before moving on.
 10. **Write annotations** — one annotation per architectural element, no duplicates
 
 ---
@@ -266,8 +303,8 @@ Follow these steps in order:
 
 - Output only the modified file contents, one file at a time
 - Do not annotate files that have no architectural significance (migrations, tests, config boilerplate)
-- Descriptions must follow the Description Skeleton — responsibility as outcome not mechanism, not just a restated name ("Webhook handler" → "Processes incoming webhook events from Stripe")
-- Keep descriptions to 1–2 sentences maximum, except the `@c1:system` description, which gets one extra sentence for its closing "used to answer ..." question — never omit that question
+- Every element has a one-line `short_desc` and a bullet-list `description` following the Descriptions rules — outcomes, not mechanism, not just a restated name ("Webhook handler" → "- Processes incoming webhook events from Stripe")
+- The `@c1:system` description ends with its `Answers "..."` bullet — never omit that question
 - Technology field in C3: omit if it would just repeat the parent C2 language
 - All external services named in descriptions must have corresponding `@c1:external` annotations
 - All person roles must have `@c1:person` annotations
