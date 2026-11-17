@@ -3,7 +3,12 @@
 name: Comparison Selector
 container: Frontend
 technology: React
-description: Lets a reviewer pick which open pull request to see on the map and leave the comparison again, lists the repository's open pull requests with the branch each one targets, names both commits actually compared so "compared against what?" is answered on screen, and explains the four state badges in a legend. Shows plainly why no comparison is available — no repository link, no open pull request, or no repository access for this account — instead of an empty control.
+description: |
+  - Lists the repository's open pull requests and the branch each targets
+  - Enters and leaves the comparison
+  - Names both commits being compared
+  - Explains the four state badges in a legend
+  - Says why no comparison is available when there is none
 short_desc: Picks the pull request to compare and explains the states
 uses:
 - Backend: "lists the linked repository's open pull requests"

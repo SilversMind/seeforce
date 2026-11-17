@@ -3,7 +3,10 @@
 name: Static Facts Extractor
 container: Annotation Parser
 technology: tree-sitter
-description: Statically extracts imports, top-level definitions, and adjacent docstrings from source files (Python, TypeScript) as an unverified candidate signal — never a source of truth. Isolated in its own subpackage behind extract_facts() so tree-sitter (an optional dependency) can be dropped without breaking annotation scanning or building.
+description: |
+  - Extracts imports, top-level definitions and adjacent docstrings from Python and TypeScript
+  - Isolated behind extract_facts() so tree-sitter stays optional
+short_desc: Extracts imports and definitions as candidate signals
 """
 import importlib.util
 from pathlib import Path

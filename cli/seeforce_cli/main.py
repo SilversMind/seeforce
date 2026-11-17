@@ -3,11 +3,16 @@
 name: SeeForce CLI
 system: SeeForce
 technology: Python / Click
-description: Local command-line entry point — logs in, scans a repo for @c1/@c2/@c3/@lexicon annotations, launches an LLM-guided annotation pass, and installs the SeeForce MCP server plus the drift-sync tooling (Stop hook, skill, CLAUDE.md rule) that keeps a project's annotations from drifting from its code going forward.
-short_desc: CLI — login, scan, annotate, and installs the drift-sync tooling
+description: |
+  - Logs in to SeeForce
+  - Scans a repo's annotations into workspace.json
+  - Compares workspaces across revisions and checks the feature catalogue
+  - Starts an annotation pass in the user's AI assistant
+  - Installs the MCP server and the drift-sync tooling (Stop hook, skill, CLAUDE.md rule)
+short_desc: Logs in, scans repos and installs the drift-sync tooling
 uses:
-    - Annotation Parser: "parses and builds workspace.json when scanning a repo locally via `seeforce scan` or comparing snapshots via `seeforce delta`"
-    - Backend: "authenticates the user, fetches the project id, and registers the MCP server against it via `seeforce mcp install`"
+    - Annotation Parser: "builds workspace.json on `seeforce scan` and compares snapshots on `seeforce delta`"
+    - Backend: "authenticates the user and fetches the project id the MCP server registers against"
       technology: REST
 """
 import click

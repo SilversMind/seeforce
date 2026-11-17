@@ -2,7 +2,9 @@
 @c3:component
 name: Auth Context
 container: Frontend
-description: React context that manages authentication state; checks session on load and exposes logout
+description: |
+  - Checks the session when the app loads
+  - Exposes the signed-in user and logout to the app
 short_desc: React auth state — checks session on load, exposes logout
 uses:
   - Auth API: "GET /api/auth/me/ to check session, POST /api/auth/logout/ to sign out"

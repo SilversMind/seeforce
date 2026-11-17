@@ -3,11 +3,15 @@
 name: Delta Presenter
 container: Backend
 technology: Python
-description: Decorates an already-rendered C1/C2/C3 view with the state an architecture comparison gives each element and relation — added, removed, modified or unchanged — rolling a descendant's change up through containment so a component change is visible on its container and its system, injecting the elements a merge request removed as ghost nodes so they keep a position, and summarising every change in the comparison as one list. Pure computation over two workspace dicts and a Delta — no HTTP call, no database read, nothing written, and no risk or merge verdict anywhere in its output.
+description: |
+  - Marks each element and relation of a rendered view as added, removed, modified or unchanged
+  - Rolls a component's change up to its container and system
+  - Adds removed elements back as ghost nodes so they keep a position
+  - Summarises every change of the comparison as one list
 short_desc: Decorates a rendered view with per-element comparison state
 uses:
-- Graph transformer: "renders the head workspace into the ReactFlow view this module then decorates, and reuses its node builder for ghost nodes"
-- Delta Reporter: "reads the Delta dataclasses — added, removed, changed elements and relations — that this module projects onto the view"
+- Graph transformer: "renders the head workspace view and builds the ghost nodes"
+- Delta Reporter: "reads the added, removed and changed elements and relations"
 """
 from c4parser.delta import Delta, Element, FieldChange
 from c4parser.delta import _render_field as _render_delta_field

@@ -2,7 +2,10 @@
 @c3:component
 name: Annotation Scanner
 container: Annotation Parser
-description: Walks a repo's source files and parses @c1/@c2/@c3/@lexicon annotation blocks out of comments and docstrings into a flat list of elements. Does not resolve relationships or assemble workspace.json — that's Workspace Builder, which takes this list as its input.
+description: |
+  - Walks a repo's source files
+  - Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list
+  - Normalizes descriptions into `- ` bullet text
 short_desc: Walks source files and extracts @c1/@c2/@c3/@lexicon blocks
 """
 import fnmatch
@@ -63,9 +66,6 @@ def _strip_comment_stars(block: str) -> str:
     return "\n".join(lines)
 
 
-def _parse_block(content: str, file_path: str, line: int, git_root: str | None = None) -> C4Element | None:
-    # The @cN: / @lexicon marker must START a line (after dedent) — summary
-    # lines before it are allowed, but mid-line mentions in string literals
 def _bullet_lines(value: object, depth: int) -> list[str]:
     indent = "  " * depth
     if isinstance(value, list):
@@ -89,6 +89,9 @@ def format_description(value: object) -> str:
     return "\n".join(line.rstrip() for line in textwrap.dedent(str(value)).strip().splitlines())
 
 
+def _parse_block(content: str, file_path: str, line: int, git_root: str | None = None) -> C4Element | None:
+    # The @cN: / @lexicon marker must START a line (after dedent) — summary
+    # lines before it are allowed, but mid-line mentions in string literals
     # are not, so the scanner never trips on its own error messages.
     stripped = textwrap.dedent(content).strip()
     lex_marker = re.search(r"(?m)^@lexicon\b", stripped)
@@ -126,11 +129,11 @@ def format_description(value: object) -> str:
 
     ref_root = git_root if git_root else os.path.dirname(file_path)
     data["source_file"] = os.path.relpath(file_path, ref_root).replace(os.sep, "/")
+    if "description" in data:
+        data["description"] = format_description(data["description"])
 
     match level:
         case "1":
-    if "description" in data:
-        data["description"] = format_description(data["description"])
             if "name" not in data:
                 raise C4ParseError(f"@c1:{kind} missing required field 'name'", file_path, line)
             if kind == "person":

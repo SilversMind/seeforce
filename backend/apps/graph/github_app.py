@@ -2,10 +2,13 @@
 @c3:component
 name: GitHub App Token Manager
 container: Backend
-description: Signs a JWT with the GitHub App's private key and exchanges it for a short-lived (1h) installation access token, used to authenticate GitHub API calls on behalf of one installation instead of a long-lived OAuth token. The token is cached for 50 of its 60 minutes, so a burst of API calls mints once instead of once per call.
+description: |
+  - Signs a JWT with the GitHub App's private key
+  - Exchanges it for a 1h installation access token
+  - Caches each token for 50 minutes so a burst of calls mints once
 short_desc: Mints and caches short-lived GitHub App installation tokens
 uses:
-  - GitHub: "Signs the app JWT (RS256), reads an installation's owning account via /app/installations/{id}, and exchanges the JWT for a 1h installation access token via /app/installations/{id}/access_tokens"
+  - GitHub: "exchanges the signed app JWT for an installation token and reads its owner"
     technology: HTTPS
 """
 import os

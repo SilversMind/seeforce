@@ -3,7 +3,9 @@
 name: Change List
 container: Frontend
 technology: React
-description: Lists every change the selected merge request makes to the architecture, at every C4 level rather than only the one on screen, so a reviewer reads the change set instead of hunting it on the canvas. Selecting an item opens that element on the current level when it is there, and otherwise says which level holds it.
+description: |
+  - Lists every change of the selected merge request, at every C4 level
+  - Opens the element an item names, or says which level holds it
 short_desc: Lists the whole comparison's changes, grouped by level
 */
 import { useState } from "react";

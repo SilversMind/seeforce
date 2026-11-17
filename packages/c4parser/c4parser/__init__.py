@@ -3,7 +3,12 @@
 name: Annotation Parser
 system: SeeForce
 technology: Python
-description: Standalone library (published as seeforce-c4parser) that parses @c1/@c2/@c3/@lexicon annotations from a repo's source files and assembles the resulting workspace.json. Independently packaged and shared by the Backend and the SeeForce CLI, not owned by either.
+description: |
+  - Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files
+  - Assembles them into workspace.json
+  - Compares workspace snapshots and checks the feature catalogue
+  - Extracts static import facts and entry points from source files
+  - Ships as the standalone seeforce-c4parser package
 short_desc: Parses C4 annotations from source files into workspace.json
 """
 from .builder import (
@@ -11,12 +16,12 @@ from .builder import (
     find_empty_containers,
     find_long_short_descriptions,
     find_orphans,
+    find_unreadable_descriptions,
 )
 from .delta import (
     Delta,
     broken_features,
     diff,
-    find_unreadable_descriptions,
     flatten,
     render_broken_features,
     render_markdown,
@@ -56,12 +61,12 @@ __all__ = [
     "find_empty_containers",
     "find_long_short_descriptions",
     "find_orphans",
+    "find_unreadable_descriptions",
     "flatten",
+    "format_description",
     "load_catalogue",
     "render_broken_features",
     "render_markdown",
     "review_flags",
-    "find_unreadable_descriptions",
     "scan",
-    "format_description",
 ]

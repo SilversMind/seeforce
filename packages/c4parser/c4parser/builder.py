@@ -2,7 +2,13 @@
 @c3:component
 name: Workspace Builder
 container: Annotation Parser
-description: Takes the flat element list from Annotation Scanner, resolves every "uses:" reference into a concrete element id, and assembles the final workspace.json structure — systems, people, containers, components, relationships, and views. Also the structural drift gate — find_orphans and find_empty_containers catch level-mixing, ambiguous refs, orphan elements, C2s with zero C3s, and persons pointing at anything other than a system, before the workspace is written.
+description: |
+  - Resolves every uses: reference to an element id
+  - Assembles systems, people, containers, components, relationships and views into workspace.json
+  - Flags structural drift before the workspace is written:
+    - Level-mixing and ambiguous references
+    - Orphan elements and containers with no component
+    - Unreadable descriptions
 short_desc: Resolves relationships into workspace.json; the structural drift gate
 """
 import re
@@ -100,12 +106,6 @@ def find_long_short_descriptions(workspace: dict, limit: int = SHORT_DESC_LIMIT)
     return warnings
 
 
-def build(elements: list[C4Element]) -> dict:
-    # --- Phase 1: Collect elements ---
-    # Systems keyed by name
-    systems: dict[str, C4System] = {}
-    # Containers keyed by name
-    containers: dict[str, C4Container] = {}
 EDGE_DESC_LIMIT = 100
 _BULLET_RE = re.compile(r"^\s*- \S")
 
@@ -139,6 +139,12 @@ def find_unreadable_descriptions(workspace: dict, edge_limit: int = EDGE_DESC_LI
     return warnings
 
 
+def build(elements: list[C4Element]) -> dict:
+    # --- Phase 1: Collect elements ---
+    # Systems keyed by name
+    systems: dict[str, C4System] = {}
+    # Containers keyed by name
+    containers: dict[str, C4Container] = {}
     # Components keyed by (container_name, component_name) to allow same-named
     # components across different containers
     components: dict[tuple[str, str], C4Component] = {}

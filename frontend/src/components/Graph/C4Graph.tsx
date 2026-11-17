@@ -3,7 +3,10 @@
 name: Architecture Visualizer
 container: Frontend
 technology: ReactFlow
-description: Display architecture and manage user interaction such as drilling down on specific component
+description: |
+  - Renders the C1/C2/C3 graph of a project
+  - Drills down from a node into the level below
+  - Shows the selected pull request's changes on the canvas
 short_desc: Renders the graph and handles drill-down between C1/C2/C3 views
 uses:
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"

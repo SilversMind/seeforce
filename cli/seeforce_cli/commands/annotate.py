@@ -2,7 +2,9 @@
 @c3:component
 name: Annotate Command
 container: SeeForce CLI
-description: The `seeforce annotate` command — prints the instructions for starting an annotation pass in the user's own coding assistant, which then fetches the guide over MCP. It calls no model and writes no annotation itself; this is the boundary that keeps every other command in this CLI deterministic.
+description: |
+  - Runs `seeforce annotate`
+  - Prints how to start an annotation pass in the user's own coding assistant
 short_desc: Prints how to start an annotation pass in the user's AI assistant
 uses:
 - MCP Server: "names the server the assistant fetches the annotation guide from"

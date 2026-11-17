@@ -2,7 +2,11 @@
 @c3:component
 name: Delta Command
 container: SeeForce CLI
-description: The `seeforce delta` command — reads a `.seeforce/workspace.json` at two revisions out of git, prints what changed architecturally, and then reports every catalogue feature that names an element the comparison removed. Exits 1 when a feature is broken, 2 on a revision that does not exist or a failed load, and 0 when the model changed but no feature did — a changed architecture is not a failure. Writes nothing and repairs nothing.
+description: |
+  - Runs `seeforce delta` between two git revisions
+  - Prints what changed in the architecture
+  - Reports every catalogue feature that lost an element
+  - Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise
 short_desc: Compares two revisions' workspaces and fails CI on a broken feature
 uses:
 - Delta Reporter: "compares the two snapshots and intersects the catalogue against the removed elements"

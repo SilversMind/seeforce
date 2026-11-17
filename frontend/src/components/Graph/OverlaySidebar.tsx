@@ -2,7 +2,11 @@
 @c3:component
 name: Overlay Editor
 container: Frontend
-description: Sliding detail panel for the selected node or edge — shows name, description, tags, and source-file link; in edit mode, saves overlay edits and manages the lexicon terms relevant to the node's description (add, edit, delete).
+description: |
+  - Shows the selected node's or edge's name, description, tags and source link
+  - Shows what the selected pull request changed on it
+  - Saves overlay edits in edit mode
+  - Manages the lexicon terms found in the node's description
 short_desc: Sidebar panel to view and edit a node or edge's overlay details
 uses:
 - Lexicon: "reads the shared glossary via context to find terms relevant to the node being edited"
@@ -14,11 +18,11 @@ import { mutate } from "swr";
 import { type RFNode, type RFEdge, type DeltaElementState, type DeltaRelationState, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
 import { useLexicon } from "../../contexts/LexiconContext";
 import { useViewStore } from "../../store/viewStore";
+import { DescriptionList } from "./DescriptionList";
 
 type SidebarTarget =
   | { kind: "node"; node: RFNode }
   | { kind: "edge"; edge: RFEdge };
-import { DescriptionList } from "./DescriptionList";
 
 interface Props {
   target: SidebarTarget | null;

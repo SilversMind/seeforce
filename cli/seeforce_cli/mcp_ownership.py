@@ -3,7 +3,12 @@
 name: Ownership Inference
 container: MCP Server
 technology: Python
-description: Infers which C4 component or container owns a given file path — via exact source_file match, same-directory proximity, or nearest-parent-directory fallback when nothing is annotated yet.
+description: |
+  - Infers the C4 component or container that owns a file path, by:
+    - Exact source_file match
+    - Same-directory proximity
+    - Nearest annotated parent directory
+short_desc: Finds which component or container owns a file
 """
 """File → C4 component/container ownership inference."""
 

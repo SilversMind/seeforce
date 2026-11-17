@@ -2,7 +2,9 @@
 @c3:component
 name: Local Scan Command
 container: Backend
-description: The manage.py scan command — scans one or more local repo paths and upserts the resulting ProjectMap. This is the direct-CLI ingestion path; it does not go through GitHub, so github_repo/github_branch are left unset.
+description: |
+  - Runs `manage.py scan` on one or more local repo paths
+  - Creates or updates the scanned project's ProjectMap
 short_desc: Scans local repo paths and upserts the resulting ProjectMap
 uses:
 - Annotation Scanner: "parses annotation blocks from the target repo path(s)"
@@ -19,9 +21,9 @@ from c4parser import (
     find_empty_containers,
     find_long_short_descriptions,
     find_orphans,
+    find_unreadable_descriptions,
     scan,
 )
-    find_unreadable_descriptions,
 from c4parser.exceptions import C4ParseError, C4ValidationError
 from django.core.management.base import BaseCommand, CommandError
 
@@ -123,10 +125,10 @@ class Command(BaseCommand):
             self.stderr.write(self.style.WARNING(warning))
         for warning in find_long_short_descriptions(workspace):
             self.stderr.write(self.style.WARNING(warning))
-
-        source_json = json.loads(json_str)
         for warning in find_unreadable_descriptions(workspace):
             self.stderr.write(self.style.WARNING(warning))
+
+        source_json = json.loads(json_str)
         pm, created = ProjectMap.objects.update_or_create(
             project_id=project_id,
             defaults={"name": name, "source_json": source_json},

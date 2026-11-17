@@ -3,11 +3,15 @@
 name: Project Library
 container: Frontend
 technology: React
-description: The signed-in landing screen — lists the projects a user owns and those shared with them, and is where a project enters SeeForce in the first place, either by uploading a scanned workspace.json or by importing one from a GitHub repo. Also handles rename, delete, re-sync from GitHub, linking a project to a repo, and the GitHub App install prompt.
+description: |
+  - Lists owned and shared projects
+  - Creates a project from an uploaded workspace.json or a GitHub import
+  - Renames, deletes, re-syncs and links projects to repos
+  - Prompts the GitHub App install
 short_desc: Lists projects and is where upload or GitHub import creates one
 uses:
 - Auth Context: "reads the signed-in user and the GitHub App installation status that gates private-repo import"
-- Backend: "lists owned and shared projects, uploads or imports a workspace, then renames, deletes, re-syncs or links one to a repo"
+- Backend: "lists, creates, renames, deletes, re-syncs and links projects"
   technology: REST
 */
 import { useState, useEffect, useRef, useCallback } from "react";

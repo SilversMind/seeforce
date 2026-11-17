@@ -2,10 +2,14 @@
 @c3:component
 name: GitHub Import
 container: Backend
-description: Imports, re-syncs, and links project architecture to GitHub repositories. Repo access is scoped per user by matching the repo's owner login against their GitHub App installations (a user may have several — personal + org); GitHub App Token Manager mints an installation token for the matching install, falling back to their newest installation, then to an unauthenticated request for public repos with no install. Fetches .seeforce/workspace.json via the GitHub Contents API and upserts it as a ProjectMap; a read pinned to a commit SHA is cached in memory for a day, keyed by the token that read it, while a read of a moving branch never is. Blob links are built client-side from github_repo/github_branch, not here.
+description: |
+  - Imports, re-syncs and links a project to a GitHub repository
+  - Picks the user's installation matching the repo owner, falling back to public access
+  - Stores the fetched .seeforce/workspace.json as a ProjectMap
+  - Caches reads pinned to a commit for a day, keyed by token
 short_desc: Imports, re-syncs, and links project architecture from GitHub
 uses:
-  - GitHub: "Fetches .seeforce/workspace.json via GitHub Contents API, authenticated with an installation token when one covers the repo, unauthenticated otherwise"
+  - GitHub: "fetches .seeforce/workspace.json through the Contents API"
     technology: HTTPS
   - GitHub App Token Manager: "Requests the installation token before each Contents API call"
   - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
