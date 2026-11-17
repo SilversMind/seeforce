@@ -52,7 +52,7 @@
               {
                 "id": "seeforce-database-database",
                 "name": "Database",
-                "description": "- Holds everything a project owns once imported:\n  - Workspace snapshot\n  - Node and edge overlays\n  - Share tokens and access grants\n  - Lexicon entries\n  - GitHub App installations\n- Is the element a component names when it persists or reads project state",
+                "description": "- Holds everything a project owns once imported:\n  - Workspace snapshot and its feature catalogue\n  - Node and edge overlays\n  - Share tokens and access grants\n  - Lexicon entries\n  - GitHub App installations\n- Is the element a component names when it persists or reads project state",
                 "short_desc": "Stores project snapshots, overlays, sharing grants and lexicon entries",
                 "technology": "PostgreSQL",
                 "source_file": "backend/apps/graph/models.py",

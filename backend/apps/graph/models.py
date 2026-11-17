@@ -5,7 +5,7 @@ container: Database
 technology: PostgreSQL
 description: |
   - Holds everything a project owns once imported:
-    - Workspace snapshot
+    - Workspace snapshot and its feature catalogue
     - Node and edge overlays
     - Share tokens and access grants
     - Lexicon entries
