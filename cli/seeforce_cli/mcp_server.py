@@ -61,7 +61,7 @@ import httpx
 from c4parser.static_facts import extract_facts
 from mcp.server.mcpserver import MCPServer
 
-from seeforce_cli.mcp_client import fetch_workspace
+from seeforce_cli.backend_client import fetch_workspace
 from seeforce_cli.mcp_config import API_URL, resolve_project_root
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
 from seeforce_cli.mcp_static_facts import collapse_to_components

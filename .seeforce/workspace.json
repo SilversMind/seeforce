@@ -629,7 +629,7 @@
                 "description": "- Fetches the project's workspace.json from the Backend\n- Picks the project from the configured UUID, else the most recently updated one",
                 "short_desc": "Fetches the current project's workspace.json from the Backend",
                 "technology": "Python / httpx",
-                "source_file": "cli/seeforce_cli/mcp_client.py",
+                "source_file": "cli/seeforce_cli/backend_client.py",
                 "tags": "Element,Component",
                 "relationships": [
                   {

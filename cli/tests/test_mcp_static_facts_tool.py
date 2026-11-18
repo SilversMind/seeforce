@@ -77,7 +77,7 @@ async def test_failed_lookup_names_the_project_and_the_backend():
 @pytest.mark.asyncio
 async def test_project_id_match_ignores_case():
     """GitHub owner/repo is case-insensitive, so .c4project and the backend can disagree on casing."""
-    from seeforce_cli.mcp_client import fetch_workspace
+    from seeforce_cli.backend_client import fetch_workspace
 
     class _Resp:
         def __init__(self, payload):
@@ -100,6 +100,6 @@ async def test_project_id_match_ignores_case():
             listing = [{"project_id": "github:SilversMind/seeforce", "id": 1}]
             return _Resp(listing if url == "/api/graph/" else {"source_json": _EMPTY_WS})
 
-    with patch("seeforce_cli.mcp_client.resolve_project_id", return_value="github:Silversmind/seeforce"), \
-         patch("seeforce_cli.mcp_client.httpx.AsyncClient", return_value=_Client()):
+    with patch("seeforce_cli.backend_client.resolve_project_id", return_value="github:Silversmind/seeforce"), \
+         patch("seeforce_cli.backend_client.httpx.AsyncClient", return_value=_Client()):
         assert await fetch_workspace() == _EMPTY_WS
