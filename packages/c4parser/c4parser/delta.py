@@ -6,6 +6,7 @@ technology: Python
 description: |
   - Compares two workspace.json snapshots at the architecture level
   - Pairs elements by kind and source file, so a rename reads as a rename
+  - Pairs the leftovers by kind and name, so a moved file reads as a move
   - Renders the delta as markdown
   - Reports catalogue features that lost an element
 short_desc: Compares two workspace snapshots into an architecture delta
@@ -14,7 +15,6 @@ from dataclasses import dataclass, field
 
 from .exceptions import C4ValidationError
 
-# "source_file" is reserved for a planned (kind, name) second pairing pass; it never differs today.
 COMPARED_FIELDS = ("name", "description", "short_desc", "technology", "tags", "source_file")
 
 
@@ -98,6 +98,24 @@ def pair(
 
     for h_items in head_buckets.values():
         added.extend(h_items)
+    return _pair_moves(pairs, added, removed)
+
+
+def _pair_moves(
+    pairs: list[tuple[Element, Element]], added: list[Element], removed: list[Element]
+) -> tuple[list[tuple[Element, Element]], list[Element], list[Element]]:
+    """Pair a removed and an added element sharing kind and path, so a moved file is a source_file change."""
+    def unique(items: list[Element]) -> dict[tuple[str, str], Element]:
+        counts: dict[tuple[str, str], int] = {}
+        for e in items:
+            counts[(e.kind, e.path)] = counts.get((e.kind, e.path), 0) + 1
+        return {(e.kind, e.path): e for e in items if counts[(e.kind, e.path)] == 1}
+
+    gone, new = unique(removed), unique(added)
+    moved = gone.keys() & new.keys()
+    pairs = pairs + [(gone[k], new[k]) for k in sorted(moved)]
+    added = [e for e in added if (e.kind, e.path) not in moved]
+    removed = [e for e in removed if (e.kind, e.path) not in moved]
     return pairs, added, removed
 
 

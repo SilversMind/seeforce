@@ -147,6 +147,22 @@ def test_a_simultaneous_rename_and_move_reports_remove_plus_add():
     assert [e.name for e in added] == ["Lexicon"]
 
 
+def test_a_moved_file_pairs_by_name():
+    base = [_el("component", "Workspace API Client", "mcp_client.py")]
+    head = [_el("component", "Workspace API Client", "backend_client.py")]
+    pairs, added, removed = pair(base, head)
+    assert [(b.source_file, h.source_file) for b, h in pairs] == [("mcp_client.py", "backend_client.py")]
+    assert (added, removed) == ([], [])
+
+
+def test_a_move_is_a_source_file_change():
+    base = _ws_component("Client")
+    head = _ws_component("Client", source_file="moved.py")
+    delta = diff(base, head)
+    assert (delta.added, delta.removed) == ([], [])
+    assert [[f.field for f in c.fields] for c in delta.changed] == [["source_file"]]
+
+
 # Review Focus 5
 def test_an_uneven_bucket_keeps_every_element():
     base = [_el("component", "One", "shared.py")]

@@ -914,7 +914,7 @@
               {
                 "id": "seeforce-annotation-parser-delta-reporter",
                 "name": "Delta Reporter",
-                "description": "- Compares two workspace.json snapshots at the architecture level\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Renders the delta as markdown\n- Reports catalogue features that lost an element",
+                "description": "- Compares two workspace.json snapshots at the architecture level\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Pairs the leftovers by kind and name, so a moved file reads as a move\n- Renders the delta as markdown\n- Reports catalogue features that lost an element",
                 "short_desc": "Compares two workspace snapshots into an architecture delta",
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/delta.py",
