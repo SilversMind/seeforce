@@ -22,17 +22,35 @@ def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+_EDGE_FIELDS = ("technology", "short_desc")
+
+
 def _use_name(entry: str | dict) -> str:
     if isinstance(entry, dict):
-        return next((k for k in entry if k != "technology"), "")
+        return next((k for k in entry if k not in _EDGE_FIELDS), "")
     return entry
 
 
 def _use_description(entry: str | dict) -> str:
     if isinstance(entry, dict):
-        name_key = next((k for k in entry if k != "technology"), None)
+        name_key = next((k for k in entry if k not in _EDGE_FIELDS), None)
         return format_description(entry[name_key]) if name_key is not None else ""
     return ""
+
+
+def _use_short_desc(entry: str | dict) -> str:
+    return str(entry.get("short_desc", "")).strip() if isinstance(entry, dict) else ""
+
+
+def edge_label(rel: dict) -> str:
+    """Return the text an edge shows on the canvas: its short_desc, else its flow when it has only one."""
+    flows = split_flows(rel.get("description", ""))
+    return rel.get("short_desc") or (flows[0] if len(flows) == 1 else "")
+
+
+def merge_labels(labels: list[str]) -> str:
+    """Join the canvas labels of merged edges, each once."""
+    return ", ".join(dict.fromkeys(label for label in labels if label))
 
 
 def split_flows(label: str) -> list[str]:
@@ -122,6 +140,7 @@ def find_long_short_descriptions(workspace: dict, limit: int = SHORT_DESC_LIMIT)
 
 
 EDGE_DESC_LIMIT = 100
+EDGE_LABEL_LIMIT = 60
 _BULLET_RE = re.compile(r"^\s*- \S")
 
 
@@ -140,6 +159,10 @@ def find_unreadable_descriptions(workspace: dict, edge_limit: int = EDGE_DESC_LI
             label = rel.get("description", "")
             if "; " in label:
                 warnings.append(f"{kind} '{node['name']}' has an edge label joining flows with ';' — write one `- ` line per flow")
+            if len(split_flows(label)) > 1 and not rel.get("short_desc"):
+                warnings.append(f"{kind} '{node['name']}' has a multi-action edge with no short_desc — the canvas needs a one-line label")
+            if len(rel.get("short_desc", "")) > EDGE_LABEL_LIMIT:
+                warnings.append(f"{kind} '{node['name']}' has an edge short_desc over {EDGE_LABEL_LIMIT} chars — trim it")
             for flow in split_flows(label):
                 if len(flow) > edge_limit:
                     warnings.append(
@@ -333,6 +356,7 @@ def build(elements: list[C4Element]) -> dict:
                 "id": f"rel-{source_id}-{dest_id}",
                 "destinationId": dest_id,
                 "description": _use_description(use),
+                "short_desc": _use_short_desc(use),
                 "technology": _use_technology(use),
                 "tags": "Relationship",
             })
@@ -358,6 +382,7 @@ def build(elements: list[C4Element]) -> dict:
                 "id": f"rel-{source_id}-{dest_id}",
                 "destinationId": dest_id,
                 "description": _use_description(use),
+                "short_desc": _use_short_desc(use),
                 "technology": _use_technology(use),
                 "tags": "Relationship",
             })
@@ -380,37 +405,31 @@ def build(elements: list[C4Element]) -> dict:
         forward the underlying uses: description(s) so the C1 edge still says
         how the two systems interact instead of being left blank."""
         sys_id = sys_node["id"]
-        order: list[str] = []
-        descriptions: dict[str, list[str]] = {}
+        merged: dict[str, list[dict]] = {}
         for cont in sys_node["containers"]:
             # A container's own edge already sums up its components', so theirs only count where it has none.
-            own: dict[str, list[str]] = {}
-            inner: dict[str, list[str]] = {}
+            own: dict[str, list[dict]] = {}
+            inner: dict[str, list[dict]] = {}
             for rels, bucket in (
                 (cont["relationships"], own),
                 ([r for comp in cont["components"] for r in comp["relationships"]], inner),
             ):
                 for rel in rels:
                     dest_sys = element_system.get(rel["destinationId"])
-                    if not dest_sys or dest_sys == sys_id:
-                        continue
-                    if dest_sys not in descriptions:
-                        descriptions[dest_sys] = []
-                        order.append(dest_sys)
-                    desc = (rel.get("description") or "").strip()
-                    bucket.setdefault(dest_sys, [])
-                    if desc:
-                        bucket[dest_sys].append(desc)
+                    if dest_sys and dest_sys != sys_id:
+                        merged.setdefault(dest_sys, [])
+                        bucket.setdefault(dest_sys, []).append(rel)
             for dest_sys in {**own, **inner}:
-                descriptions[dest_sys] += own[dest_sys] if dest_sys in own else inner[dest_sys]
+                merged[dest_sys] += own[dest_sys] if dest_sys in own else inner[dest_sys]
         return [
             {
                 "id": f"rel-{sys_id}-{dest_sys}",
                 "destinationId": dest_sys,
-                "description": merge_flows(descriptions[dest_sys]),
+                "description": merge_flows([r["description"].strip() for r in rels if r.get("description")]),
+                "short_desc": merge_labels([edge_label(r) for r in rels]),
                 "tags": "Relationship",
             }
-            for dest_sys in order
+            for dest_sys, rels in merged.items()
         ]
 
     # --- Phase 6: Assemble workspace ---
@@ -504,6 +523,7 @@ def build(elements: list[C4Element]) -> dict:
                     "id": f"rel-{pid}-{system_ids[_use_name(use)]}",
                     "destinationId": system_ids[_use_name(use)],
                     "description": _use_description(use),
+                    "short_desc": _use_short_desc(use),
                     "technology": _use_technology(use),
                     "tags": "Relationship",
                 }

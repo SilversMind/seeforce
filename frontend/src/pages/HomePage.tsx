@@ -13,11 +13,13 @@ uses:
 - Auth Context:
   - "reads the signed-in user"
   - "reads the GitHub App installation status"
+  short_desc: "reads user and GitHub App status"
 - Backend:
   - "lists projects"
   - "creates projects from an upload or a GitHub import"
   - "renames and deletes projects"
   - "re-syncs and links projects to repos"
+  short_desc: "lists, creates and manages projects"
   technology: REST
 */
 import { useState, useEffect, useRef, useCallback } from "react";

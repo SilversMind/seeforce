@@ -11,6 +11,7 @@ uses:
   - GitHub:
     - "exchanges the signed app JWT for an installation token"
     - "reads the installation's owning account"
+    short_desc: "mints installation tokens, reads their owner"
     technology: HTTPS
 """
 import os

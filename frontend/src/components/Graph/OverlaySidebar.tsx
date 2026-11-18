@@ -13,6 +13,7 @@ uses:
 - Edit API:
   - "saves node/edge overlay edits"
   - "saves lexicon entry changes"
+  short_desc: "saves overlay and lexicon edits"
   technology: REST
 */
 import { useState, useEffect } from "react";
@@ -131,7 +132,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
       setTags(target.node.data.tags ?? []);
       setTagInput("");
     } else {
-      setEdgeLabel((target.edge.data?.overlay_label as string) || (target.edge.label as string) || "");
+      setEdgeLabel(target.edge.data?.overlay_label || target.edge.data?.short_desc || target.edge.label || "");
     }
     setEditing(true);
   }
@@ -442,19 +443,23 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
             <Section label="From">
               <ReadValue>{(target!.edge.data?.source_node as { label: string } | undefined)?.label ?? target!.edge.source}</ReadValue>
             </Section>
-            <Section label="Relation">
+            {!editing && (target!.edge.data?.overlay_label || ((target!.edge.data?.action_count ?? 0) > 1 && target!.edge.data?.short_desc)) && (
+              <Section label="Label on the graph">
+                <ReadValue>{target!.edge.data?.overlay_label || target!.edge.data?.short_desc}</ReadValue>
+              </Section>
+            )}
+            <Section label={editing ? "Label on the graph" : (target!.edge.data?.action_count ?? 0) > 1 ? `Actions (${target!.edge.data?.action_count})` : "Relation"}>
               {editing ? (
-                <textarea
+                <input
                   value={edgeLabel}
                   onChange={(e) => setEdgeLabel(e.target.value)}
-                  placeholder={(target!.edge.label as string) || "Override label…"}
-                  rows={3}
-                  style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+                  placeholder={target!.edge.data?.short_desc || "Override label…"}
+                  style={inputStyle}
                   autoFocus
                 />
               ) : (
                 <ReadValue>
-                  <DescriptionList text={(target!.edge.data?.overlay_label as string) || (target!.edge.label as string) || "—"} />
+                  <DescriptionList text={target!.edge.label || "—"} />
                 </ReadValue>
               )}
             </Section>

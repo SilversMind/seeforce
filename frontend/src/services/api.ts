@@ -109,6 +109,8 @@ export interface RFEdgeData extends Record<string, unknown> {
   overlay_label: string;
   has_overlay: boolean;
   technology: string;
+  short_desc?: string;
+  action_count?: number;
   source_node: RFEdgeEndpoint;
   target_node: RFEdgeEndpoint;
   delta?: DeltaRelationState;

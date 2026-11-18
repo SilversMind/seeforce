@@ -130,21 +130,25 @@ Rules for the list:
 
 A YAML list (`description:` followed by `- item` lines, nested via `item:` keys) is accepted too and renders the same, but the literal block (`|`) is safer: a bullet starting with a quote or containing `: ` cannot break the YAML.
 
-`seeforce scan` warns on any description that is not a bullet list, on any element with no `short_desc`, and on any edge flow over 100 characters or joined with ";" — treat those warnings as required fixes.
+`seeforce scan` warns on any description that is not a bullet list, on any element with no `short_desc`, and on any edge flow over 100 characters or joined with ";", and on any multi-action edge with no `short_desc` (or one over 60 characters) — treat those warnings as required fixes.
 
 ### Edge descriptions
 
 The text of a `uses:` entry is the edge label on the canvas. It says **what flows**, one flow per phrase:
 - Verb-first, naming the domain object and what happens to it ("persists projects", "fetches workspace.json at a commit").
-- **One action per phrase.** When the edge carries several ("authenticates the user and fetches the project id"), write them as a YAML list, one item per action — never joined with "and", ";" or ",":
+- **One action per phrase.** When the edge carries several ("authenticates the user and fetches the project id"), write them as a YAML list, one item per action — never joined with "and", ";" or ",".
+- **A multi-action edge also gets a `short_desc`**: the label drawn on the graph, 60 characters at most, verb-first, naming the main actions tersely. The graph shows it with a `+N` badge for the number of actions; the full list stays in the sidebar.
 
 ```yaml
 uses:
 - Backend:
   - "authenticates the user"
-  - "fetches the project id"
+  - "fetches the project id the MCP server registers against"
+  short_desc: "authenticates, fetches project id"
   technology: REST
 ```
+
+A single-action edge needs no `short_desc`: its one phrase is the label.
 
 - 100 characters at most per item.
 - Never explain *why* or *how* (no endpoint paths, token lifetimes, library names) — that belongs in the source.
@@ -305,7 +309,7 @@ Follow these steps in order:
 6. **Infer relations** from imports, function calls, channel sends, HTTP clients, DB queries — runtime flow only. If the `get_static_facts_for_files` MCP tool is available, cross-check its candidate edges for the files you're annotating before finalizing relations: it catches imports you might otherwise miss (a recall aid), but it is NOT verified truth. Confirm each candidate reflects real runtime usage — not just an unused import — before annotating it. It also cannot see dynamic wiring (DI containers, plugin registries, reflection, config-driven routes, message-bus subscriptions); keep searching for those independently. A missing static candidate is not evidence that a relation doesn't exist.
 7. **Verify connectivity**: every C2 and C3 must have at least one edge in either direction; every external system must have at least one `uses:` pointing to it
 8. **Scan every description you're about to write for jargon** — domain terms, acronyms, internal conventions, protocol/format names a newcomer wouldn't know — and add a `@lexicon` entry for each
-9. **Check every text against the Descriptions rules** (see above) — `short_desc` on one line, `description` as a bullet list of what the element does, nothing it doesn't do, no relation an edge already draws, no mechanism, edge labels with one action per item, under 100 characters each. Rewrite anything that fails before moving on.
+9. **Check every text against the Descriptions rules** (see above) — `short_desc` on one line, `description` as a bullet list of what the element does, nothing it doesn't do, no relation an edge already draws, no mechanism, edge labels with one action per item, under 100 characters each, and a `short_desc` on every multi-action edge. Rewrite anything that fails before moving on.
 10. **Write annotations** — one annotation per architectural element, no duplicates
 
 ---

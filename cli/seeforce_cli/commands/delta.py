@@ -12,6 +12,7 @@ uses:
 - Delta Reporter:
   - "compares the two snapshots"
   - "finds the catalogue features that lost an element"
+  short_desc: "compares snapshots, finds broken features"
 - Feature Catalogue: "loads and validates the working tree's catalogue against the head snapshot"
 """
 import dataclasses

@@ -15,6 +15,7 @@
             "id": "rel-person-developer-seeforce",
             "destinationId": "seeforce",
             "description": "- signs in with GitHub\n- imports workspaces\n- explores and edits diagrams\n- opens share links",
+            "short_desc": "imports, explores and shares diagrams",
             "technology": "HTTPS",
             "tags": "Relationship"
           }
@@ -33,6 +34,7 @@
             "id": "rel-seeforce-github",
             "destinationId": "github",
             "description": "- signs users in with OAuth\n- fetches repo content with installation tokens\n- lists and reads pull requests for the delta view",
+            "short_desc": "signs users in, fetches repos and PRs",
             "tags": "Relationship"
           }
         ],
@@ -61,6 +63,7 @@
                 "id": "rel-seeforce-backend-seeforce-database",
                 "destinationId": "seeforce-database",
                 "description": "reads and writes architecture graph data",
+                "short_desc": "",
                 "technology": "",
                 "tags": "Relationship"
               },
@@ -68,6 +71,7 @@
                 "id": "rel-seeforce-backend-github",
                 "destinationId": "github",
                 "description": "- signs users in with OAuth\n- fetches repo content with installation tokens\n- lists and reads pull requests for the delta view",
+                "short_desc": "signs users in, fetches repos and PRs",
                 "technology": "HTTPS",
                 "tags": "Relationship"
               },
@@ -75,6 +79,7 @@
                 "id": "rel-seeforce-backend-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
                 "description": "builds workspace.json on manage.py scan",
+                "short_desc": "",
                 "technology": "",
                 "tags": "Relationship"
               }
@@ -93,6 +98,7 @@
                     "id": "rel-seeforce-backend-delta-presenter-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
                     "description": "- renders the head workspace view\n- builds the ghost nodes",
+                    "short_desc": "renders the view, builds ghost nodes",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -100,6 +106,7 @@
                     "id": "rel-seeforce-backend-delta-presenter-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
                     "description": "reads the added, removed and changed elements and relations",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -118,6 +125,7 @@
                     "id": "rel-seeforce-backend-github-app-token-manager-github",
                     "destinationId": "github",
                     "description": "- exchanges the signed app JWT for an installation token\n- reads the installation's owning account",
+                    "short_desc": "mints installation tokens, reads their owner",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   }
@@ -136,6 +144,7 @@
                     "id": "rel-seeforce-backend-graph-transformer-seeforce-annotation-parser-workspace-builder",
                     "destinationId": "seeforce-annotation-parser-workspace-builder",
                     "description": "merges the labels of parallel edges into one list of flows",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -154,6 +163,7 @@
                     "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-annotation-scanner",
                     "destinationId": "seeforce-annotation-parser-annotation-scanner",
                     "description": "parses annotation blocks from the target repo path(s)",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -161,6 +171,7 @@
                     "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-workspace-builder",
                     "destinationId": "seeforce-annotation-parser-workspace-builder",
                     "description": "- resolves relationships\n- assembles the parsed elements into workspace.json",
+                    "short_desc": "resolves and assembles workspace.json",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -168,6 +179,7 @@
                     "id": "rel-seeforce-backend-local-scan-command-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "creates or updates the ProjectMap row for the scanned project",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -186,6 +198,7 @@
                     "id": "rel-seeforce-backend-auth-api-github",
                     "destinationId": "github",
                     "description": "- logs users in with OAuth 2.0\n- resolves their GitHub identity",
+                    "short_desc": "logs users in with OAuth",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   },
@@ -193,6 +206,7 @@
                     "id": "rel-seeforce-backend-auth-api-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "reads the user's GitHub SocialAccount and GitHubAppInstallation rows",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -211,6 +225,7 @@
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-github-import",
                     "destinationId": "seeforce-backend-github-import",
                     "description": "- resolves the installation token\n- reads workspace.json at a commit",
+                    "short_desc": "reads workspace.json at a commit",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -218,6 +233,7 @@
                     "id": "rel-seeforce-backend-delta-view-api-github",
                     "destinationId": "github",
                     "description": "- lists the repository's open pull requests\n- reads one pull request by number",
+                    "short_desc": "lists and reads pull requests",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   },
@@ -225,6 +241,7 @@
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
                     "description": "runs the comparison between the two commits' workspace snapshots",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -232,6 +249,7 @@
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-delta-presenter",
                     "destinationId": "seeforce-backend-delta-presenter",
                     "description": "projects that comparison onto the rendered view it returns",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -239,6 +257,7 @@
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
                     "description": "reads node and edge overlays so the compared view keeps authored labels",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -246,6 +265,7 @@
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "reads the ProjectMap row the comparison is requested for",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -264,6 +284,7 @@
                     "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-backend-github-app-token-manager",
                     "destinationId": "seeforce-backend-github-app-token-manager",
                     "description": "reads the installation's owning GitHub account",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -271,6 +292,7 @@
                     "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "creates or updates the GitHubAppInstallation row for the logged-in user",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -289,6 +311,7 @@
                     "id": "rel-seeforce-backend-github-import-github",
                     "destinationId": "github",
                     "description": "fetches .seeforce/workspace.json through the Contents API",
+                    "short_desc": "",
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   },
@@ -296,6 +319,7 @@
                     "id": "rel-seeforce-backend-github-import-seeforce-backend-github-app-token-manager",
                     "destinationId": "seeforce-backend-github-app-token-manager",
                     "description": "Requests the installation token before each Contents API call",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -303,6 +327,7 @@
                     "id": "rel-seeforce-backend-github-import-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "creates or updates the ProjectMap row for the imported, synced, or linked repo",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -321,6 +346,7 @@
                     "id": "rel-seeforce-backend-edit-api-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -328,6 +354,7 @@
                     "id": "rel-seeforce-backend-edit-api-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
                     "description": "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -348,6 +375,7 @@
                 "id": "rel-seeforce-seeforce-cli-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
                 "description": "- builds workspace.json on `seeforce scan`\n- compares snapshots on `seeforce delta`",
+                "short_desc": "builds and compares workspaces",
                 "technology": "",
                 "tags": "Relationship"
               },
@@ -355,6 +383,7 @@
                 "id": "rel-seeforce-seeforce-cli-seeforce-backend",
                 "destinationId": "seeforce-backend",
                 "description": "- authenticates the user\n- fetches the project id the MCP server registers against",
+                "short_desc": "authenticates, fetches project id",
                 "technology": "REST",
                 "tags": "Relationship"
               }
@@ -373,6 +402,7 @@
                     "id": "rel-seeforce-seeforce-cli-annotate-command-seeforce-mcp-server",
                     "destinationId": "seeforce-mcp-server",
                     "description": "names the server the assistant fetches the annotation guide from",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -391,6 +421,7 @@
                     "id": "rel-seeforce-seeforce-cli-delta-command-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
                     "description": "- compares the two snapshots\n- finds the catalogue features that lost an element",
+                    "short_desc": "compares snapshots, finds broken features",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -398,6 +429,7 @@
                     "id": "rel-seeforce-seeforce-cli-delta-command-seeforce-annotation-parser-feature-catalogue",
                     "destinationId": "seeforce-annotation-parser-feature-catalogue",
                     "description": "loads and validates the working tree's catalogue against the head snapshot",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -416,6 +448,7 @@
                     "id": "rel-seeforce-seeforce-cli-features-command-seeforce-annotation-parser-feature-catalogue",
                     "destinationId": "seeforce-annotation-parser-feature-catalogue",
                     "description": "loads and validates the catalogue against the scanned workspace",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -434,6 +467,7 @@
                     "id": "rel-seeforce-seeforce-cli-login-command-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "- runs the OAuth exchange\n- returns the API token",
+                    "short_desc": "exchanges OAuth code for the API token",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -452,6 +486,7 @@
                     "id": "rel-seeforce-seeforce-cli-mcp-install-command-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "- fetches the project id\n- validates the auth token",
+                    "short_desc": "fetches project id, validates token",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -470,6 +505,7 @@
                     "id": "rel-seeforce-seeforce-cli-scan-command-seeforce-annotation-parser-annotation-scanner",
                     "destinationId": "seeforce-annotation-parser-annotation-scanner",
                     "description": "parses the annotation blocks out of the repo's source files",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -477,6 +513,7 @@
                     "id": "rel-seeforce-seeforce-cli-scan-command-seeforce-annotation-parser-workspace-builder",
                     "destinationId": "seeforce-annotation-parser-workspace-builder",
                     "description": "- resolves the references between parsed elements\n- assembles the workspace",
+                    "short_desc": "resolves and assembles the workspace",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -497,6 +534,7 @@
                 "id": "rel-seeforce-mcp-server-seeforce-backend",
                 "destinationId": "seeforce-backend",
                 "description": "fetches workspace architecture data",
+                "short_desc": "",
                 "technology": "REST",
                 "tags": "Relationship"
               }
@@ -515,6 +553,7 @@
                     "id": "rel-seeforce-mcp-server-workspace-api-client-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "fetches workspace architecture data",
+                    "short_desc": "",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -543,6 +582,7 @@
                     "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "fetches workspace architecture data",
+                    "short_desc": "",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -561,6 +601,7 @@
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "fetches the workspace to resolve candidate edges to known components",
+                    "short_desc": "",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
@@ -568,6 +609,7 @@
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-annotation-parser-static-facts-extractor",
                     "destinationId": "seeforce-annotation-parser-static-facts-extractor",
                     "description": "extracts imports, definitions, and docstrings for the requested files",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -575,6 +617,7 @@
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-mcp-server-ownership-inference",
                     "destinationId": "seeforce-mcp-server-ownership-inference",
                     "description": "resolves each candidate edge endpoint's owning component",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -595,6 +638,7 @@
                 "id": "rel-seeforce-frontend-seeforce-backend",
                 "destinationId": "seeforce-backend",
                 "description": "- fetches graph data\n- manages the user session",
+                "short_desc": "fetches graph data, manages session",
                 "technology": "REST",
                 "tags": "Relationship"
               }
@@ -613,6 +657,7 @@
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-node-manager",
                     "destinationId": "seeforce-frontend-node-manager",
                     "description": "Renders C4 element nodes in the ReactFlow canvas",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -620,6 +665,7 @@
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-edge-manager",
                     "destinationId": "seeforce-frontend-edge-manager",
                     "description": "Renders directional relationship edges between nodes",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -627,6 +673,7 @@
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-overlay-editor",
                     "destinationId": "seeforce-frontend-overlay-editor",
                     "description": "opens the detail/edit panel for the clicked node or edge",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -634,6 +681,7 @@
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-comparison-selector",
                     "destinationId": "seeforce-frontend-comparison-selector",
                     "description": "mounts the control that picks which merge request the canvas is showing",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -641,6 +689,7 @@
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-change-list",
                     "destinationId": "seeforce-frontend-change-list",
                     "description": "mounts the comparison's change list and selects the node an item names",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -669,6 +718,7 @@
                     "id": "rel-seeforce-frontend-comparison-selector-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "lists the linked repository's open pull requests",
+                    "short_desc": "",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -687,6 +737,7 @@
                     "id": "rel-seeforce-frontend-overlay-editor-seeforce-frontend-lexicon",
                     "destinationId": "seeforce-frontend-lexicon",
                     "description": "reads the shared glossary via context to find terms relevant to the node being edited",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -694,6 +745,7 @@
                     "id": "rel-seeforce-frontend-overlay-editor-seeforce-backend-edit-api",
                     "destinationId": "seeforce-backend-edit-api",
                     "description": "- saves node/edge overlay edits\n- saves lexicon entry changes",
+                    "short_desc": "saves overlay and lexicon edits",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -712,6 +764,7 @@
                     "id": "rel-seeforce-frontend-edge-manager-seeforce-frontend-lexicon",
                     "destinationId": "seeforce-frontend-lexicon",
                     "description": "highlights and links glossary terms found in edge relationship labels",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -730,6 +783,7 @@
                     "id": "rel-seeforce-frontend-node-manager-seeforce-frontend-lexicon",
                     "destinationId": "seeforce-frontend-lexicon",
                     "description": "highlights and links glossary terms found in node description",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -748,6 +802,7 @@
                     "id": "rel-seeforce-frontend-auth-context-seeforce-backend-auth-api",
                     "destinationId": "seeforce-backend-auth-api",
                     "description": "- checks the session\n- signs the user out",
+                    "short_desc": "checks session, signs out",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -766,6 +821,7 @@
                     "id": "rel-seeforce-frontend-lexicon-seeforce-backend-edit-api",
                     "destinationId": "seeforce-backend-edit-api",
                     "description": "- fetches lexicon entries\n- saves lexicon entry changes",
+                    "short_desc": "reads and saves lexicon entries",
                     "technology": "REST",
                     "tags": "Relationship"
                   },
@@ -773,6 +829,7 @@
                     "id": "rel-seeforce-frontend-lexicon-seeforce-frontend-architecture-visualizer",
                     "destinationId": "seeforce-frontend-architecture-visualizer",
                     "description": "injects lexicon context into the ReactFlow node tree",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
@@ -791,6 +848,7 @@
                     "id": "rel-seeforce-frontend-project-workspace-seeforce-frontend-architecture-visualizer",
                     "destinationId": "seeforce-frontend-architecture-visualizer",
                     "description": "embeds the graph canvas for the level currently selected in the view store",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -798,6 +856,7 @@
                     "id": "rel-seeforce-frontend-project-workspace-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "- reads the repo and branch for source links\n- mints, reads and revokes the share token",
+                    "short_desc": "reads source links, manages share token",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -816,6 +875,7 @@
                     "id": "rel-seeforce-frontend-project-library-seeforce-frontend-auth-context",
                     "destinationId": "seeforce-frontend-auth-context",
                     "description": "- reads the signed-in user\n- reads the GitHub App installation status",
+                    "short_desc": "reads user and GitHub App status",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -823,6 +883,7 @@
                     "id": "rel-seeforce-frontend-project-library-seeforce-backend",
                     "destinationId": "seeforce-backend",
                     "description": "- lists projects\n- creates projects from an upload or a GitHub import\n- renames and deletes projects\n- re-syncs and links projects to repos",
+                    "short_desc": "lists, creates and manages projects",
                     "technology": "REST",
                     "tags": "Relationship"
                   }
@@ -883,6 +944,7 @@
                     "id": "rel-seeforce-annotation-parser-feature-catalogue-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
                     "description": "flattens a workspace snapshot into the element paths the catalogue resolves against",
+                    "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }

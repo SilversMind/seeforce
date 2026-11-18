@@ -1,5 +1,5 @@
 """Descriptions are `- ` bullet lists, written either as a literal block or as a YAML list."""
-from c4parser.builder import build, find_unreadable_descriptions, merge_flows
+from c4parser.builder import build, edge_label, find_unreadable_descriptions, merge_flows
 from c4parser.scanner import format_description, scan
 
 SYSTEM = '"""\n@c1:system\nname: S\nshort_desc: A system\ndescription: |\n  - Does one thing\n"""\n'
@@ -58,10 +58,20 @@ def test_long_edge_description_is_flagged(tmp_path):
 
 
 def test_list_edge_becomes_bullets(tmp_path):
-    ws = _workspace(tmp_path, NESTED_LIST, uses='- E:\n  - "stores records"\n  - "reads records"\n')
+    ws = _workspace(tmp_path, NESTED_LIST, uses='- E:\n  - "stores records"\n  - "reads records"\n  short_desc: "stores and reads records"\n')
     rel = _container(ws)["relationships"][0]
     assert rel["description"] == "- stores records\n- reads records"
+    assert edge_label(rel) == "stores and reads records"
     assert find_unreadable_descriptions(ws) == []
+
+
+def test_multi_action_edge_without_short_desc_is_flagged(tmp_path):
+    ws = _workspace(tmp_path, NESTED_LIST, uses='- E:\n  - "stores records"\n  - "reads records"\n')
+    assert any("multi-action edge with no short_desc" in w for w in find_unreadable_descriptions(ws))
+
+
+def test_single_action_edge_label_is_its_phrase():
+    assert edge_label({"description": "stores records", "short_desc": ""}) == "stores records"
 
 
 def test_semicolon_edge_is_flagged(tmp_path):

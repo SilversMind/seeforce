@@ -14,9 +14,11 @@ uses:
     - Annotation Parser:
       - "builds workspace.json on `seeforce scan`"
       - "compares snapshots on `seeforce delta`"
+      short_desc: "builds and compares workspaces"
     - Backend:
       - "authenticates the user"
       - "fetches the project id the MCP server registers against"
+      short_desc: "authenticates, fetches project id"
       technology: REST
 """
 import click

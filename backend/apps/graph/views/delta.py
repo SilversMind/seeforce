@@ -14,9 +14,11 @@ uses:
 - GitHub Import:
   - "resolves the installation token"
   - "reads workspace.json at a commit"
+  short_desc: "reads workspace.json at a commit"
 - GitHub:
   - "lists the repository's open pull requests"
   - "reads one pull request by number"
+  short_desc: "lists and reads pull requests"
   technology: HTTPS
 - Delta Reporter: "runs the comparison between the two commits' workspace snapshots"
 - Delta Presenter: "projects that comparison onto the rendered view it returns"

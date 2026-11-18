@@ -13,6 +13,7 @@ uses:
 - Workspace Builder:
   - "resolves the references between parsed elements"
   - "assembles the workspace"
+  short_desc: "resolves and assembles the workspace"
 """
 import json
 import sys

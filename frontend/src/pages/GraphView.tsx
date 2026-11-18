@@ -14,6 +14,7 @@ uses:
 - Backend:
   - "reads the repo and branch for source links"
   - "mints, reads and revokes the share token"
+  short_desc: "reads source links, manages share token"
   technology: REST
 */
 import { useEffect, useState } from "react";

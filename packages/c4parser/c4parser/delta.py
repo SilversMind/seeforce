@@ -121,6 +121,7 @@ class Edge:
     source_path: str
     dest_path: str
     description: str = ""
+    short_desc: str = ""
     technology: str = ""
 
 
@@ -178,6 +179,7 @@ def _edges(elements: list[Element], canon: dict[str, str]) -> dict[tuple[str, st
                 source_path=src,
                 dest_path=dest,
                 description=rel.get("description", "") or "",
+                short_desc=rel.get("short_desc", "") or "",
                 technology=rel.get("technology", "") or "",
             )
     return out
@@ -208,7 +210,7 @@ def diff(base_ws: dict, head_ws: dict) -> Delta:
             continue
         fields = [
             FieldChange(name, getattr(base_edge, name), getattr(head_edge, name))
-            for name in ("description", "technology")
+            for name in ("description", "short_desc", "technology")
             if getattr(base_edge, name) != getattr(head_edge, name)
         ]
         if fields:
