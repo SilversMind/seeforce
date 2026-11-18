@@ -118,7 +118,7 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
                   title={`${actionCount} actions — open the relation to see them all`}
                   style={{ flexShrink: 0, fontSize: 9, fontWeight: 600, padding: "0 4px", borderRadius: 8, border: "1px solid var(--c4-edge-stroke)" }}
                 >
-                  +{actionCount}
+                  {actionCount}
                 </span>
               )}
             </div>
