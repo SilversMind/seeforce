@@ -13,12 +13,13 @@ uses:
 - Graph transformer:
   - "renders the head workspace view"
   - "builds the ghost nodes"
+  short_desc: "renders the view, builds ghost nodes"
 - Delta Reporter: "reads the added, removed and changed elements and relations"
 """
 from c4parser.delta import Delta, Element, FieldChange
 from c4parser.delta import _render_field as _render_delta_field
 
-from .transformers import _element_index, _node, to_react_flow
+from .transformers import _element_index, _node, edge_canvas_fields, to_react_flow
 
 _LEVEL_BY_KIND = {"person": "C1", "system": "C1", "container": "C2", "component": "C3"}
 # Ancestor kinds, immediate parent first, matching the ancestor paths element_paths derives.
@@ -191,6 +192,7 @@ def _ghost_edges(delta: Delta, node_paths: dict[str, str]) -> list[dict]:
             "label": edge.description, "type": "relation",
             "data": {
                 "overlay_label": "", "has_overlay": False, "technology": edge.technology,
+                **edge_canvas_fields({"description": edge.description, "short_desc": edge.short_desc}),
                 "delta": {"state": "removed", "fields": [], "ghost": True},
             },
         })

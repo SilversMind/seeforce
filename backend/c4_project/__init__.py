@@ -22,6 +22,7 @@ uses:
   - "imports workspaces"
   - "explores and edits diagrams"
   - "opens share links"
+  short_desc: "imports, explores and shares diagrams"
   technology: HTTPS
 """
 
@@ -49,6 +50,7 @@ uses:
       - "signs users in with OAuth"
       - "fetches repo content with installation tokens"
       - "lists and reads pull requests for the delta view"
+      short_desc: "signs users in, fetches repos and PRs"
       technology: HTTPS
     - Annotation Parser: "builds workspace.json on manage.py scan"
 """

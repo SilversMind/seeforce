@@ -11,6 +11,7 @@ uses:
 - Workspace Builder:
   - "resolves relationships"
   - "assembles the parsed elements into workspace.json"
+  short_desc: "resolves and assembles workspace.json"
 - Database: "creates or updates the ProjectMap row for the scanned project"
 """
 import json

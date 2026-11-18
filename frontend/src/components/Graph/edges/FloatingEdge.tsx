@@ -14,7 +14,6 @@ import { useStore, getBezierPath, Position, EdgeLabelRenderer, BaseEdge, type Ed
 import type { InternalNode } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "../nodes/DescriptionWithHighlights";
-import { parseBullets } from "../../../lib/description";
 
 function getCenter(node: InternalNode) {
   const pos = node.internals.positionAbsolute;
@@ -61,14 +60,13 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
     targetX: tgt.x, targetY: tgt.y, targetPosition: tgt.position,
   });
 
-  const overlayLabel = (data as { overlay_label?: string } | undefined)?.overlay_label ?? "";
-  const baseLabel = mode === "enriched" ? (overlayLabel || (label as string)) : (label as string);
+  const edgeData = data as { overlay_label?: string; short_desc?: string; action_count?: number } | undefined;
+  const overlayLabel = edgeData?.overlay_label ?? "";
+  const shortLabel = edgeData?.short_desc || (label as string);
+  const displayLabel = mode === "enriched" ? (overlayLabel || shortLabel) : shortLabel;
+  const actionCount = edgeData?.action_count ?? 0;
   const delta = (data as { delta?: { state: string } } | undefined)?.delta;
   const changed = delta !== undefined && delta.state !== "unchanged";
-  // The mark carries the state without colour, the way a node's badge does.
-  const mark = { added: "+", modified: "~", removed: "−" }[delta?.state ?? ""] ?? "";
-  const flows = baseLabel ? parseBullets(baseLabel) : null;
-  const displayLabel = changed ? `${mark} ${baseLabel}`.trim() : baseLabel;
   const edgeStyle = {
     stroke: changed ? `var(--c4-delta-${delta!.state})` : "var(--c4-edge-stroke)",
     strokeWidth: changed ? 2.5 : 1.5,
@@ -107,34 +105,23 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               opacity: hovered || selected || changed ? 1 : 0,
               pointerEvents: hovered || selected ? "all" : "none",
-              /* Parallel relations merge into one label, so a changed edge's always-on
-                 label is capped to two lines until it is hovered or selected. */
-              maxWidth: hovered || selected ? undefined : 260,
-              overflow: hovered || selected ? undefined : "hidden",
-              display: hovered || selected ? undefined : "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: hovered || selected ? undefined : 2,
+              maxWidth: 260,
             }}
           >
-            {flows ? (
-              <div style={{ fontSize: 11, color: "var(--c4-edge-label-text)", padding: "1px 4px" }}>
-                {changed && <span>{mark} </span>}
-                <ul style={{ margin: 0, paddingLeft: 14 }}>
-                  {flows.map((f, i) => (
-                    <li key={i}><DescriptionWithHighlights text={f.text} /></li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--c4-edge-label-text)", padding: "1px 4px" }}>
               <DescriptionWithHighlights
                 text={displayLabel}
-                style={{
-                  fontSize: 11,
-                  color: "var(--c4-edge-label-text)",
-                  padding: "1px 4px",
-                }}
+                style={hovered || selected ? undefined : { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
               />
-            )}
+              {actionCount > 1 && (
+                <span
+                  title={`${actionCount} actions — open the relation to see them all`}
+                  style={{ flexShrink: 0, fontSize: 9, fontWeight: 600, padding: "0 4px", borderRadius: 8, border: "1px solid var(--c4-edge-stroke)" }}
+                >
+                  +{actionCount}
+                </span>
+              )}
+            </div>
           </div>
         </EdgeLabelRenderer>
       )}

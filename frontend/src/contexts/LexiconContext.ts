@@ -11,6 +11,7 @@ uses:
 - Edit API:
   - "fetches lexicon entries"
   - "saves lexicon entry changes"
+  short_desc: "reads and saves lexicon entries"
   technology: REST
 - Architecture Visualizer: "injects lexicon context into the ReactFlow node tree"
 */

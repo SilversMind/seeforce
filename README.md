@@ -72,6 +72,7 @@ uses:
   - Database:
     - "reads user records"
     - "stores session tokens"
+    short_desc: "reads users, stores sessions"
     technology: PostgreSQL
 """
 ```

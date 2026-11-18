@@ -14,6 +14,7 @@ uses:
     - Backend:
       - "fetches the project id"
       - "validates the auth token"
+      short_desc: "fetches project id, validates token"
       technology: REST
 """
 import json

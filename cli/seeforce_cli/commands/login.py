@@ -11,6 +11,7 @@ uses:
 - Backend:
   - "runs the OAuth exchange"
   - "returns the API token"
+  short_desc: "exchanges OAuth code for the API token"
   technology: REST
 """
 import http.server

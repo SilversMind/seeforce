@@ -13,11 +13,13 @@ short_desc: Parses C4 annotations from source files into workspace.json
 """
 from .builder import (
     build,
+    edge_label,
     find_empty_containers,
     find_long_short_descriptions,
     find_orphans,
     find_unreadable_descriptions,
     merge_flows,
+    merge_labels,
     split_flows,
 )
 from .delta import (
@@ -58,6 +60,7 @@ __all__ = [
     "build",
     "diff",
     "dump_catalogue",
+    "edge_label",
     "element_index",
     "export_workspace",
     "find_empty_containers",
@@ -68,6 +71,7 @@ __all__ = [
     "format_description",
     "load_catalogue",
     "merge_flows",
+    "merge_labels",
     "render_broken_features",
     "render_markdown",
     "review_flags",

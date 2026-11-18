@@ -10,6 +10,7 @@ uses:
   - Auth API:
     - "checks the session"
     - "signs the user out"
+    short_desc: "checks session, signs out"
     technology: REST
 */
 

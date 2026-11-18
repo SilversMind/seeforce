@@ -13,6 +13,7 @@ uses:
   - Backend:
     - "fetches graph data"
     - "manages the user session"
+    short_desc: "fetches graph data, manages session"
     technology: REST
 */
 import { StrictMode } from "react";

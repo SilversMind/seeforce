@@ -10,7 +10,7 @@ short_desc: Converts workspace.json into ReactFlow nodes and edges per view
 uses:
 - Workspace Builder: "merges the labels of parallel edges into one list of flows"
 """
-from c4parser import merge_flows
+from c4parser import edge_label, merge_flows, merge_labels, split_flows
 
 _GRID_COLS = 4
 _GRID_X = 300
@@ -83,6 +83,11 @@ def _layout(nodes: list[dict]) -> list[dict]:
     return nodes
 
 
+def edge_canvas_fields(rel: dict) -> dict:
+    """Return the canvas label of a relation and the number of actions it carries."""
+    return {"short_desc": edge_label(rel), "action_count": len(split_flows(rel.get("description", "")))}
+
+
 def _edge(
     rel: dict,
     source_id: str,
@@ -102,6 +107,7 @@ def _edge(
             "overlay_label": ov.get("label", "") if ov else "",
             "has_overlay": bool(ov and ov.get("label")),
             "technology": rel.get("technology", ""),
+            **edge_canvas_fields(rel),
         },
     }
 
@@ -121,6 +127,10 @@ def _merge_parallel_edges(edges: list[dict]) -> list[dict]:
             labels = [label for label in (existing.get("label", ""), edge.get("label", "")) if label]
             if labels:
                 existing["label"] = merge_flows(labels)
+                existing["data"]["action_count"] = len(split_flows(existing["label"]))
+            existing["data"]["short_desc"] = merge_labels(
+                [existing["data"].get("short_desc", ""), edge.get("data", {}).get("short_desc", "")]
+            )
             new_tech = edge.get("data", {}).get("technology", "")
             existing_tech = existing.get("data", {}).get("technology", "")
             if new_tech and new_tech not in existing_tech:
