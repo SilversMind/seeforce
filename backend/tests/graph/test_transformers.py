@@ -194,3 +194,20 @@ def test_c1_view_includes_system_relationship_edges():
         e["source"] == "shop" and e["target"] == "kafka-order-events"
         for e in result["edges"]
     )
+
+
+def test_c3_nodes_are_sized_by_lines_of_code_on_a_log_scale():
+    import copy
+    ws = copy.deepcopy(WORKSPACE)
+    order, payment = ws["model"]["softwareSystems"][0]["containers"][0]["components"]
+    order["loc"], payment["loc"] = 10, 1000
+    result = to_react_flow(ws, level="C3", system=None, container="shop-api")
+    nodes = {n["id"]: n["data"] for n in result["nodes"]}
+    assert nodes["shop-api-order"]["size"] == 0.0
+    assert nodes["shop-api-payment"]["size"] == 1.0
+    assert nodes["shop-api-payment"]["loc"] == 1000
+
+
+def test_nodes_without_lines_of_code_get_no_size():
+    result = to_react_flow(WORKSPACE, level="C3", system=None, container="shop-api")
+    assert all("size" not in n["data"] for n in result["nodes"])

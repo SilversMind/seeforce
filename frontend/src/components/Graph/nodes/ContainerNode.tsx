@@ -2,6 +2,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 import { cardText } from "../../../lib/description";
+import { locTitle, nodeScale } from "../../../lib/nodeSize";
 
 export function ContainerNode({ data }: NodeProps) {
   const mode = useGraphMode();
@@ -9,11 +10,12 @@ export function ContainerNode({ data }: NodeProps) {
   const desc = cardText(data, mode);
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
   const nav = data.nav as { systemName?: string } | undefined;
+  const scale = nodeScale(data);
 
   return (
     <div
-      title={nav ? `Lives in ${nav.systemName} — double-click to view it there` : undefined}
-      style={{ padding: 16, background: "var(--c4-container-bg)", border: nav ? "2px dashed var(--c4-container-border)" : "2px solid var(--c4-container-border)", borderRadius: 8, minWidth: 160, maxWidth: 520, color: "var(--c4-container-text)", cursor: nav ? "pointer" : undefined }}
+      title={nav ? `Lives in ${nav.systemName} — double-click to view it there` : locTitle(data)}
+      style={{ padding: 16 * scale, background: "var(--c4-container-bg)", border: nav ? "2px dashed var(--c4-container-border)" : "2px solid var(--c4-container-border)", borderRadius: 8, minWidth: 160 * scale, maxWidth: 520, color: "var(--c4-container-text)", cursor: nav ? "pointer" : undefined }}
     >
       <Handle id="top-t" type="target" position={Position.Top} />
       <Handle id="top-s" type="source" position={Position.Top} />
@@ -23,7 +25,7 @@ export function ContainerNode({ data }: NodeProps) {
       <Handle id="left-s" type="source" position={Position.Left} />
       <Handle id="right-t" type="target" position={Position.Right} />
       <Handle id="right-s" type="source" position={Position.Right} />
-      <div style={{ fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ fontWeight: 700, fontSize: Math.round(14 * scale), display: "flex", alignItems: "center", gap: 4 }}>
         {label}
         {hasOverlay && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c4-container-border)", flexShrink: 0 }} />}
       </div>
