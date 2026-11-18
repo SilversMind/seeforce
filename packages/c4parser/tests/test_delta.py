@@ -318,12 +318,15 @@ def test_render_shows_a_short_field_before_and_after():
     assert "technology: REST → gRPC" in render_markdown(delta)
 
 
-def test_render_names_a_long_field_without_quoting_it():
-    long_before = "x" * 90
-    delta = diff(_ws_component("API", description=long_before), _ws_component("API", description="y" * 90))
-    out = render_markdown(delta)
-    assert "description" in out
-    assert long_before not in out
+def test_render_lists_each_changed_capability():
+    before = "- Draws edges between nodes\n- Attaches edges to borders\n- Shows a tooltip"
+    after = "- Draws edges between nodes\n- Attaches each edge to borders\n- Thickens an edge with its actions"
+    out = render_markdown(diff(_ws_component("API", description=before), _ws_component("API", description=after)))
+    assert "~ API (Backend) — capabilities" in out
+    assert '  ~ capability: Attaches each edge to borders (was "Attaches edges to borders")' in out
+    assert "  − capability: Shows a tooltip" in out
+    assert "  + capability: Thickens an edge with its actions" in out
+    assert "Draws edges between nodes" not in out
 
 
 def test_render_phrases_a_name_change_as_a_rename():

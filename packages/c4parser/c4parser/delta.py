@@ -7,12 +7,15 @@ description: |
   - Compares two workspace.json snapshots at the architecture level
   - Pairs elements by kind and source file, so a rename reads as a rename
   - Pairs the leftovers by kind and name, so a moved file reads as a move
-  - Renders the delta as markdown
+  - Renders the delta as markdown, one row per changed capability or action
   - Reports catalogue features that lost an element
 short_desc: Compares two workspace snapshots into an architecture delta
+uses:
+- Capabilities: "diffs a changed description bullet by bullet"
 """
 from dataclasses import dataclass, field
 
+from .capabilities import changed_capabilities, diff_capabilities
 from .exceptions import C4ValidationError
 
 COMPARED_FIELDS = ("name", "description", "short_desc", "technology", "tags", "source_file")
@@ -253,6 +256,29 @@ _KIND_HEADINGS = (
 )
 
 
+_CAPABILITY_MARKS = {"added": "+", "removed": "−", "reworded": "~"}
+
+
+def _render_capabilities(change: FieldChange, noun: str) -> list[str]:
+    """One indented row per bullet that was added, removed or reworded."""
+    rows = []
+    for status, text, before in changed_capabilities(diff_capabilities(change.before, change.after)):
+        was = f' (was "{before}")' if before else ""
+        rows.append(f"  {_CAPABILITY_MARKS[status]} {noun}: {text}{was}")
+    return rows
+
+
+_PLURALS = {"capability": "capabilities", "action": "actions"}
+
+
+def _change_rows(head: str, fields: list[FieldChange], noun: str) -> list[str]:
+    """Render a change as its head row, then the bullet rows of its description."""
+    others = [f for f in fields if f.field != "description"]
+    desc = [f for f in fields if f.field == "description"]
+    summary = "; ".join([_render_field(f) for f in others] + [_PLURALS[noun] for _ in desc])
+    return [f"~ {head} — {summary}", *(row for f in desc for row in _render_capabilities(f, noun))]
+
+
 def _render_field(change: FieldChange) -> str:
     if change.field == "name":
         return f'renamed from "{change.before}"'
@@ -286,7 +312,7 @@ def render_markdown(delta: Delta) -> str:
                 rows.append(f"− {e.path}{f' — {e.source_file}' if e.source_file else ''}")
         for c in delta.changed:
             if c.kind == kind:
-                rows.append(f"~ {c.path} — {'; '.join(_render_field(f) for f in c.fields)}")
+                rows += _change_rows(c.path, c.fields, "capability")
         if rows:
             lines += ["", f"### {heading}", *rows]
 
@@ -296,7 +322,7 @@ def render_markdown(delta: Delta) -> str:
     for e in delta.edges_removed:
         edge_rows.append(f'− {e.source_path} → {e.dest_path}: "{e.description}"')
     for c in delta.edges_changed:
-        edge_rows.append(f"~ {c.source_path} → {c.dest_path}: {'; '.join(_render_field(f) for f in c.fields)}")
+        edge_rows += _change_rows(f"{c.source_path} → {c.dest_path}", c.fields, "action")
     if edge_rows:
         lines += ["", "### Relationships", *edge_rows]
 

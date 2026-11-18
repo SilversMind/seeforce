@@ -22,6 +22,12 @@ from .builder import (
     merge_labels,
     split_flows,
 )
+from .capabilities import (
+    changed_capabilities,
+    count_capabilities,
+    diff_capabilities,
+    parse_capabilities,
+)
 from .delta import (
     Delta,
     broken_features,
@@ -58,7 +64,10 @@ __all__ = [
     "Feature",
     "broken_features",
     "build",
+    "changed_capabilities",
+    "count_capabilities",
     "diff",
+    "diff_capabilities",
     "dump_catalogue",
     "edge_label",
     "element_index",
@@ -72,6 +81,7 @@ __all__ = [
     "load_catalogue",
     "merge_flows",
     "merge_labels",
+    "parse_capabilities",
     "render_broken_features",
     "render_markdown",
     "review_flags",

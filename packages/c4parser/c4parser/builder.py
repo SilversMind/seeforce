@@ -10,9 +10,12 @@ description: |
     - Orphan elements and containers with no component
     - Unreadable descriptions
 short_desc: Resolves relationships into workspace.json; the structural drift gate
+uses:
+- Capabilities: "parses each node's description into its capability tree"
 """
 import re
 
+from .capabilities import parse_capabilities
 from .exceptions import C4ValidationError
 from .scanner import format_description
 from .types import C4Component, C4Container, C4Element, C4Lexicon, C4Person, C4System
@@ -456,6 +459,7 @@ def build(elements: list[C4Element]) -> dict:
                     "name": comp.name,
                     "description": comp.description,
                     "short_desc": comp.short_desc,
+                    "capabilities": parse_capabilities(comp.description),
                     "technology": comp.technology,
                     "source_file": comp.source_file,
                     "tags": "Element,Component",
@@ -467,6 +471,7 @@ def build(elements: list[C4Element]) -> dict:
                 "name": cont.name,
                 "description": cont.description,
                 "short_desc": cont.short_desc,
+                "capabilities": parse_capabilities(cont.description),
                 "technology": cont.technology,
                 "source_file": cont.source_file,
                 "tags": "Element,Container",
@@ -485,6 +490,7 @@ def build(elements: list[C4Element]) -> dict:
             "name": sys.name,
             "description": sys.description,
             "short_desc": sys.short_desc,
+            "capabilities": parse_capabilities(sys.description),
             "tags": "Element,Software System" + (",External" if sys.external else ""),
             "relationships": [],
             "containers": sys_containers,
@@ -516,6 +522,7 @@ def build(elements: list[C4Element]) -> dict:
             "name": name,
             "description": person.description,
             "short_desc": person.short_desc,
+            "capabilities": parse_capabilities(person.description),
             "source_file": person.source_file,
             "tags": "Element,Person",
             "relationships": [

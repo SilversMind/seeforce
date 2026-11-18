@@ -127,6 +127,7 @@ Rules for the list:
 - **No mechanism**: algorithms, call sequences, function names belong in the code; the source-file link is there for the *how*.
 - **No restated metadata**: the `technology:` field and the element's name already say what kind of thing it is.
 - **3–6 top-level bullets.** More means the element is doing too much and should probably be split into C3 components.
+- **Each leaf bullet is a capability.** A parent that only groups is not one; its children are. The comparison view diffs capabilities one by one (added, removed, reworded), so when the code changes, edit the one bullet it touches and leave the others word for word.
 
 A YAML list (`description:` followed by `- item` lines, nested via `item:` keys) is accepted too and renders the same, but the literal block (`|`) is safer: a bullet starting with a quote or containing `: ` cannot break the YAML.
 

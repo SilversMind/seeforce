@@ -21,6 +21,7 @@ import { mutate } from "swr";
 import { type RFNode, type RFEdge, type DeltaElementState, type DeltaRelationState, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
 import { useLexicon } from "../../contexts/LexiconContext";
 import { useViewStore } from "../../store/viewStore";
+import { CapabilityDiff } from "./CapabilityDiff";
 import { DescriptionList } from "./DescriptionList";
 
 type SidebarTarget =
@@ -562,11 +563,15 @@ function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState
         <Section label="Fields">
           {delta.fields.map((f) => f.field === "description" ? (
             <div key={f.field} style={{ fontSize: 12, marginTop: 2, display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ color: "var(--c4-sidebar-muted)" }}>{f.field}:</span>
-              <div style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
-                <DescriptionList text={f.before || "—"} />
-              </div>
-              <DescriptionList text={f.after || "—"} />
+              <span style={{ color: "var(--c4-sidebar-muted)" }}>{"self_changed" in delta ? "capabilities" : "actions"}:</span>
+              {f.capabilities ? <CapabilityDiff items={f.capabilities} /> : (
+                <>
+                  <div style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
+                    <DescriptionList text={f.before || "—"} />
+                  </div>
+                  <DescriptionList text={f.after || "—"} />
+                </>
+              )}
             </div>
           ) : (
             <div key={f.field} style={{ fontSize: 12, marginTop: 2 }}>

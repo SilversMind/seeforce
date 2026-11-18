@@ -8,6 +8,20 @@
         "name": "Developer",
         "description": "- Annotates their codebase and scans it into a workspace\n- Imports it into SeeForce, then explores and enriches the diagram\n- Opens share links to other people's diagrams, read-only",
         "short_desc": "Maps a codebase, then explores and enriches the diagram",
+        "capabilities": [
+          {
+            "text": "Annotates their codebase and scans it into a workspace",
+            "children": []
+          },
+          {
+            "text": "Imports it into SeeForce, then explores and enriches the diagram",
+            "children": []
+          },
+          {
+            "text": "Opens share links to other people's diagrams, read-only",
+            "children": []
+          }
+        ],
         "source_file": "backend/c4_project/__init__.py",
         "tags": "Element,Person",
         "relationships": [
@@ -28,6 +42,20 @@
         "name": "SeeForce",
         "description": "- Turns C4 annotations in a codebase's source files into an interactive architecture diagram\n- Shows what a pull request changes in that architecture\n- Answers \"what does this codebase actually do, and how do its pieces talk to each other?\"",
         "short_desc": "Turns C4 annotations in your code into an interactive architecture diagram",
+        "capabilities": [
+          {
+            "text": "Turns C4 annotations in a codebase's source files into an interactive architecture diagram",
+            "children": []
+          },
+          {
+            "text": "Shows what a pull request changes in that architecture",
+            "children": []
+          },
+          {
+            "text": "Answers \"what does this codebase actually do, and how do its pieces talk to each other?\"",
+            "children": []
+          }
+        ],
         "tags": "Element,Software System",
         "relationships": [
           {
@@ -44,6 +72,24 @@
             "name": "Database",
             "description": "- Stores projects and their workspace.json\n- Stores node/edge overlays and lexicon entries\n- Stores share tokens and project access\n- Stores users' GitHub App installations",
             "short_desc": "Stores projects, overlays, lexicon and access",
+            "capabilities": [
+              {
+                "text": "Stores projects and their workspace.json",
+                "children": []
+              },
+              {
+                "text": "Stores node/edge overlays and lexicon entries",
+                "children": []
+              },
+              {
+                "text": "Stores share tokens and project access",
+                "children": []
+              },
+              {
+                "text": "Stores users' GitHub App installations",
+                "children": []
+              }
+            ],
             "technology": "",
             "source_file": "backend/apps/graph/migrations/__init__.py",
             "tags": "Element,Container",
@@ -55,6 +101,54 @@
             "name": "Backend",
             "description": "- Serves the REST API for:\n  - Project CRUD\n  - Node/edge overlays\n  - Lexicon entries\n  - Share links\n  - Pull request architecture deltas\n  - GitHub:\n    - Import\n    - Sync\n    - Link\n- Persists data in the Database",
             "short_desc": "Serves the REST API behind the app and stores every project",
+            "capabilities": [
+              {
+                "text": "Serves the REST API for:",
+                "children": [
+                  {
+                    "text": "Project CRUD",
+                    "children": []
+                  },
+                  {
+                    "text": "Node/edge overlays",
+                    "children": []
+                  },
+                  {
+                    "text": "Lexicon entries",
+                    "children": []
+                  },
+                  {
+                    "text": "Share links",
+                    "children": []
+                  },
+                  {
+                    "text": "Pull request architecture deltas",
+                    "children": []
+                  },
+                  {
+                    "text": "GitHub:",
+                    "children": [
+                      {
+                        "text": "Import",
+                        "children": []
+                      },
+                      {
+                        "text": "Sync",
+                        "children": []
+                      },
+                      {
+                        "text": "Link",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "text": "Persists data in the Database",
+                "children": []
+              }
+            ],
             "technology": "Python Django",
             "source_file": "backend/c4_project/__init__.py",
             "tags": "Element,Container",
@@ -90,6 +184,24 @@
                 "name": "Delta Presenter",
                 "description": "- Marks each element and relation of a rendered view as added, removed, modified or unchanged\n- Rolls a component's change up to its container and system\n- Adds removed elements back as ghost nodes so they keep a position\n- Summarises every change of the comparison as one list",
                 "short_desc": "Decorates a rendered view with per-element comparison state",
+                "capabilities": [
+                  {
+                    "text": "Marks each element and relation of a rendered view as added, removed, modified or unchanged",
+                    "children": []
+                  },
+                  {
+                    "text": "Rolls a component's change up to its container and system",
+                    "children": []
+                  },
+                  {
+                    "text": "Adds removed elements back as ghost nodes so they keep a position",
+                    "children": []
+                  },
+                  {
+                    "text": "Summarises every change of the comparison as one list",
+                    "children": []
+                  }
+                ],
                 "technology": "Python",
                 "source_file": "backend/apps/graph/delta_presenter.py",
                 "tags": "Element,Component",
@@ -109,6 +221,14 @@
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-delta-presenter-seeforce-annotation-parser-capabilities",
+                    "destinationId": "seeforce-annotation-parser-capabilities",
+                    "description": "diffs a changed description bullet by bullet for the sidebar",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
                   }
                 ]
               },
@@ -117,6 +237,20 @@
                 "name": "GitHub App Token Manager",
                 "description": "- Signs a JWT with the GitHub App's private key\n- Exchanges it for a 1h installation access token\n- Caches each token for 50 minutes so a burst of calls mints once",
                 "short_desc": "Mints and caches short-lived GitHub App installation tokens",
+                "capabilities": [
+                  {
+                    "text": "Signs a JWT with the GitHub App's private key",
+                    "children": []
+                  },
+                  {
+                    "text": "Exchanges it for a 1h installation access token",
+                    "children": []
+                  },
+                  {
+                    "text": "Caches each token for 50 minutes so a burst of calls mints once",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/github_app.py",
                 "tags": "Element,Component",
@@ -136,6 +270,20 @@
                 "name": "Graph transformer",
                 "description": "- Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view\n- Applies the project's node and edge overlays\n- Adds placeholder nodes for relationship targets outside the view",
                 "short_desc": "Converts workspace.json into ReactFlow nodes and edges per view",
+                "capabilities": [
+                  {
+                    "text": "Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view",
+                    "children": []
+                  },
+                  {
+                    "text": "Applies the project's node and edge overlays",
+                    "children": []
+                  },
+                  {
+                    "text": "Adds placeholder nodes for relationship targets outside the view",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/transformers.py",
                 "tags": "Element,Component",
@@ -155,6 +303,16 @@
                 "name": "Local Scan Command",
                 "description": "- Runs `manage.py scan` on one or more local repo paths\n- Creates or updates the scanned project's ProjectMap",
                 "short_desc": "Scans local repo paths and upserts the resulting ProjectMap",
+                "capabilities": [
+                  {
+                    "text": "Runs `manage.py scan` on one or more local repo paths",
+                    "children": []
+                  },
+                  {
+                    "text": "Creates or updates the scanned project's ProjectMap",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/management/commands/scan.py",
                 "tags": "Element,Component",
@@ -190,6 +348,29 @@
                 "name": "Auth API",
                 "description": "- Serves the auth endpoints:\n  - /api/auth/me/ session check\n  - /api/auth/logout/\n- Reports whether the user has a GitHub App installation\n- Returns the GitHub App install/configure URL",
                 "short_desc": "Checks the session, logs out and reports GitHub App status",
+                "capabilities": [
+                  {
+                    "text": "Serves the auth endpoints:",
+                    "children": [
+                      {
+                        "text": "/api/auth/me/ session check",
+                        "children": []
+                      },
+                      {
+                        "text": "/api/auth/logout/",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Reports whether the user has a GitHub App installation",
+                    "children": []
+                  },
+                  {
+                    "text": "Returns the GitHub App install/configure URL",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/views/auth.py",
                 "tags": "Element,Component",
@@ -217,6 +398,28 @@
                 "name": "Delta View API",
                 "description": "- Lists the linked repository's open pull requests\n- Compares workspace.json at the two commits a pull request names\n- Returns the decorated C1/C2/C3 view of that comparison\n- Reads the repository with the requesting user's own installation token\n- Caches each commit's workspace.json in memory for a day, keyed by token",
                 "short_desc": "Serves open pull requests and the decorated delta view",
+                "capabilities": [
+                  {
+                    "text": "Lists the linked repository's open pull requests",
+                    "children": []
+                  },
+                  {
+                    "text": "Compares workspace.json at the two commits a pull request names",
+                    "children": []
+                  },
+                  {
+                    "text": "Returns the decorated C1/C2/C3 view of that comparison",
+                    "children": []
+                  },
+                  {
+                    "text": "Reads the repository with the requesting user's own installation token",
+                    "children": []
+                  },
+                  {
+                    "text": "Caches each commit's workspace.json in memory for a day, keyed by token",
+                    "children": []
+                  }
+                ],
                 "technology": "Django REST Framework",
                 "source_file": "backend/apps/graph/views/delta.py",
                 "tags": "Element,Component",
@@ -276,6 +479,20 @@
                 "name": "GitHub App Setup Endpoint",
                 "description": "- Receives GitHub's post-install and post-update redirect\n- Verifies the installation belongs to the logged-in user's GitHub account\n- Links the installation to that SeeForce user",
                 "short_desc": "Handles GitHub's post-install redirect and links the installation",
+                "capabilities": [
+                  {
+                    "text": "Receives GitHub's post-install and post-update redirect",
+                    "children": []
+                  },
+                  {
+                    "text": "Verifies the installation belongs to the logged-in user's GitHub account",
+                    "children": []
+                  },
+                  {
+                    "text": "Links the installation to that SeeForce user",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_app.py",
                 "tags": "Element,Component",
@@ -303,6 +520,24 @@
                 "name": "GitHub Import",
                 "description": "- Imports, re-syncs and links a project to a GitHub repository\n- Picks the user's installation matching the repo owner, falling back to public access\n- Stores the fetched .seeforce/workspace.json as a ProjectMap\n- Caches reads pinned to a commit for a day, keyed by token",
                 "short_desc": "Imports, re-syncs, and links project architecture from GitHub",
+                "capabilities": [
+                  {
+                    "text": "Imports, re-syncs and links a project to a GitHub repository",
+                    "children": []
+                  },
+                  {
+                    "text": "Picks the user's installation matching the repo owner, falling back to public access",
+                    "children": []
+                  },
+                  {
+                    "text": "Stores the fetched .seeforce/workspace.json as a ProjectMap",
+                    "children": []
+                  },
+                  {
+                    "text": "Caches reads pinned to a commit for a day, keyed by token",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
                 "tags": "Element,Component",
@@ -338,6 +573,33 @@
                 "name": "Edit API",
                 "description": "- Saves user edits on a project map:\n  - Node description overlays\n  - Edge label overlays\n  - Lexicon entries\n- Serves project CRUD\n- Serves the rendered graph for a given C4 level",
                 "short_desc": "Saves user edits and serves project CRUD and graph views",
+                "capabilities": [
+                  {
+                    "text": "Saves user edits on a project map:",
+                    "children": [
+                      {
+                        "text": "Node description overlays",
+                        "children": []
+                      },
+                      {
+                        "text": "Edge label overlays",
+                        "children": []
+                      },
+                      {
+                        "text": "Lexicon entries",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Serves project CRUD",
+                    "children": []
+                  },
+                  {
+                    "text": "Serves the rendered graph for a given C4 level",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "backend/apps/graph/views/graph.py",
                 "tags": "Element,Component",
@@ -367,6 +629,28 @@
             "name": "SeeForce CLI",
             "description": "- Logs in to SeeForce\n- Scans a repo's annotations into workspace.json\n- Compares workspaces across revisions and checks the feature catalogue\n- Starts an annotation pass in the user's AI assistant\n- Installs the MCP server and the drift-sync tooling (Stop hook, skill, CLAUDE.md rule)",
             "short_desc": "Logs in, scans repos and installs the drift-sync tooling",
+            "capabilities": [
+              {
+                "text": "Logs in to SeeForce",
+                "children": []
+              },
+              {
+                "text": "Scans a repo's annotations into workspace.json",
+                "children": []
+              },
+              {
+                "text": "Compares workspaces across revisions and checks the feature catalogue",
+                "children": []
+              },
+              {
+                "text": "Starts an annotation pass in the user's AI assistant",
+                "children": []
+              },
+              {
+                "text": "Installs the MCP server and the drift-sync tooling (Stop hook, skill, CLAUDE.md rule)",
+                "children": []
+              }
+            ],
             "technology": "Python / Click",
             "source_file": "cli/seeforce_cli/main.py",
             "tags": "Element,Container",
@@ -394,6 +678,16 @@
                 "name": "Annotate Command",
                 "description": "- Runs `seeforce annotate`\n- Prints how to start an annotation pass in the user's own coding assistant",
                 "short_desc": "Prints how to start an annotation pass in the user's AI assistant",
+                "capabilities": [
+                  {
+                    "text": "Runs `seeforce annotate`",
+                    "children": []
+                  },
+                  {
+                    "text": "Prints how to start an annotation pass in the user's own coding assistant",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/annotate.py",
                 "tags": "Element,Component",
@@ -413,6 +707,24 @@
                 "name": "Delta Command",
                 "description": "- Runs `seeforce delta` between two git revisions\n- Prints what changed in the architecture\n- Reports every catalogue feature that lost an element\n- Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise",
                 "short_desc": "Compares two revisions' workspaces and fails CI on a broken feature",
+                "capabilities": [
+                  {
+                    "text": "Runs `seeforce delta` between two git revisions",
+                    "children": []
+                  },
+                  {
+                    "text": "Prints what changed in the architecture",
+                    "children": []
+                  },
+                  {
+                    "text": "Reports every catalogue feature that lost an element",
+                    "children": []
+                  },
+                  {
+                    "text": "Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/delta.py",
                 "tags": "Element,Component",
@@ -440,6 +752,24 @@
                 "name": "Features Command",
                 "description": "- Runs `seeforce features`\n- Validates the catalogue against the working tree's model\n- Lists what the repo lets you do, capabilities and prerequisites apart\n- Exits 2 on a validation failure or a missing model",
                 "short_desc": "Validates the feature catalogue and lists what the repo lets you do",
+                "capabilities": [
+                  {
+                    "text": "Runs `seeforce features`",
+                    "children": []
+                  },
+                  {
+                    "text": "Validates the catalogue against the working tree's model",
+                    "children": []
+                  },
+                  {
+                    "text": "Lists what the repo lets you do, capabilities and prerequisites apart",
+                    "children": []
+                  },
+                  {
+                    "text": "Exits 2 on a validation failure or a missing model",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/features.py",
                 "tags": "Element,Component",
@@ -459,6 +789,20 @@
                 "name": "Login Command",
                 "description": "- Runs `seeforce login` through the GitHub OAuth flow\n- Receives the callback on a short-lived local server\n- Stores the API url and token in the user's config",
                 "short_desc": "Authenticates via GitHub OAuth and stores the API token locally",
+                "capabilities": [
+                  {
+                    "text": "Runs `seeforce login` through the GitHub OAuth flow",
+                    "children": []
+                  },
+                  {
+                    "text": "Receives the callback on a short-lived local server",
+                    "children": []
+                  },
+                  {
+                    "text": "Stores the API url and token in the user's config",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/login.py",
                 "tags": "Element,Component",
@@ -478,6 +822,33 @@
                 "name": "MCP Install Command",
                 "description": "- Registers the SeeForce MCP server in ~/.claude.json\n- Writes the drift-sync tooling into the target repo:\n  - arch-sync-check.sh Stop hook\n  - seeforce-arch-check skill\n  - CLAUDE.md rule section\n- Refreshes both on `update`, without re-running onboarding",
                 "short_desc": "Registers and refreshes the MCP server plus the drift-sync hook/skill",
+                "capabilities": [
+                  {
+                    "text": "Registers the SeeForce MCP server in ~/.claude.json",
+                    "children": []
+                  },
+                  {
+                    "text": "Writes the drift-sync tooling into the target repo:",
+                    "children": [
+                      {
+                        "text": "arch-sync-check.sh Stop hook",
+                        "children": []
+                      },
+                      {
+                        "text": "seeforce-arch-check skill",
+                        "children": []
+                      },
+                      {
+                        "text": "CLAUDE.md rule section",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Refreshes both on `update`, without re-running onboarding",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/mcp.py",
                 "tags": "Element,Component",
@@ -497,6 +868,24 @@
                 "name": "Scan Command",
                 "description": "- Runs `seeforce scan` over the repo\n- Writes .seeforce/workspace.json\n- Prints advisory warnings: orphans, empty containers, unreadable descriptions\n- Exits non-zero on a parse error or an unresolved reference",
                 "short_desc": "Scans the repo for annotations and writes .seeforce/workspace.json",
+                "capabilities": [
+                  {
+                    "text": "Runs `seeforce scan` over the repo",
+                    "children": []
+                  },
+                  {
+                    "text": "Writes .seeforce/workspace.json",
+                    "children": []
+                  },
+                  {
+                    "text": "Prints advisory warnings: orphans, empty containers, unreadable descriptions",
+                    "children": []
+                  },
+                  {
+                    "text": "Exits non-zero on a parse error or an unresolved reference",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/scan.py",
                 "tags": "Element,Component",
@@ -526,6 +915,33 @@
             "name": "MCP Server",
             "description": "- Serves architecture context to AI coding assistants over MCP (stdio):\n  - System overview and component search\n  - File ownership and drift checks for edited files\n  - Static import facts for files\n- Serves the guides for writing annotations and a feature catalogue\n- Ships as the seeforce-mcp entry point of the seeforce-cli package",
             "short_desc": "Exposes SeeForce architecture context to AI coding assistants via MCP",
+            "capabilities": [
+              {
+                "text": "Serves architecture context to AI coding assistants over MCP (stdio):",
+                "children": [
+                  {
+                    "text": "System overview and component search",
+                    "children": []
+                  },
+                  {
+                    "text": "File ownership and drift checks for edited files",
+                    "children": []
+                  },
+                  {
+                    "text": "Static import facts for files",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "text": "Serves the guides for writing annotations and a feature catalogue",
+                "children": []
+              },
+              {
+                "text": "Ships as the seeforce-mcp entry point of the seeforce-cli package",
+                "children": []
+              }
+            ],
             "technology": "Python / MCP stdio",
             "source_file": "cli/seeforce_cli/mcp_server.py",
             "tags": "Element,Container",
@@ -545,6 +961,16 @@
                 "name": "Workspace API Client",
                 "description": "- Fetches the project's workspace.json from the Backend\n- Picks the project from the configured UUID, else the most recently updated one",
                 "short_desc": "Fetches the current project's workspace.json from the Backend",
+                "capabilities": [
+                  {
+                    "text": "Fetches the project's workspace.json from the Backend",
+                    "children": []
+                  },
+                  {
+                    "text": "Picks the project from the configured UUID, else the most recently updated one",
+                    "children": []
+                  }
+                ],
                 "technology": "Python / httpx",
                 "source_file": "cli/seeforce_cli/mcp_client.py",
                 "tags": "Element,Component",
@@ -564,6 +990,25 @@
                 "name": "Ownership Inference",
                 "description": "- Infers the C4 component or container that owns a file path, by:\n  - Exact source_file match\n  - Same-directory proximity\n  - Nearest annotated parent directory",
                 "short_desc": "Finds which component or container owns a file",
+                "capabilities": [
+                  {
+                    "text": "Infers the C4 component or container that owns a file path, by:",
+                    "children": [
+                      {
+                        "text": "Exact source_file match",
+                        "children": []
+                      },
+                      {
+                        "text": "Same-directory proximity",
+                        "children": []
+                      },
+                      {
+                        "text": "Nearest annotated parent directory",
+                        "children": []
+                      }
+                    ]
+                  }
+                ],
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_ownership.py",
                 "tags": "Element,Component",
@@ -574,6 +1019,33 @@
                 "name": "Tool Handlers",
                 "description": "- Answers the MCP tools assistants call:\n  - get_context: system overview\n  - find_component: search by keyword\n  - get_file_owner: component owning a file\n  - get_architecture_for_files: drift check for edited files\n- Serves the guides behind annotate_codebase and catalogue_features",
                 "short_desc": "Implements the MCP tools assistants call to query architecture",
+                "capabilities": [
+                  {
+                    "text": "Answers the MCP tools assistants call:",
+                    "children": [
+                      {
+                        "text": "get_context: system overview",
+                        "children": []
+                      },
+                      {
+                        "text": "find_component: search by keyword",
+                        "children": []
+                      },
+                      {
+                        "text": "get_file_owner: component owning a file",
+                        "children": []
+                      },
+                      {
+                        "text": "get_architecture_for_files: drift check for edited files",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Serves the guides behind annotate_codebase and catalogue_features",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
                 "tags": "Element,Component",
@@ -593,6 +1065,20 @@
                 "name": "Static Facts Query Handler",
                 "description": "- Implements the get_static_facts_for_files MCP tool\n- Collapses import facts into component-level candidate edges\n- Drops edges between files of the same component",
                 "short_desc": "Answers get_static_facts_for_files with candidate edges",
+                "capabilities": [
+                  {
+                    "text": "Implements the get_static_facts_for_files MCP tool",
+                    "children": []
+                  },
+                  {
+                    "text": "Collapses import facts into component-level candidate edges",
+                    "children": []
+                  },
+                  {
+                    "text": "Drops edges between files of the same component",
+                    "children": []
+                  }
+                ],
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
                 "tags": "Element,Component",
@@ -630,6 +1116,24 @@
             "name": "Frontend",
             "description": "- Renders a project's architecture graph\n- Shows what a pull request changes in the architecture\n- Lets users edit overlays, tags and lexicon entries\n- Gates routes behind sign-in",
             "short_desc": "Renders the architecture graph and handles auth-gated routing",
+            "capabilities": [
+              {
+                "text": "Renders a project's architecture graph",
+                "children": []
+              },
+              {
+                "text": "Shows what a pull request changes in the architecture",
+                "children": []
+              },
+              {
+                "text": "Lets users edit overlays, tags and lexicon entries",
+                "children": []
+              },
+              {
+                "text": "Gates routes behind sign-in",
+                "children": []
+              }
+            ],
             "technology": "React",
             "source_file": "frontend/src/main.tsx",
             "tags": "Element,Container",
@@ -649,6 +1153,20 @@
                 "name": "Architecture Visualizer",
                 "description": "- Renders the C1/C2/C3 graph of a project\n- Drills down from a node into the level below\n- Shows the selected pull request's changes on the canvas",
                 "short_desc": "Renders the graph and handles drill-down between C1/C2/C3 views",
+                "capabilities": [
+                  {
+                    "text": "Renders the C1/C2/C3 graph of a project",
+                    "children": []
+                  },
+                  {
+                    "text": "Drills down from a node into the level below",
+                    "children": []
+                  },
+                  {
+                    "text": "Shows the selected pull request's changes on the canvas",
+                    "children": []
+                  }
+                ],
                 "technology": "ReactFlow",
                 "source_file": "frontend/src/components/Graph/C4Graph.tsx",
                 "tags": "Element,Component",
@@ -700,6 +1218,16 @@
                 "name": "Change List",
                 "description": "- Lists every change of the selected merge request, at every C4 level\n- Opens the element an item names, or says which level holds it",
                 "short_desc": "Lists the whole comparison's changes, grouped by level",
+                "capabilities": [
+                  {
+                    "text": "Lists every change of the selected merge request, at every C4 level",
+                    "children": []
+                  },
+                  {
+                    "text": "Opens the element an item names, or says which level holds it",
+                    "children": []
+                  }
+                ],
                 "technology": "React",
                 "source_file": "frontend/src/components/Graph/DeltaChangeList.tsx",
                 "tags": "Element,Component",
@@ -710,6 +1238,28 @@
                 "name": "Comparison Selector",
                 "description": "- Lists the repository's open pull requests and the branch each targets\n- Enters and leaves the comparison\n- Names both commits being compared\n- Explains the four state badges in a legend\n- Says why no comparison is available when there is none",
                 "short_desc": "Picks the pull request to compare and explains the states",
+                "capabilities": [
+                  {
+                    "text": "Lists the repository's open pull requests and the branch each targets",
+                    "children": []
+                  },
+                  {
+                    "text": "Enters and leaves the comparison",
+                    "children": []
+                  },
+                  {
+                    "text": "Names both commits being compared",
+                    "children": []
+                  },
+                  {
+                    "text": "Explains the four state badges in a legend",
+                    "children": []
+                  },
+                  {
+                    "text": "Says why no comparison is available when there is none",
+                    "children": []
+                  }
+                ],
                 "technology": "React",
                 "source_file": "frontend/src/components/Graph/DeltaSelector.tsx",
                 "tags": "Element,Component",
@@ -729,6 +1279,24 @@
                 "name": "Overlay Editor",
                 "description": "- Shows the selected node's or edge's name, description, tags and source link\n- Shows what the selected pull request changed on it\n- Saves overlay edits in edit mode\n- Manages the lexicon terms found in the node's description",
                 "short_desc": "Sidebar panel to view and edit a node or edge's overlay details",
+                "capabilities": [
+                  {
+                    "text": "Shows the selected node's or edge's name, description, tags and source link",
+                    "children": []
+                  },
+                  {
+                    "text": "Shows what the selected pull request changed on it",
+                    "children": []
+                  },
+                  {
+                    "text": "Saves overlay edits in edit mode",
+                    "children": []
+                  },
+                  {
+                    "text": "Manages the lexicon terms found in the node's description",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/OverlaySidebar.tsx",
                 "tags": "Element,Component",
@@ -756,6 +1324,16 @@
                 "name": "Edge manager",
                 "description": "- Draws directional relationship edges between nodes\n- Attaches each edge to the nearest border point of its nodes",
                 "short_desc": "Renders relationship edges between nodes with floating geometry",
+                "capabilities": [
+                  {
+                    "text": "Draws directional relationship edges between nodes",
+                    "children": []
+                  },
+                  {
+                    "text": "Attaches each edge to the nearest border point of its nodes",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/edges/FloatingEdge.tsx",
                 "tags": "Element,Component",
@@ -775,6 +1353,16 @@
                 "name": "Node manager",
                 "description": "- Renders System, Container, Component, Person and External nodes\n- Shows each node's name, technology and short description",
                 "short_desc": "Renders System/Container/Component nodes on the graph canvas",
+                "capabilities": [
+                  {
+                    "text": "Renders System, Container, Component, Person and External nodes",
+                    "children": []
+                  },
+                  {
+                    "text": "Shows each node's name, technology and short description",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/nodes/ComponentNode.tsx",
                 "tags": "Element,Component",
@@ -794,6 +1382,16 @@
                 "name": "Auth Context",
                 "description": "- Checks the session when the app loads\n- Exposes the signed-in user and logout to the app",
                 "short_desc": "React auth state — checks session on load, exposes logout",
+                "capabilities": [
+                  {
+                    "text": "Checks the session when the app loads",
+                    "children": []
+                  },
+                  {
+                    "text": "Exposes the signed-in user and logout to the app",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "frontend/src/contexts/AuthContext.tsx",
                 "tags": "Element,Component",
@@ -813,6 +1411,20 @@
                 "name": "Lexicon",
                 "description": "- Loads the project's glossary\n- Highlights glossary terms in node descriptions and edge labels\n- Shows a term's definition in a bottom panel on click",
                 "short_desc": "Per-project glossary — highlights and defines terms in the graph",
+                "capabilities": [
+                  {
+                    "text": "Loads the project's glossary",
+                    "children": []
+                  },
+                  {
+                    "text": "Highlights glossary terms in node descriptions and edge labels",
+                    "children": []
+                  },
+                  {
+                    "text": "Shows a term's definition in a bottom panel on click",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "frontend/src/contexts/LexiconContext.ts",
                 "tags": "Element,Component",
@@ -840,6 +1452,24 @@
                 "name": "Project Workspace",
                 "description": "- Hosts the graph canvas for one project\n- Keeps the current C4 level and drill-down target\n- Resolves the project's GitHub repo and branch for source links\n- Mints, copies and revokes share links",
                 "short_desc": "Per-project screen — hosts the graph, share modal, and current C4 level",
+                "capabilities": [
+                  {
+                    "text": "Hosts the graph canvas for one project",
+                    "children": []
+                  },
+                  {
+                    "text": "Keeps the current C4 level and drill-down target",
+                    "children": []
+                  },
+                  {
+                    "text": "Resolves the project's GitHub repo and branch for source links",
+                    "children": []
+                  },
+                  {
+                    "text": "Mints, copies and revokes share links",
+                    "children": []
+                  }
+                ],
                 "technology": "React",
                 "source_file": "frontend/src/pages/GraphView.tsx",
                 "tags": "Element,Component",
@@ -867,6 +1497,24 @@
                 "name": "Project Library",
                 "description": "- Lists owned and shared projects\n- Creates a project from an uploaded workspace.json or a GitHub import\n- Renames, deletes, re-syncs and links projects to repos\n- Prompts the GitHub App install",
                 "short_desc": "Lists projects and is where upload or GitHub import creates one",
+                "capabilities": [
+                  {
+                    "text": "Lists owned and shared projects",
+                    "children": []
+                  },
+                  {
+                    "text": "Creates a project from an uploaded workspace.json or a GitHub import",
+                    "children": []
+                  },
+                  {
+                    "text": "Renames, deletes, re-syncs and links projects to repos",
+                    "children": []
+                  },
+                  {
+                    "text": "Prompts the GitHub App install",
+                    "children": []
+                  }
+                ],
                 "technology": "React",
                 "source_file": "frontend/src/pages/HomePage.tsx",
                 "tags": "Element,Component",
@@ -896,6 +1544,28 @@
             "name": "Annotation Parser",
             "description": "- Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files\n- Assembles them into workspace.json\n- Compares workspace snapshots and checks the feature catalogue\n- Extracts static import facts and entry points from source files\n- Ships as the standalone seeforce-c4parser package",
             "short_desc": "Parses C4 annotations from source files into workspace.json",
+            "capabilities": [
+              {
+                "text": "Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files",
+                "children": []
+              },
+              {
+                "text": "Assembles them into workspace.json",
+                "children": []
+              },
+              {
+                "text": "Compares workspace snapshots and checks the feature catalogue",
+                "children": []
+              },
+              {
+                "text": "Extracts static import facts and entry points from source files",
+                "children": []
+              },
+              {
+                "text": "Ships as the standalone seeforce-c4parser package",
+                "children": []
+              }
+            ],
             "technology": "Python",
             "source_file": "packages/c4parser/c4parser/__init__.py",
             "tags": "Element,Container",
@@ -906,26 +1576,157 @@
                 "name": "Workspace Builder",
                 "description": "- Resolves every uses: reference to an element id\n- Assembles systems, people, containers, components, relationships and views into workspace.json\n- Flags structural drift before the workspace is written:\n  - Level-mixing and ambiguous references\n  - Orphan elements and containers with no component\n  - Unreadable descriptions",
                 "short_desc": "Resolves relationships into workspace.json; the structural drift gate",
+                "capabilities": [
+                  {
+                    "text": "Resolves every uses: reference to an element id",
+                    "children": []
+                  },
+                  {
+                    "text": "Assembles systems, people, containers, components, relationships and views into workspace.json",
+                    "children": []
+                  },
+                  {
+                    "text": "Flags structural drift before the workspace is written:",
+                    "children": [
+                      {
+                        "text": "Level-mixing and ambiguous references",
+                        "children": []
+                      },
+                      {
+                        "text": "Orphan elements and containers with no component",
+                        "children": []
+                      },
+                      {
+                        "text": "Unreadable descriptions",
+                        "children": []
+                      }
+                    ]
+                  }
+                ],
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/builder.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-annotation-parser-workspace-builder-seeforce-annotation-parser-capabilities",
+                    "destinationId": "seeforce-annotation-parser-capabilities",
+                    "description": "parses each node's description into its capability tree",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
+              },
+              {
+                "id": "seeforce-annotation-parser-capabilities",
+                "name": "Capabilities",
+                "description": "- Parses a `- ` bullet description into a tree of capabilities\n- Counts the leaves, since a parent bullet only groups its children\n- Diffs two capability trees bullet by bullet:\n  - added and removed bullets\n  - reworded bullets, paired by text similarity at the same level",
+                "short_desc": "Turns bullet descriptions into capabilities and diffs them",
+                "capabilities": [
+                  {
+                    "text": "Parses a `- ` bullet description into a tree of capabilities",
+                    "children": []
+                  },
+                  {
+                    "text": "Counts the leaves, since a parent bullet only groups its children",
+                    "children": []
+                  },
+                  {
+                    "text": "Diffs two capability trees bullet by bullet:",
+                    "children": [
+                      {
+                        "text": "added and removed bullets",
+                        "children": []
+                      },
+                      {
+                        "text": "reworded bullets, paired by text similarity at the same level",
+                        "children": []
+                      }
+                    ]
+                  }
+                ],
+                "technology": "Python",
+                "source_file": "packages/c4parser/c4parser/capabilities.py",
                 "tags": "Element,Component",
                 "relationships": []
               },
               {
                 "id": "seeforce-annotation-parser-delta-reporter",
                 "name": "Delta Reporter",
-                "description": "- Compares two workspace.json snapshots at the architecture level\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Pairs the leftovers by kind and name, so a moved file reads as a move\n- Renders the delta as markdown\n- Reports catalogue features that lost an element",
+                "description": "- Compares two workspace.json snapshots at the architecture level\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Pairs the leftovers by kind and name, so a moved file reads as a move\n- Renders the delta as markdown, one row per changed capability or action\n- Reports catalogue features that lost an element",
                 "short_desc": "Compares two workspace snapshots into an architecture delta",
+                "capabilities": [
+                  {
+                    "text": "Compares two workspace.json snapshots at the architecture level",
+                    "children": []
+                  },
+                  {
+                    "text": "Pairs elements by kind and source file, so a rename reads as a rename",
+                    "children": []
+                  },
+                  {
+                    "text": "Pairs the leftovers by kind and name, so a moved file reads as a move",
+                    "children": []
+                  },
+                  {
+                    "text": "Renders the delta as markdown, one row per changed capability or action",
+                    "children": []
+                  },
+                  {
+                    "text": "Reports catalogue features that lost an element",
+                    "children": []
+                  }
+                ],
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/delta.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-annotation-parser-delta-reporter-seeforce-annotation-parser-capabilities",
+                    "destinationId": "seeforce-annotation-parser-capabilities",
+                    "description": "diffs a changed description bullet by bullet",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ]
               },
               {
                 "id": "seeforce-annotation-parser-entry-point-discovery",
                 "name": "Entry Point Discovery",
                 "description": "- Lists every deterministic way into a repo:\n  - HTTP routes and REST collections\n  - CLI commands\n  - MCP tools\n  - Page routes\n- Counts one router registration as one entry point\n- Sorts the output so two runs agree byte for byte",
                 "short_desc": "Extracts a repo's routes, commands and tools as sorted entry points",
+                "capabilities": [
+                  {
+                    "text": "Lists every deterministic way into a repo:",
+                    "children": [
+                      {
+                        "text": "HTTP routes and REST collections",
+                        "children": []
+                      },
+                      {
+                        "text": "CLI commands",
+                        "children": []
+                      },
+                      {
+                        "text": "MCP tools",
+                        "children": []
+                      },
+                      {
+                        "text": "Page routes",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Counts one router registration as one entry point",
+                    "children": []
+                  },
+                  {
+                    "text": "Sorts the output so two runs agree byte for byte",
+                    "children": []
+                  }
+                ],
                 "technology": "Python / tree-sitter",
                 "source_file": "packages/c4parser/c4parser/entrypoints.py",
                 "tags": "Element,Component",
@@ -936,6 +1737,24 @@
                 "name": "Feature Catalogue",
                 "description": "- Loads, validates and saves the feature catalogue\n- Resolves each element a feature names against a workspace snapshot\n- Refuses a catalogue with an unknown version or an unresolved element\n- Merges regenerations without touching human-reviewed features",
                 "short_desc": "Loads and validates the feature catalogue against a workspace snapshot",
+                "capabilities": [
+                  {
+                    "text": "Loads, validates and saves the feature catalogue",
+                    "children": []
+                  },
+                  {
+                    "text": "Resolves each element a feature names against a workspace snapshot",
+                    "children": []
+                  },
+                  {
+                    "text": "Refuses a catalogue with an unknown version or an unresolved element",
+                    "children": []
+                  },
+                  {
+                    "text": "Merges regenerations without touching human-reviewed features",
+                    "children": []
+                  }
+                ],
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/features.py",
                 "tags": "Element,Component",
@@ -955,6 +1774,20 @@
                 "name": "Annotation Scanner",
                 "description": "- Walks a repo's source files\n- Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list\n- Normalizes descriptions into `- ` bullet text",
                 "short_desc": "Walks source files and extracts @c1/@c2/@c3/@lexicon blocks",
+                "capabilities": [
+                  {
+                    "text": "Walks a repo's source files",
+                    "children": []
+                  },
+                  {
+                    "text": "Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list",
+                    "children": []
+                  },
+                  {
+                    "text": "Normalizes descriptions into `- ` bullet text",
+                    "children": []
+                  }
+                ],
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/scanner.py",
                 "tags": "Element,Component",
@@ -965,6 +1798,16 @@
                 "name": "Static Facts Extractor",
                 "description": "- Extracts imports, top-level definitions and adjacent docstrings from Python and TypeScript\n- Isolated behind extract_facts() so tree-sitter stays optional",
                 "short_desc": "Extracts imports and definitions as candidate signals",
+                "capabilities": [
+                  {
+                    "text": "Extracts imports, top-level definitions and adjacent docstrings from Python and TypeScript",
+                    "children": []
+                  },
+                  {
+                    "text": "Isolated behind extract_facts() so tree-sitter stays optional",
+                    "children": []
+                  }
+                ],
                 "technology": "tree-sitter",
                 "source_file": "packages/c4parser/c4parser/static_facts/__init__.py",
                 "tags": "Element,Component",
@@ -979,6 +1822,28 @@
         "name": "GitHub",
         "description": "- Hosts each repo's .seeforce/workspace.json, read on import and sync\n- Signs SeeForce users in through OAuth 2.0\n- Issues installation tokens for the SeeForce GitHub App\n- Serves the pull requests compared in the delta view\n- Serves the source files nodes link to",
         "short_desc": "Hosts the scanned repos and signs SeeForce users in",
+        "capabilities": [
+          {
+            "text": "Hosts each repo's .seeforce/workspace.json, read on import and sync",
+            "children": []
+          },
+          {
+            "text": "Signs SeeForce users in through OAuth 2.0",
+            "children": []
+          },
+          {
+            "text": "Issues installation tokens for the SeeForce GitHub App",
+            "children": []
+          },
+          {
+            "text": "Serves the pull requests compared in the delta view",
+            "children": []
+          },
+          {
+            "text": "Serves the source files nodes link to",
+            "children": []
+          }
+        ],
         "tags": "Element,Software System,External",
         "relationships": [],
         "containers": []
