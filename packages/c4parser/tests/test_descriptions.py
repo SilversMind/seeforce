@@ -1,5 +1,10 @@
 """Descriptions are `- ` bullet lists, written either as a literal block or as a YAML list."""
-from c4parser.builder import build, edge_label, find_unreadable_descriptions, merge_flows
+from c4parser.builder import (
+    build,
+    edge_label,
+    find_unreadable_descriptions,
+    merge_flows,
+)
 from c4parser.scanner import format_description, scan
 
 SYSTEM = '"""\n@c1:system\nname: S\nshort_desc: A system\ndescription: |\n  - Does one thing\n"""\n'
