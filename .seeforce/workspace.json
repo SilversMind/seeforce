@@ -48,7 +48,8 @@
             "source_file": "backend/apps/graph/migrations/__init__.py",
             "tags": "Element,Container",
             "relationships": [],
-            "components": []
+            "components": [],
+            "loc": 232
           },
           {
             "id": "seeforce-backend",
@@ -110,7 +111,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 347
               },
               {
                 "id": "seeforce-backend-github-app-token-manager",
@@ -129,12 +131,13 @@
                     "technology": "HTTPS",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 130
               },
               {
                 "id": "seeforce-backend-graph-transformer",
                 "name": "Graph transformer",
-                "description": "- Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view\n- Applies the project's node and edge overlays\n- Adds placeholder nodes for relationship targets outside the view",
+                "description": "- Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view\n- Applies the project's node and edge overlays\n- Adds placeholder nodes for relationship targets outside the view\n- Sizes each node by its lines of code, on a log scale within the view",
                 "short_desc": "Converts workspace.json into ReactFlow nodes and edges per view",
                 "technology": "",
                 "source_file": "backend/apps/graph/transformers.py",
@@ -148,7 +151,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 406
               },
               {
                 "id": "seeforce-backend-local-scan-command",
@@ -162,8 +166,8 @@
                   {
                     "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-annotation-scanner",
                     "destinationId": "seeforce-annotation-parser-annotation-scanner",
-                    "description": "parses annotation blocks from the target repo path(s)",
-                    "short_desc": "",
+                    "description": "- parses annotation blocks from the target repo path(s)\n- counts the lines of code of each source file",
+                    "short_desc": "parses annotations, counts lines",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -183,7 +187,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 145
               },
               {
                 "id": "seeforce-backend-auth-api",
@@ -210,7 +215,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 105
               },
               {
                 "id": "seeforce-backend-delta-view-api",
@@ -269,7 +275,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 222
               },
               {
                 "id": "seeforce-backend-github-app-setup-endpoint",
@@ -296,7 +303,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 112
               },
               {
                 "id": "seeforce-backend-github-import",
@@ -331,7 +339,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 263
               },
               {
                 "id": "seeforce-backend-edit-api",
@@ -358,9 +367,11 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 219
               }
-            ]
+            ],
+            "loc": 2244
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -406,7 +417,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 25
               },
               {
                 "id": "seeforce-seeforce-cli-delta-command",
@@ -433,7 +445,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 95
               },
               {
                 "id": "seeforce-seeforce-cli-features-command",
@@ -452,7 +465,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 81
               },
               {
                 "id": "seeforce-seeforce-cli-login-command",
@@ -471,7 +485,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 106
               },
               {
                 "id": "seeforce-seeforce-cli-mcp-install-command",
@@ -490,7 +505,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 183
               },
               {
                 "id": "seeforce-seeforce-cli-scan-command",
@@ -504,8 +520,8 @@
                   {
                     "id": "rel-seeforce-seeforce-cli-scan-command-seeforce-annotation-parser-annotation-scanner",
                     "destinationId": "seeforce-annotation-parser-annotation-scanner",
-                    "description": "parses the annotation blocks out of the repo's source files",
-                    "short_desc": "",
+                    "description": "- parses the annotation blocks out of the repo's source files\n- counts the lines of code of each source file",
+                    "short_desc": "parses annotations, counts lines",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -517,9 +533,11 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 86
               }
-            ]
+            ],
+            "loc": 616
           },
           {
             "id": "seeforce-mcp-server",
@@ -557,7 +575,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 74
               },
               {
                 "id": "seeforce-mcp-server-ownership-inference",
@@ -567,7 +586,8 @@
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_ownership.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 139
               },
               {
                 "id": "seeforce-mcp-server-tool-handlers",
@@ -586,7 +606,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 203
               },
               {
                 "id": "seeforce-mcp-server-static-facts-query-handler",
@@ -621,9 +642,11 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 203
               }
-            ]
+            ],
+            "loc": 620
           },
           {
             "id": "seeforce-frontend",
@@ -693,7 +716,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 500
               },
               {
                 "id": "seeforce-frontend-change-list",
@@ -703,7 +727,8 @@
                 "technology": "React",
                 "source_file": "frontend/src/components/Graph/DeltaChangeList.tsx",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 128
               },
               {
                 "id": "seeforce-frontend-comparison-selector",
@@ -722,7 +747,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 180
               },
               {
                 "id": "seeforce-frontend-overlay-editor",
@@ -749,12 +775,13 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 630
               },
               {
                 "id": "seeforce-frontend-edge-manager",
                 "name": "Edge manager",
-                "description": "- Draws directional relationship edges between nodes\n- Attaches each edge to the nearest border point of its nodes",
+                "description": "- Draws directional relationship edges between nodes\n- Attaches each edge to the nearest border point of its nodes\n- Thickens an edge with its number of actions",
                 "short_desc": "Renders relationship edges between nodes with floating geometry",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/edges/FloatingEdge.tsx",
@@ -768,12 +795,13 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 124
               },
               {
                 "id": "seeforce-frontend-node-manager",
                 "name": "Node manager",
-                "description": "- Renders System, Container, Component, Person and External nodes\n- Shows each node's name, technology and short description",
+                "description": "- Renders System, Container, Component, Person and External nodes\n- Shows each node's name, technology and short description\n- Grows a node with its lines of code, from 1x to 1.6x",
                 "short_desc": "Renders System/Container/Component nodes on the graph canvas",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/nodes/ComponentNode.tsx",
@@ -787,7 +815,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 241
               },
               {
                 "id": "seeforce-frontend-auth-context",
@@ -806,7 +835,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 54
               },
               {
                 "id": "seeforce-frontend-lexicon",
@@ -833,7 +863,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 33
               },
               {
                 "id": "seeforce-frontend-project-workspace",
@@ -860,7 +891,8 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 310
               },
               {
                 "id": "seeforce-frontend-project-library",
@@ -887,9 +919,11 @@
                     "technology": "REST",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 804
               }
-            ]
+            ],
+            "loc": 3837
           },
           {
             "id": "seeforce-annotation-parser",
@@ -904,12 +938,13 @@
               {
                 "id": "seeforce-annotation-parser-workspace-builder",
                 "name": "Workspace Builder",
-                "description": "- Resolves every uses: reference to an element id\n- Assembles systems, people, containers, components, relationships and views into workspace.json\n- Flags structural drift before the workspace is written:\n  - Level-mixing and ambiguous references\n  - Orphan elements and containers with no component\n  - Unreadable descriptions",
+                "description": "- Resolves every uses: reference to an element id\n- Assembles systems, people, containers, components, relationships and views into workspace.json\n- Flags structural drift before the workspace is written:\n  - Level-mixing and ambiguous references\n  - Orphan elements and containers with no component\n  - Unreadable descriptions\n- Weighs each container and component by the lines of code of the files it owns",
                 "short_desc": "Resolves relationships into workspace.json; the structural drift gate",
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/builder.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 544
               },
               {
                 "id": "seeforce-annotation-parser-delta-reporter",
@@ -919,7 +954,8 @@
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/delta.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 265
               },
               {
                 "id": "seeforce-annotation-parser-entry-point-discovery",
@@ -929,7 +965,8 @@
                 "technology": "Python / tree-sitter",
                 "source_file": "packages/c4parser/c4parser/entrypoints.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 26
               },
               {
                 "id": "seeforce-annotation-parser-feature-catalogue",
@@ -948,17 +985,19 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 167
               },
               {
                 "id": "seeforce-annotation-parser-annotation-scanner",
                 "name": "Annotation Scanner",
-                "description": "- Walks a repo's source files\n- Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list\n- Normalizes descriptions into `- ` bullet text",
+                "description": "- Walks a repo's source files\n- Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list\n- Normalizes descriptions into `- ` bullet text\n- Counts the non-blank lines of every source file it walks",
                 "short_desc": "Walks source files and extracts @c1/@c2/@c3/@lexicon blocks",
                 "technology": "",
                 "source_file": "packages/c4parser/c4parser/scanner.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 249
               },
               {
                 "id": "seeforce-annotation-parser-static-facts-extractor",
@@ -968,11 +1007,14 @@
                 "technology": "tree-sitter",
                 "source_file": "packages/c4parser/c4parser/static_facts/__init__.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 295
               }
-            ]
+            ],
+            "loc": 1630
           }
-        ]
+        ],
+        "loc": 9179
       },
       {
         "id": "github",
@@ -981,7 +1023,8 @@
         "short_desc": "Hosts the scanned repos and signs SeeForce users in",
         "tags": "Element,Software System,External",
         "relationships": [],
-        "containers": []
+        "containers": [],
+        "loc": 0
       }
     ]
   },

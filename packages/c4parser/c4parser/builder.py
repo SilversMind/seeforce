@@ -9,6 +9,7 @@ description: |
     - Level-mixing and ambiguous references
     - Orphan elements and containers with no component
     - Unreadable descriptions
+  - Weighs each container and component by the lines of code of the files it owns
 short_desc: Resolves relationships into workspace.json; the structural drift gate
 """
 import re
@@ -65,6 +66,53 @@ def merge_flows(labels: list[str]) -> str:
     for label in labels:
         flows += [f for f in split_flows(label) if f not in flows]
     return flows[0] if len(flows) == 1 else "\n".join(f"- {f}" for f in flows)
+
+
+def _parent_dir(path: str) -> str:
+    return path.rsplit("/", 1)[0] if "/" in path else ""
+
+
+def attribute_lines(
+    containers: list[C4Container], components: list[C4Component], line_counts: dict[str, int]
+) -> tuple[dict[str, float], dict[tuple[str, str], float]]:
+    """Gives each file's lines to the components annotated nearest to it, else to the nearest container."""
+    comp_by_file: dict[str, list[C4Component]] = {}
+    cont_by_file: dict[str, list[C4Container]] = {}
+    comp_by_dir: dict[str, list[C4Component]] = {}
+    cont_by_dir: dict[str, list[C4Container]] = {}
+    for comp in components:
+        comp_by_file.setdefault(comp.source_file, []).append(comp)
+        comp_by_dir.setdefault(_parent_dir(comp.source_file), []).append(comp)
+    for cont in containers:
+        cont_by_file.setdefault(cont.source_file, []).append(cont)
+        cont_by_dir.setdefault(_parent_dir(cont.source_file), []).append(cont)
+
+    cont_lines: dict[str, float] = {}
+    comp_lines: dict[tuple[str, str], float] = {}
+
+    def give(owners: list, lines: int) -> None:
+        # Several components in one file or folder share its lines evenly.
+        for owner in owners:
+            if isinstance(owner, C4Component):
+                key = (owner.container, owner.name)
+                comp_lines[key] = comp_lines.get(key, 0) + lines / len(owners)
+            else:
+                cont_lines[owner.name] = cont_lines.get(owner.name, 0) + lines / len(owners)
+
+    for path, lines in line_counts.items():
+        if path in comp_by_file or path in cont_by_file:
+            give(comp_by_file.get(path) or cont_by_file[path], lines)
+            continue
+        folder = _parent_dir(path)
+        while True:
+            owners = comp_by_dir.get(folder) or cont_by_dir.get(folder)
+            if owners:
+                give(owners, lines)
+                break
+            if not folder:
+                break
+            folder = _parent_dir(folder)
+    return cont_lines, comp_lines
 
 
 def _use_technology(entry: str | dict) -> str:
@@ -181,7 +229,7 @@ def find_unreadable_descriptions(workspace: dict, edge_limit: int = EDGE_DESC_LI
     return warnings
 
 
-def build(elements: list[C4Element]) -> dict:
+def build(elements: list[C4Element], line_counts: dict[str, int] | None = None) -> dict:
     # --- Phase 1: Collect elements ---
     # Systems keyed by name
     systems: dict[str, C4System] = {}
@@ -433,6 +481,7 @@ def build(elements: list[C4Element]) -> dict:
         ]
 
     # --- Phase 6: Assemble workspace ---
+    cont_lines, comp_lines = attribute_lines(list(containers.values()), list(components.values()), line_counts or {})
     system_nodes = []
     container_views = []
     component_views = []
@@ -461,6 +510,8 @@ def build(elements: list[C4Element]) -> dict:
                     "tags": "Element,Component",
                     "relationships": _build_component_relationships(comp),
                 })
+                if line_counts is not None:
+                    comp_nodes[-1]["loc"] = round(comp_lines.get((c_cont, c_name), 0))
 
             sys_containers.append({
                 "id": cont_id,
@@ -473,6 +524,10 @@ def build(elements: list[C4Element]) -> dict:
                 "relationships": _build_container_relationships(cont),
                 "components": comp_nodes,
             })
+            if line_counts is not None:
+                # A container weighs its own files plus all of its components'.
+                inner = sum(comp_lines.get((cont_name, name), 0) for (c_cont, name) in components if c_cont == cont_name)
+                sys_containers[-1]["loc"] = round(cont_lines.get(cont_name, 0) + inner)
 
             if comp_nodes:
                 component_views.append({
@@ -490,6 +545,8 @@ def build(elements: list[C4Element]) -> dict:
             "containers": sys_containers,
         }
         sys_node["relationships"] = _rollup_system_relationships(sys_node)
+        if line_counts is not None:
+            sys_node["loc"] = sum(c["loc"] for c in sys_containers)
         system_nodes.append(sys_node)
 
         if sys_containers:
