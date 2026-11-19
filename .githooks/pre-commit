@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Rescans before every commit so workspace.json, line counts included, always matches the code CI rescans.
+# NOTE: the scan reads the working tree, so unstaged edits also count toward the line counts it commits.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+command -v uv >/dev/null || { echo "pre-commit: uv not found, skipping the seeforce rescan" >&2; exit 0; }
+out=$(uv run --quiet seeforce scan . 2>&1) || { echo "$out" >&2; exit 1; }
+git add .seeforce/workspace.json

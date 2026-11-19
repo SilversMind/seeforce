@@ -5,7 +5,7 @@ type PositionMap = Record<string, { x: number; y: number }>;
  * makes previously-saved positions look wrong. Old positions under a stale
  * version are never looked up again — no manual cache-clear needed.
  */
-const LAYOUT_VERSION = 2;
+const LAYOUT_VERSION = 3;
 
 function key(workspaceId: string, level: string, systemId?: string | null, containerId?: string | null): string {
   return `c4:layout:v${LAYOUT_VERSION}:${workspaceId}:${level}:${systemId ?? ""}:${containerId ?? ""}`;

@@ -9,7 +9,10 @@ description: |
   - Exits non-zero on a parse error or an unresolved reference
 short_desc: Scans the repo for annotations and writes .seeforce/workspace.json
 uses:
-- Annotation Scanner: "parses the annotation blocks out of the repo's source files"
+- Annotation Scanner:
+  - "parses the annotation blocks out of the repo's source files"
+  - "counts the lines of code of each source file"
+  short_desc: "parses annotations, counts lines"
 - Workspace Builder:
   - "resolves the references between parsed elements"
   - "assembles the workspace"
@@ -52,7 +55,7 @@ def scan(path: str, dry_run: bool, output: str | None, extra_extensions: tuple[s
         return
 
     try:
-        workspace = c4parser.build(elements)
+        workspace = c4parser.build(elements, line_counts=c4parser.count_lines(str(root), extensions=extensions))
     except C4ValidationError as exc:
         click.echo(f"Validation error: {exc}", err=True)
         sys.exit(1)

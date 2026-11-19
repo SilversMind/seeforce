@@ -138,6 +138,7 @@ A YAML list (`description:` followed by `- item` lines, nested via `item:` keys)
 The text of a `uses:` entry is the edge label on the canvas. It says **what flows**, one flow per phrase:
 - Verb-first, naming the domain object and what happens to it ("persists projects", "fetches workspace.json at a commit").
 - **One action per phrase.** When the edge carries several ("authenticates the user and fetches the project id"), write them as a YAML list, one item per action — never joined with "and", ";" or ",".
+- **One item per type of action or exchanged object** — not per call site, not per field. "reads projects" covers every read of a project; "reads projects" and "writes overlays" are two items. The graph draws an edge thicker the more items it has, so the same granularity everywhere keeps thickness comparable.
 - **A multi-action edge also gets a `short_desc`**: the label drawn on the graph, 60 characters at most, verb-first, naming the main actions tersely. The graph shows it with a badge counting the actions; the full list stays in the sidebar.
 
 ```yaml

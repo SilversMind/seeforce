@@ -62,3 +62,8 @@ SeeForce documents its own architecture with C4 annotations in source
 docstrings. If your change adds a service, a distinct module, an external
 dependency or a new relationship between components, update the annotations in
 the same PR — see [CLAUDE.md](CLAUDE.md) for what counts as significant.
+
+`.seeforce/workspace.json` also records each node's lines of code, so it
+changes with almost any code change, and CI fails when it is not rescanned.
+Run `just hooks` once per clone: a pre-commit hook then rescans and stages it on
+every commit. Claude Code sessions turn the hook on by themselves.
