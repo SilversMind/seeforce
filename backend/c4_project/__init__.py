@@ -52,5 +52,8 @@ uses:
       - "lists and reads pull requests for the delta view"
       short_desc: "signs users in, fetches repos and PRs"
       technology: HTTPS
-    - Annotation Parser: "builds workspace.json on manage.py scan"
+    - Annotation Parser:
+      - "compares two commits' workspaces for the delta view"
+      - "merges the labels of parallel edges for the graph view"
+      short_desc: "compares workspaces, merges edge labels"
 """

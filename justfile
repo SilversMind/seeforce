@@ -1,26 +1,9 @@
 set dotenv-load := true
 set dotenv-path := "backend/.env"
 
-# Run the C4 scanner on one or more project paths (defaults to repo root)
-# Single repo:  just scan path/to/project
-# Multi-repo:   just scan path/to/backend path/to/frontend
-# With owner:   just scan --user me@example.com path/to/project
-scan *paths:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    root={{justfile_directory()}}
-    args=""
-    for p in {{paths}}; do
-        if [[ "$p" = /* ]]; then
-            args="$args --path $p"
-        else
-            args="$args --path $root/$p"
-        fi
-    done
-    if [ -z "$args" ]; then
-        args="--path $root"
-    fi
-    cd backend && uv run python3 manage.py scan $args
+# Rescan a repo's annotations into its .seeforce/workspace.json (defaults to this repo)
+scan path=".":
+    uv run seeforce scan {{path}}
 
 # Start the Django backend dev server
 backend:

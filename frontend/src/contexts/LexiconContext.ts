@@ -3,17 +3,9 @@
 name: Lexicon
 container: Frontend
 description: |
-  - Loads the project's glossary
-  - Highlights glossary terms in node descriptions and edge labels
-  - Shows a term's definition in a bottom panel on click
-short_desc: Per-project glossary — highlights and defines terms in the graph
-uses:
-- Edit API:
-  - "fetches lexicon entries"
-  - "saves lexicon entry changes"
-  short_desc: "reads and saves lexicon entries"
-  technology: REST
-- Architecture Visualizer: "injects lexicon context into the ReactFlow node tree"
+  - Shares the project's glossary with every node, edge and sidebar of the graph
+  - Lets any of them open a term's definition in the bottom panel
+short_desc: Shares the project's glossary and the open term across the graph
 */
 
 import { createContext, useContext } from "react";

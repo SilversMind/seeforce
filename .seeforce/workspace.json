@@ -79,8 +79,8 @@
               {
                 "id": "rel-seeforce-backend-seeforce-annotation-parser",
                 "destinationId": "seeforce-annotation-parser",
-                "description": "builds workspace.json on manage.py scan",
-                "short_desc": "",
+                "description": "- compares two commits' workspaces for the delta view\n- merges the labels of parallel edges for the graph view",
+                "short_desc": "compares workspaces, merges edge labels",
                 "technology": "",
                 "tags": "Relationship"
               }
@@ -155,42 +155,6 @@
                 "loc": 407
               },
               {
-                "id": "seeforce-backend-local-scan-command",
-                "name": "Local Scan Command",
-                "description": "- Runs `manage.py scan` on one or more local repo paths\n- Creates or updates the scanned project's ProjectMap",
-                "short_desc": "Scans local repo paths and upserts the resulting ProjectMap",
-                "technology": "",
-                "source_file": "backend/apps/graph/management/commands/scan.py",
-                "tags": "Element,Component",
-                "relationships": [
-                  {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-annotation-scanner",
-                    "destinationId": "seeforce-annotation-parser-annotation-scanner",
-                    "description": "- parses annotation blocks from the target repo path(s)\n- counts the lines of code of each source file",
-                    "short_desc": "parses annotations, counts lines",
-                    "technology": "",
-                    "tags": "Relationship"
-                  },
-                  {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-annotation-parser-workspace-builder",
-                    "destinationId": "seeforce-annotation-parser-workspace-builder",
-                    "description": "- resolves relationships\n- assembles the parsed elements into workspace.json",
-                    "short_desc": "resolves and assembles workspace.json",
-                    "technology": "",
-                    "tags": "Relationship"
-                  },
-                  {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-database",
-                    "destinationId": "seeforce-database",
-                    "description": "creates or updates the ProjectMap row for the scanned project",
-                    "short_desc": "",
-                    "technology": "",
-                    "tags": "Relationship"
-                  }
-                ],
-                "loc": 145
-              },
-              {
                 "id": "seeforce-backend-auth-api",
                 "name": "Auth API",
                 "description": "- Serves the auth endpoints:\n  - /api/auth/me/ session check\n  - /api/auth/logout/\n- Reports whether the user has a GitHub App installation\n- Returns the GitHub App install/configure URL",
@@ -200,14 +164,6 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-backend-auth-api-github",
-                    "destinationId": "github",
-                    "description": "- logs users in with OAuth 2.0\n- resolves their GitHub identity",
-                    "short_desc": "logs users in with OAuth",
-                    "technology": "HTTPS",
-                    "tags": "Relationship"
-                  },
-                  {
                     "id": "rel-seeforce-backend-auth-api-seeforce-database",
                     "destinationId": "seeforce-database",
                     "description": "reads the user's GitHub SocialAccount and GitHubAppInstallation rows",
@@ -216,7 +172,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 105
+                "loc": 100
               },
               {
                 "id": "seeforce-backend-delta-view-api",
@@ -326,7 +282,7 @@
                   {
                     "id": "rel-seeforce-backend-github-import-seeforce-backend-github-app-token-manager",
                     "destinationId": "seeforce-backend-github-app-token-manager",
-                    "description": "Requests the installation token before each Contents API call",
+                    "description": "requests the installation token before each Contents API call",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
@@ -371,7 +327,7 @@
                 "loc": 219
               }
             ],
-            "loc": 2258
+            "loc": 2111
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -599,11 +555,19 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-backend",
-                    "destinationId": "seeforce-backend",
-                    "description": "fetches workspace architecture data",
+                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-mcp-server-workspace-api-client",
+                    "destinationId": "seeforce-mcp-server-workspace-api-client",
+                    "description": "fetches the project's workspace.json",
                     "short_desc": "",
-                    "technology": "REST",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-mcp-server-ownership-inference",
+                    "destinationId": "seeforce-mcp-server-ownership-inference",
+                    "description": "finds the component that owns each file asked about",
+                    "short_desc": "",
+                    "technology": "",
                     "tags": "Relationship"
                   }
                 ],
@@ -619,11 +583,11 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-mcp-server-workspace-api-client",
+                    "destinationId": "seeforce-mcp-server-workspace-api-client",
                     "description": "fetches the workspace to resolve candidate edges to known components",
                     "short_desc": "",
-                    "technology": "REST",
+                    "technology": "",
                     "tags": "Relationship"
                   },
                   {
@@ -646,7 +610,7 @@
                 "loc": 203
               }
             ],
-            "loc": 620
+            "loc": 619
           },
           {
             "id": "seeforce-frontend",
@@ -715,9 +679,25 @@
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-lexicon",
+                    "destinationId": "seeforce-frontend-lexicon",
+                    "description": "provides the loaded glossary and the open term to the canvas",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-backend-edit-api",
+                    "destinationId": "seeforce-backend-edit-api",
+                    "description": "fetches the project's lexicon entries",
+                    "short_desc": "",
+                    "technology": "REST",
+                    "tags": "Relationship"
                   }
                 ],
-                "loc": 516
+                "loc": 519
               },
               {
                 "id": "seeforce-frontend-change-list",
@@ -841,30 +821,13 @@
               {
                 "id": "seeforce-frontend-lexicon",
                 "name": "Lexicon",
-                "description": "- Loads the project's glossary\n- Highlights glossary terms in node descriptions and edge labels\n- Shows a term's definition in a bottom panel on click",
-                "short_desc": "Per-project glossary — highlights and defines terms in the graph",
+                "description": "- Shares the project's glossary with every node, edge and sidebar of the graph\n- Lets any of them open a term's definition in the bottom panel",
+                "short_desc": "Shares the project's glossary and the open term across the graph",
                 "technology": "",
                 "source_file": "frontend/src/contexts/LexiconContext.ts",
                 "tags": "Element,Component",
-                "relationships": [
-                  {
-                    "id": "rel-seeforce-frontend-lexicon-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
-                    "description": "- fetches lexicon entries\n- saves lexicon entry changes",
-                    "short_desc": "reads and saves lexicon entries",
-                    "technology": "REST",
-                    "tags": "Relationship"
-                  },
-                  {
-                    "id": "rel-seeforce-frontend-lexicon-seeforce-frontend-architecture-visualizer",
-                    "destinationId": "seeforce-frontend-architecture-visualizer",
-                    "description": "injects lexicon context into the ReactFlow node tree",
-                    "short_desc": "",
-                    "technology": "",
-                    "tags": "Relationship"
-                  }
-                ],
-                "loc": 33
+                "relationships": [],
+                "loc": 25
               },
               {
                 "id": "seeforce-frontend-project-workspace",
@@ -923,12 +886,12 @@
                 "loc": 804
               }
             ],
-            "loc": 3918
+            "loc": 3913
           },
           {
             "id": "seeforce-annotation-parser",
             "name": "Annotation Parser",
-            "description": "- Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files\n- Assembles them into workspace.json\n- Compares workspace snapshots and checks the feature catalogue\n- Extracts static import facts and entry points from source files\n- Ships as the standalone seeforce-c4parser package",
+            "description": "- Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files\n- Assembles them into workspace.json\n- Compares workspace snapshots and checks the feature catalogue\n- Extracts static import facts from source files\n- Ships as the standalone seeforce-c4parser package",
             "short_desc": "Parses C4 annotations from source files into workspace.json",
             "technology": "Python",
             "source_file": "packages/c4parser/c4parser/__init__.py",
@@ -944,7 +907,7 @@
                 "source_file": "packages/c4parser/c4parser/builder.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 542
+                "loc": 544
               },
               {
                 "id": "seeforce-annotation-parser-capabilities",
@@ -955,7 +918,7 @@
                 "source_file": "packages/c4parser/c4parser/capabilities.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 110
+                "loc": 111
               },
               {
                 "id": "seeforce-annotation-parser-delta-reporter",
@@ -975,18 +938,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 308
-              },
-              {
-                "id": "seeforce-annotation-parser-entry-point-discovery",
-                "name": "Entry Point Discovery",
-                "description": "- Lists every deterministic way into a repo:\n  - HTTP routes and REST collections\n  - CLI commands\n  - MCP tools\n  - Page routes\n- Counts one router registration as one entry point\n- Sorts the output so two runs agree byte for byte",
-                "short_desc": "Extracts a repo's routes, commands and tools as sorted entry points",
-                "technology": "Python / tree-sitter",
-                "source_file": "packages/c4parser/c4parser/entrypoints.py",
-                "tags": "Element,Component",
-                "relationships": [],
-                "loc": 24
+                "loc": 309
               },
               {
                 "id": "seeforce-annotation-parser-feature-catalogue",
@@ -1006,7 +958,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 166
+                "loc": 167
               },
               {
                 "id": "seeforce-annotation-parser-annotation-scanner",
@@ -1017,7 +969,7 @@
                 "source_file": "packages/c4parser/c4parser/scanner.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 248
+                "loc": 249
               },
               {
                 "id": "seeforce-annotation-parser-static-facts-extractor",
@@ -1031,10 +983,10 @@
                 "loc": 295
               }
             ],
-            "loc": 1784
+            "loc": 1769
           }
         ],
-        "loc": 9429
+        "loc": 9261
       },
       {
         "id": "github",

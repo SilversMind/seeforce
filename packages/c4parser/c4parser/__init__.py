@@ -7,7 +7,7 @@ description: |
   - Parses @c1/@c2/@c3/@lexicon annotations from a repo's source files
   - Assembles them into workspace.json
   - Compares workspace snapshots and checks the feature catalogue
-  - Extracts static import facts and entry points from source files
+  - Extracts static import facts from source files
   - Ships as the standalone seeforce-c4parser package
 short_desc: Parses C4 annotations from source files into workspace.json
 """
