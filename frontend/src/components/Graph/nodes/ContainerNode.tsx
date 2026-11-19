@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 import { cardText } from "../../../lib/description";
-import { locTitle, nodeBox, textScale } from "../../../lib/nodeSize";
+import { locTitle, nodeBox, nodeScale } from "../../../lib/nodeSize";
 
 export function ContainerNode({ data }: NodeProps) {
   const mode = useGraphMode();
@@ -10,7 +10,7 @@ export function ContainerNode({ data }: NodeProps) {
   const desc = cardText(data, mode);
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
   const nav = data.nav as { systemName?: string } | undefined;
-  const scale = textScale(data);
+  const scale = nodeScale(data);
 
   return (
     <div
@@ -25,21 +25,21 @@ export function ContainerNode({ data }: NodeProps) {
       <Handle id="left-s" type="source" position={Position.Left} />
       <Handle id="right-t" type="target" position={Position.Right} />
       <Handle id="right-s" type="source" position={Position.Right} />
-      <div style={{ fontWeight: 700, fontSize: Math.round(14 * scale), display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ fontWeight: 700, fontSize: 14 * scale, display: "flex", alignItems: "center", gap: 4 }}>
         {label}
         {hasOverlay && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c4-container-border)", flexShrink: 0 }} />}
       </div>
       {nav?.systemName && (
-        <div style={{ fontSize: 10, color: "var(--c4-container-desc)", fontStyle: "italic", marginTop: 2 }}>
+        <div style={{ fontSize: 10 * scale, color: "var(--c4-container-desc)", fontStyle: "italic", marginTop: 2 }}>
           in {nav.systemName}
         </div>
       )}
       {(data.technology as string) && (
-        <div style={{ fontSize: 10, background: "var(--c4-container-tech-bg)", color: "var(--c4-container-tech-text)", borderRadius: 4, padding: "1px 6px", display: "inline-block", marginTop: 4 }}>
+        <div style={{ fontSize: 10 * scale, background: "var(--c4-container-tech-bg)", color: "var(--c4-container-tech-text)", borderRadius: 4 * scale, padding: `${scale}px ${6 * scale}px`, display: "inline-block", marginTop: 4 }}>
           {data.technology as string}
         </div>
       )}
-      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 10, color: "var(--c4-container-desc)", marginTop: 4 }} />}
+      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 10 * scale, color: "var(--c4-container-desc)", marginTop: 4 }} />}
     </div>
   );
 }

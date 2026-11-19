@@ -9,17 +9,12 @@ export function nodeScale(data: Record<string, unknown>): number {
   return 1 + Math.min(Math.max(size, 0), 1) * MAX_NODE_GROWTH;
 }
 
-/** Growth of a node's padding and title, a third of its box's, so a big node does not shout. */
-export function textScale(data: Record<string, unknown>): number {
-  return 1 + (nodeScale(data) - 1) / 3;
-}
-
-/** Box size of a node: fixed by its lines of code when it has some, else sized by its text. */
+/** Box size of a node: fixed by its lines of code when it has some, else sized by its text; fonts and padding scale with it. */
 export function nodeBox(data: Record<string, unknown>, base: { width: number; height: number; maxWidth: number }): CSSProperties {
   if (typeof data.size !== "number") return { minWidth: base.width, maxWidth: base.maxWidth };
   // NOTE: a fixed width, not a min width, or a long short_desc stretches a small node past a big one.
   const scale = nodeScale(data);
-  return { width: base.width * scale, minHeight: base.height * scale, boxSizing: "border-box" };
+  return { width: base.width * scale, minHeight: base.height * scale, boxSizing: "border-box", overflowWrap: "anywhere" };
 }
 
 /** Tooltip text for a node's weight, or undefined when it has no lines of code. */
