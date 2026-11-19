@@ -137,7 +137,7 @@
               {
                 "id": "seeforce-backend-graph-transformer",
                 "name": "Graph transformer",
-                "description": "- Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view\n- Applies the project's node and edge overlays\n- Adds placeholder nodes for relationship targets outside the view\n- Sizes each node by its lines of code, on a log scale within the view",
+                "description": "- Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view\n- Applies the project's node and edge overlays\n- Adds placeholder nodes for relationship targets outside the view\n- Sizes each node by its lines of code, relative to the other nodes of the view",
                 "short_desc": "Converts workspace.json into ReactFlow nodes and edges per view",
                 "technology": "",
                 "source_file": "backend/apps/graph/transformers.py",
@@ -152,7 +152,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 406
+                "loc": 407
               },
               {
                 "id": "seeforce-backend-local-scan-command",
@@ -371,7 +371,7 @@
                 "loc": 219
               }
             ],
-            "loc": 2244
+            "loc": 2245
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -801,7 +801,7 @@
               {
                 "id": "seeforce-frontend-node-manager",
                 "name": "Node manager",
-                "description": "- Renders System, Container, Component, Person and External nodes\n- Shows each node's name, technology and short description\n- Grows a node with its lines of code, from 1x to 1.6x",
+                "description": "- Renders System, Container, Component, Person and External nodes\n- Shows each node's name, technology and short description\n- Widens a node with its lines of code, from 1x to 2.4x",
                 "short_desc": "Renders System/Container/Component nodes on the graph canvas",
                 "technology": "",
                 "source_file": "frontend/src/components/Graph/nodes/ComponentNode.tsx",
@@ -816,7 +816,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 241
+                "loc": 240
               },
               {
                 "id": "seeforce-frontend-auth-context",
@@ -923,7 +923,7 @@
                 "loc": 804
               }
             ],
-            "loc": 3837
+            "loc": 3848
           },
           {
             "id": "seeforce-annotation-parser",
@@ -1014,7 +1014,7 @@
             "loc": 1630
           }
         ],
-        "loc": 9179
+        "loc": 9191
       },
       {
         "id": "github",

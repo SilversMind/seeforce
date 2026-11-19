@@ -6,7 +6,7 @@ description: |
   - Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view
   - Applies the project's node and edge overlays
   - Adds placeholder nodes for relationship targets outside the view
-  - Sizes each node by its lines of code, on a log scale within the view
+  - Sizes each node by its lines of code, relative to the other nodes of the view
 short_desc: Converts workspace.json into ReactFlow nodes and edges per view
 uses:
 - Workspace Builder: "merges the labels of parallel edges into one list of flows"
@@ -79,14 +79,15 @@ def overlay_maps(project_map) -> tuple[dict[OverlayKey, dict], dict[str, dict]]:
 
 
 def _size_nodes(nodes: list[dict]) -> None:
-    """Sets data.size in [0, 1] on each node with lines of code, on a log scale between the view's smallest and largest."""
-    logs = {n["id"]: math.log(n["data"]["loc"]) for n in nodes if n["data"].get("loc", 0) >= 1}
-    if not logs:
+    """Sets data.size in [0, 1] on each node with lines of code, by square root between the view's smallest and largest."""
+    # NOTE: square root, not log: a box's area then grows with its code, and log squeezed a 4x gap into a few pixels.
+    roots = {n["id"]: math.sqrt(n["data"]["loc"]) for n in nodes if n["data"].get("loc", 0) >= 1}
+    if not roots:
         return
-    low, high = min(logs.values()), max(logs.values())
+    low, high = min(roots.values()), max(roots.values())
     for node in nodes:
-        if node["id"] in logs:
-            node["data"]["size"] = round((logs[node["id"]] - low) / (high - low), 3) if high > low else 0.0
+        if node["id"] in roots:
+            node["data"]["size"] = round((roots[node["id"]] - low) / (high - low), 3) if high > low else 0.0
 
 
 def _layout(nodes: list[dict]) -> list[dict]:
