@@ -36,7 +36,7 @@ import "@xyflow/react/dist/style.css";
 
 import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { applyElkLayout } from "../../lib/elkLayout";
+import { applyElkLayout, separateNodes } from "../../lib/elkLayout";
 import { loadPositions, savePositions } from "../../lib/layoutStorage";
 import { type RFNode, type RFEdge, fetchLexicon, fetchProjectTags } from "../../services/api";
 import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
@@ -115,6 +115,8 @@ function C4GraphInner() {
    * their real content-driven size before ELK lays them out with it.
    */
   const [awaitingMeasurement, setAwaitingMeasurement] = useState(false);
+  /** True while nodes sit at saved positions, until their measured boxes are checked for overlap. */
+  const [awaitingSeparation, setAwaitingSeparation] = useState(false);
   const nodesInitialized = useNodesInitialized();
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
   const [mode, setMode] = useState<GraphMode>("enriched");
@@ -187,6 +189,7 @@ function C4GraphInner() {
       setEdges(fetchedEdges);
       setAwaitingMeasurement(false);
       fitAll();
+      setAwaitingSeparation(true);
       return;
     }
 
@@ -210,6 +213,7 @@ function C4GraphInner() {
       setEdges(fetchedEdges);
       setAwaitingMeasurement(false);
       fitAll();
+      setAwaitingSeparation(true);
       return;
     }
 
@@ -246,6 +250,16 @@ function C4GraphInner() {
         setAwaitingMeasurement(false);
       });
   }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, pullRequest, fitAll]);
+
+  useEffect(() => {
+    if (!awaitingSeparation || !nodesInitialized) return;
+    setAwaitingSeparation(false);
+    // Saved positions were computed for the boxes of that time; a node grown since (more code) would cover its neighbours.
+    const separated = separateNodes(nodes);
+    if (!separated) return;
+    setNodes(separated);
+    fitAll();
+  }, [awaitingSeparation, nodesInitialized, nodes, setNodes, fitAll]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
     if (!projectMapId || pullRequest != null) return;
