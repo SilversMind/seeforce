@@ -6,6 +6,7 @@ description: |
   - Walks a repo's source files
   - Parses @c1/@c2/@c3/@lexicon blocks from comments and docstrings into a flat element list
   - Normalizes descriptions into `- ` bullet text
+  - Counts the non-blank lines of every source file it walks
 short_desc: Walks source files and extracts @c1/@c2/@c3/@lexicon blocks
 """
 import fnmatch
@@ -182,35 +183,9 @@ def _extract_blocks(text: str) -> list[tuple[str, int]]:
     return blocks
 
 
-def scan(
-    root_path: str,
-    extensions: list[str] | None = None,
-    excludes: set[str] | None = None,
-) -> list[C4Element]:
-    exts = set(extensions) if extensions else _DEFAULT_EXTENSIONS
-    excl = excludes if excludes is not None else _DEFAULT_EXCLUDES
+def _source_files(root_path: str, exts: set[str], excl: set[str]):
+    """Yields (dirpath, file_path, text) for every source file under root_path, in tree order."""
     ignore = _load_c4ignore(root_path)
-    elements: list[C4Element] = []
-
-    # Per-directory, not once for root_path — root_path itself may not be a
-    # git repo (e.g. a shared parent of several independently-cloned repos),
-    # in which case a single root-level lookup finds nothing and every
-    # source_file silently degrades to a bare filename, colliding across
-    # files and breaking ownership inference that depends on real paths.
-    git_root_cache: dict[str, str | None] = {}
-
-    def _git_root_for(dirpath: str) -> str | None:
-        if dirpath not in git_root_cache:
-            try:
-                result = subprocess.run(
-                    ["git", "rev-parse", "--show-toplevel"],
-                    cwd=dirpath, capture_output=True, text=True, timeout=5, check=False,
-                )
-                git_root_cache[dirpath] = result.stdout.strip() if result.returncode == 0 else None
-            except Exception:
-                git_root_cache[dirpath] = None
-        return git_root_cache[dirpath]
-
     for dirpath, dirnames, filenames in os.walk(root_path):
         # Prune excluded dirs in-place so os.walk skips them.
         # rel_path uses forward slashes for cross-platform pattern matching.
@@ -237,19 +212,70 @@ def scan(
                 text = Path(file_path).read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
+            yield dirpath, file_path, text
 
-            if "@c" not in text and "@lexicon" not in text:
-                continue  # fast path
 
-            for block, line in _extract_blocks(text):
-                if "@c" not in block and "@lexicon" not in block:
-                    continue
-                try:
-                    element = _parse_block(block, file_path, line, git_root=_git_root_for(dirpath))
-                except C4ParseError as exc:
-                    print(f"Warning: {exc}", file=sys.stderr)
-                    continue
-                if element is not None:
-                    elements.append(element)
+class _GitRoots:
+    """Caches `git rev-parse --show-toplevel` per directory."""
+
+    def __init__(self) -> None:
+        self._cache: dict[str, str | None] = {}
+
+    def __call__(self, dirpath: str) -> str | None:
+        if dirpath not in self._cache:
+            try:
+                result = subprocess.run(
+                    ["git", "rev-parse", "--show-toplevel"],
+                    cwd=dirpath, capture_output=True, text=True, timeout=5, check=False,
+                )
+                self._cache[dirpath] = result.stdout.strip() if result.returncode == 0 else None
+            except Exception:
+                self._cache[dirpath] = None
+        return self._cache[dirpath]
+
+
+def scan(
+    root_path: str,
+    extensions: list[str] | None = None,
+    excludes: set[str] | None = None,
+) -> list[C4Element]:
+    exts = set(extensions) if extensions else _DEFAULT_EXTENSIONS
+    excl = excludes if excludes is not None else _DEFAULT_EXCLUDES
+    elements: list[C4Element] = []
+    # Per-directory, not once for root_path: root_path may be a shared parent of several repos.
+    # NOTE: a single root-level lookup would degrade every source_file to a bare filename and break ownership inference.
+    git_root_for = _GitRoots()
+
+    for dirpath, file_path, text in _source_files(root_path, exts, excl):
+        if "@c" not in text and "@lexicon" not in text:
+            continue  # fast path
+
+        for block, line in _extract_blocks(text):
+            if "@c" not in block and "@lexicon" not in block:
+                continue
+            try:
+                element = _parse_block(block, file_path, line, git_root=git_root_for(dirpath))
+            except C4ParseError as exc:
+                print(f"Warning: {exc}", file=sys.stderr)
+                continue
+            if element is not None:
+                elements.append(element)
 
     return elements
+
+
+def count_lines(
+    root_path: str,
+    extensions: list[str] | None = None,
+    excludes: set[str] | None = None,
+) -> dict[str, int]:
+    """Returns the non-blank line count of every scanned source file, keyed like source_file."""
+    exts = set(extensions) if extensions else _DEFAULT_EXTENSIONS
+    excl = excludes if excludes is not None else _DEFAULT_EXCLUDES
+    git_root_for = _GitRoots()
+    counts: dict[str, int] = {}
+    for dirpath, file_path, text in _source_files(root_path, exts, excl):
+        ref_root = git_root_for(dirpath) or os.path.dirname(file_path)
+        rel = os.path.relpath(file_path, ref_root).replace(os.sep, "/")
+        counts[rel] = sum(1 for line in text.splitlines() if line.strip())
+    return counts

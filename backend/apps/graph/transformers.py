@@ -6,10 +6,13 @@ description: |
   - Converts a stored workspace.json into ReactFlow nodes and edges for one C1/C2/C3 view
   - Applies the project's node and edge overlays
   - Adds placeholder nodes for relationship targets outside the view
+  - Sizes each node by its lines of code, relative to the other nodes of the view
 short_desc: Converts workspace.json into ReactFlow nodes and edges per view
 uses:
 - Workspace Builder: "merges the labels of parallel edges into one list of flows"
 """
+import math
+
 from c4parser import edge_label, merge_flows, merge_labels, split_flows
 
 _GRID_COLS = 4
@@ -28,6 +31,7 @@ def _node(
     description: str = "",
     short_desc: str = "",
     code_ref: str = "",
+    loc: int = 0,
     *,
     overlay_key: OverlayKey | None = None,
     node_overlay: dict[OverlayKey, dict] | None = None,
@@ -45,6 +49,7 @@ def _node(
             "description": description,
             "short_desc": short_desc,
             "code_ref": code_ref,
+            **({"loc": loc} if loc else {}),
             "overlay_label": ov.get("display_name", "") if ov else "",
             "overlay_description": ov.get("description", "") if ov else "",
             "tags": ov.get("tags", []) if ov else [],
@@ -73,7 +78,20 @@ def overlay_maps(project_map) -> tuple[dict[OverlayKey, dict], dict[str, dict]]:
     return nodes, edges
 
 
+def _size_nodes(nodes: list[dict]) -> None:
+    """Sets data.size in [0, 1] on each node with lines of code, by square root between the view's smallest and largest."""
+    # NOTE: square root, not log: a box's area then grows with its code, and log squeezed a 4x gap into a few pixels.
+    roots = {n["id"]: math.sqrt(n["data"]["loc"]) for n in nodes if n["data"].get("loc", 0) >= 1}
+    if not roots:
+        return
+    low, high = min(roots.values()), max(roots.values())
+    for node in nodes:
+        if node["id"] in roots:
+            node["data"]["size"] = round((roots[node["id"]] - low) / (high - low), 3) if high > low else 0.0
+
+
 def _layout(nodes: list[dict]) -> list[dict]:
+    _size_nodes(nodes)
     # Deterministic grid: fill rows left-to-right, wrap every _GRID_COLS nodes.
     for index, node in enumerate(nodes):
         node["position"] = {
@@ -273,6 +291,7 @@ def _c1_view(
                 system["name"],
                 description=system.get("description", ""),
                 short_desc=system.get("short_desc", ""),
+                loc=system.get("loc", 0),
                 overlay_key=okey,
                 node_overlay=node_overlay,
             )
@@ -315,6 +334,7 @@ def _c2_view(
                 description=container.get("description", ""),
                 short_desc=container.get("short_desc", ""),
                 code_ref=container.get("source_file", ""),
+                loc=container.get("loc", 0),
                 overlay_key=okey,
                 node_overlay=node_overlay,
             )
@@ -355,6 +375,7 @@ def _c3_view(
                         description=comp.get("description", ""),
                         short_desc=comp.get("short_desc", ""),
                         code_ref=comp.get("source_file", ""),
+                        loc=comp.get("loc", 0),
                         overlay_key=okey,
                         node_overlay=node_overlay,
                     )

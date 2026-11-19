@@ -5,6 +5,7 @@ container: Frontend
 description: |
   - Draws directional relationship edges between nodes
   - Attaches each edge to the nearest border point of its nodes
+  - Thickens an edge with its number of actions
 short_desc: Renders relationship edges between nodes with floating geometry
 uses:
 - Lexicon: "highlights and links glossary terms found in edge relationship labels"
@@ -14,6 +15,7 @@ import { useStore, getBezierPath, Position, EdgeLabelRenderer, BaseEdge, type Ed
 import type { InternalNode } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "../nodes/DescriptionWithHighlights";
+import { edgeStrokeWidth } from "../../../lib/nodeSize";
 
 function getCenter(node: InternalNode) {
   const pos = node.internals.positionAbsolute;
@@ -69,7 +71,7 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
   const changed = delta !== undefined && delta.state !== "unchanged";
   const edgeStyle = {
     stroke: changed ? `var(--c4-delta-${delta!.state})` : "var(--c4-edge-stroke)",
-    strokeWidth: changed ? 2.5 : 1.5,
+    strokeWidth: edgeStrokeWidth(actionCount) + (changed ? 1 : 0),
     ...(delta?.state === "removed" ? { strokeDasharray: "6 4" } : {}),
     // Recessive, not hidden: an unchanged relation stays on the canvas and keeps its label.
     ...(delta?.state === "unchanged" ? { opacity: 0.4 } : {}),
@@ -77,7 +79,7 @@ export function FloatingEdge({ id, source, target, label, data, selected }: Edge
 
   return (
     <>
-      {/* Wider transparent path so hover isn't limited to the 1.5px visible stroke */}
+      {/* Wider transparent path so hover isn't limited to the thin visible stroke */}
       <path
         d={edgePath}
         fill="none"

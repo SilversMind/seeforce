@@ -29,3 +29,7 @@ backend:
 # Start the Vite frontend dev server
 frontend:
     cd frontend && npm run dev
+
+# Rescan workspace.json on every commit (Claude sessions turn this on by themselves)
+hooks:
+    git config core.hooksPath .githooks

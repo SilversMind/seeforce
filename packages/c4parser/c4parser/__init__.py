@@ -12,6 +12,7 @@ description: |
 short_desc: Parses C4 annotations from source files into workspace.json
 """
 from .builder import (
+    attribute_lines,
     build,
     edge_label,
     find_empty_containers,
@@ -41,7 +42,7 @@ from .features import (
     load_catalogue,
     review_flags,
 )
-from .scanner import DEFAULT_EXTENSIONS, format_description, scan
+from .scanner import DEFAULT_EXTENSIONS, count_lines, format_description, scan
 from .types import C4Component, C4Container, C4Element, C4System
 
 __all__ = [
@@ -56,8 +57,10 @@ __all__ = [
     "Category",
     "Delta",
     "Feature",
+    "attribute_lines",
     "broken_features",
     "build",
+    "count_lines",
     "diff",
     "dump_catalogue",
     "edge_label",

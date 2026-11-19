@@ -7,7 +7,10 @@ description: |
   - Creates or updates the scanned project's ProjectMap
 short_desc: Scans local repo paths and upserts the resulting ProjectMap
 uses:
-- Annotation Scanner: "parses annotation blocks from the target repo path(s)"
+- Annotation Scanner:
+  - "parses annotation blocks from the target repo path(s)"
+  - "counts the lines of code of each source file"
+  short_desc: "parses annotations, counts lines"
 - Workspace Builder:
   - "resolves relationships"
   - "assembles the parsed elements into workspace.json"
@@ -20,6 +23,7 @@ from pathlib import Path
 
 from c4parser import (
     build,
+    count_lines,
     export_workspace,
     find_empty_containers,
     find_long_short_descriptions,
@@ -99,9 +103,11 @@ class Command(BaseCommand):
         self.stdout.write(f"Scanning {', '.join(str(p) for p in paths)} (project: {project_id[:8]}…)")
         try:
             elements = []
+            line_counts: dict[str, int] = {}
             for p in paths:
                 elements.extend(scan(str(p)))
-            workspace = build(elements)
+                line_counts.update(count_lines(str(p)))
+            workspace = build(elements, line_counts=line_counts)
             json_str = export_workspace(workspace)
         except C4ParseError as exc:
             raise CommandError(f"Parse error: {exc}")

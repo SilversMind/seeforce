@@ -41,7 +41,7 @@ import "@xyflow/react/dist/style.css";
 
 import { useViewStore } from "../../store/viewStore";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { applyElkLayout } from "../../lib/elkLayout";
+import { applyElkLayout, separateNodes } from "../../lib/elkLayout";
 import { loadPositions, savePositions } from "../../lib/layoutStorage";
 import { type RFNode, type RFEdge, fetchLexicon, fetchProjectTags } from "../../services/api";
 import { GraphModeContext, type GraphMode } from "../../contexts/GraphModeContext";
@@ -252,6 +252,16 @@ function C4GraphInner() {
       });
   }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, pullRequest, fitAll]);
 
+  // Every box size React Flow has measured, so a box that grows after layout (more code, a comparison) is caught.
+  const measuredSizes = nodes.map((n) => `${n.id}:${n.measured?.width}x${n.measured?.height}`).join("|");
+  useEffect(() => {
+    if (awaitingMeasurement || isLayouting || !nodesInitialized) return;
+    // NOTE: a size can change after the layout settled (comparison data, fonts), and saved positions predate it.
+    const separated = separateNodes(nodes);
+    if (separated) setNodes(separated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [measuredSizes, awaitingMeasurement, isLayouting, nodesInitialized]);
+
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
     if (!projectMapId || pullRequest != null) return;
     const positions: Record<string, { x: number; y: number }> = {};
@@ -335,10 +345,10 @@ function C4GraphInner() {
     <LexiconContext.Provider value={{ lexicon, setActiveTerm }}>
     <GraphModeContext.Provider value={mode}>
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
-        {/* Shared SVG marker — referenced as url(#c4-arrow) by all FloatingEdge instances */}
+        {/* Shared SVG marker, sized in pixels so a thick edge keeps a normal arrowhead */}
         <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
           <defs>
-            <marker id="c4-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+            <marker id="c4-arrow" viewBox="0 0 8 8" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="7" refY="3.5" orient="auto">
               <polygon points="0 0, 7 3.5, 0 7" className="c4-arrow-fill" />
             </marker>
           </defs>
