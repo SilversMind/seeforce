@@ -122,3 +122,18 @@ export async function applyElkLayout<N extends WithPosition, E extends WithSourc
 
   return { nodes: laidOut, edges: validEdges };
 }
+
+/** Pushes apart nodes kept at saved positions that now overlap, e.g. after their box grew; returns null when none do. */
+export function separateNodes<N extends WithPosition>(nodes: N[]): N[] | null {
+  const rects: Rect[] = nodes.map((n) => ({
+    id: n.id,
+    x: n.position.x,
+    y: n.position.y,
+    w: n.measured?.width ?? NODE_WIDTH,
+    h: n.measured?.height ?? NODE_HEIGHT,
+  }));
+  const resolved = enforceMinSpacing(rects);
+  const moved = resolved.some((r, i) => r.x !== rects[i].x || r.y !== rects[i].y);
+  if (!moved) return null;
+  return nodes.map((n, i) => ({ ...n, position: { x: resolved[i].x, y: resolved[i].y } }));
+}
