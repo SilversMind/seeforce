@@ -5,7 +5,7 @@ container: Frontend
 description: |
   - Renders System, Container, Component, Person and External nodes
   - Shows each node's name, technology and short description
-  - Widens a node with its lines of code, from 1x to 2.4x
+  - Scales a node and its text with its lines of code, from 1x to 2.4x
 short_desc: Renders System/Container/Component nodes on the graph canvas
 uses:
 - Lexicon: "highlights and links glossary terms found in node description"
@@ -15,7 +15,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useGraphMode } from "../../../contexts/GraphModeContext";
 import { DescriptionWithHighlights } from "./DescriptionWithHighlights";
 import { cardText } from "../../../lib/description";
-import { locTitle, nodeBox, textScale } from "../../../lib/nodeSize";
+import { locTitle, nodeBox, nodeScale } from "../../../lib/nodeSize";
 
 export function ComponentNode({ data }: NodeProps) {
   const mode = useGraphMode();
@@ -23,7 +23,7 @@ export function ComponentNode({ data }: NodeProps) {
   const desc = cardText(data, mode);
   const hasOverlay = mode === "enriched" && (data.has_overlay as boolean);
   const nav = data.nav as { containerName?: string } | undefined;
-  const scale = textScale(data);
+  const scale = nodeScale(data);
 
   return (
     <div
@@ -46,21 +46,21 @@ export function ComponentNode({ data }: NodeProps) {
       <Handle id="left-s" type="source" position={Position.Left} />
       <Handle id="right-t" type="target" position={Position.Right} />
       <Handle id="right-s" type="source" position={Position.Right} />
-      <div style={{ fontWeight: 600, fontSize: Math.round(13 * scale), display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ fontWeight: 600, fontSize: 13 * scale, display: "flex", alignItems: "center", gap: 4 }}>
         {label}
         {hasOverlay && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c4-component-border)", flexShrink: 0 }} />}
       </div>
       {nav?.containerName && (
-        <div style={{ fontSize: 10, color: "var(--c4-component-desc)", fontStyle: "italic", marginTop: 2 }}>
+        <div style={{ fontSize: 10 * scale, color: "var(--c4-component-desc)", fontStyle: "italic", marginTop: 2 }}>
           in {nav.containerName}
         </div>
       )}
       {(data.technology as string) && (
-        <div style={{ fontSize: 10, color: "var(--c4-component-desc)", marginTop: 2 }}>
+        <div style={{ fontSize: 10 * scale, color: "var(--c4-component-desc)", marginTop: 2 }}>
           {data.technology as string}
         </div>
       )}
-      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 10, color: "var(--c4-component-desc)", marginTop: 4 }} />}
+      {desc && <DescriptionWithHighlights text={desc} style={{ fontSize: 10 * scale, color: "var(--c4-component-desc)", marginTop: 4 }} />}
     </div>
   );
 }
