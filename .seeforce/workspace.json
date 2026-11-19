@@ -717,7 +717,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 500
+                "loc": 513
               },
               {
                 "id": "seeforce-frontend-change-list",
@@ -923,7 +923,7 @@
                 "loc": 804
               }
             ],
-            "loc": 3844
+            "loc": 3871
           },
           {
             "id": "seeforce-annotation-parser",
@@ -1014,7 +1014,7 @@
             "loc": 1630
           }
         ],
-        "loc": 9187
+        "loc": 9214
       },
       {
         "id": "github",
