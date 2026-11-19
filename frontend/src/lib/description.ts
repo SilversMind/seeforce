@@ -24,6 +24,14 @@ export function parseBullets(text: string): Bullet[] | null {
   return root;
 }
 
+/** Counts the capabilities of a description: its leaf bullets, or 1 for a non-empty phrase. */
+export function countCapabilities(text: string): number {
+  const bullets = parseBullets(text);
+  if (!bullets) return text.trim() ? 1 : 0;
+  const leaves = (items: Bullet[]): number => items.reduce((n, b) => n + (b.children.length ? leaves(b.children) : 1), 0);
+  return leaves(bullets);
+}
+
 /** Flattens a description to one line for a node card: top-level bullets joined, sub-bullets dropped. */
 export function oneLine(text: string): string {
   const bullets = parseBullets(text);
