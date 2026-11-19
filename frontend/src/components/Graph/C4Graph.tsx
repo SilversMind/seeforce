@@ -115,8 +115,6 @@ function C4GraphInner() {
    * their real content-driven size before ELK lays them out with it.
    */
   const [awaitingMeasurement, setAwaitingMeasurement] = useState(false);
-  /** True while nodes sit at saved positions, until their measured boxes are checked for overlap. */
-  const [awaitingSeparation, setAwaitingSeparation] = useState(false);
   const nodesInitialized = useNodesInitialized();
   const [sidebarTarget, setSidebarTarget] = useState<SidebarTarget | null>(null);
   const [mode, setMode] = useState<GraphMode>("enriched");
@@ -189,7 +187,6 @@ function C4GraphInner() {
       setEdges(fetchedEdges);
       setAwaitingMeasurement(false);
       fitAll();
-      setAwaitingSeparation(true);
       return;
     }
 
@@ -213,7 +210,6 @@ function C4GraphInner() {
       setEdges(fetchedEdges);
       setAwaitingMeasurement(false);
       fitAll();
-      setAwaitingSeparation(true);
       return;
     }
 
@@ -251,15 +247,15 @@ function C4GraphInner() {
       });
   }, [awaitingMeasurement, nodesInitialized, nodes, fetchedEdges, setNodes, setEdges, projectMapId, level, systemId, containerId, pullRequest, fitAll]);
 
+  // Every box size React Flow has measured, so a box that grows after layout (more code, a comparison) is caught.
+  const measuredSizes = nodes.map((n) => `${n.id}:${n.measured?.width}x${n.measured?.height}`).join("|");
   useEffect(() => {
-    if (!awaitingSeparation || !nodesInitialized) return;
-    setAwaitingSeparation(false);
-    // Saved positions were computed for the boxes of that time; a node grown since (more code) would cover its neighbours.
+    if (awaitingMeasurement || isLayouting || !nodesInitialized) return;
+    // NOTE: a size can change after the layout settled (comparison data, fonts), and saved positions predate it.
     const separated = separateNodes(nodes);
-    if (!separated) return;
-    setNodes(separated);
-    fitAll();
-  }, [awaitingSeparation, nodesInitialized, nodes, setNodes, fitAll]);
+    if (separated) setNodes(separated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [measuredSizes, awaitingMeasurement, isLayouting, nodesInitialized]);
 
   const onNodeDragStop: OnNodeDrag = useCallback(() => {
     if (!projectMapId || pullRequest != null) return;
