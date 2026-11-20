@@ -18,20 +18,13 @@ Live instance: [seeforce.io](https://seeforce.io)
 
 ## Scanning a project
 
-From this repo root, use `just scan`:
+Install the CLI (`curl -fsSL https://seeforce.io/install.sh | sh`), then from your repo root:
 
 ```bash
-# Scan the current repo
-just scan
-
-# Scan a specific project
-just scan ../path/to/project
-
-# Scan multiple repos that share a C4 model (e.g. backend + frontend)
-just scan ../my-backend ../my-frontend
+seeforce scan
 ```
 
-Output: `.seeforce/workspace.json` in the first scanned path. Commit it to your repo.
+Output: `.seeforce/workspace.json` in the scanned path. Commit it to your repo.
 
 ### Annotation format
 
@@ -87,7 +80,7 @@ Supported languages: Python, TypeScript, JavaScript, Go, Rust, Java, C#, Ruby.
 
 **Upload:** click `+ New project` → `Upload file` → select `.seeforce/workspace.json`
 
-**GitHub import:** click `+ New project` → `Import from GitHub` → enter `owner/repo` and branch. The repo must contain a `.seeforce/workspace.json` (run `just scan` first and commit it).
+**GitHub import:** click `+ New project` → `Import from GitHub` → enter `owner/repo` and branch. The repo must contain a `.seeforce/workspace.json` (run `seeforce scan` first and commit it).
 
 ---
 

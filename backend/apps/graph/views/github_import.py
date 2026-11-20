@@ -11,7 +11,7 @@ short_desc: Imports, re-syncs, and links project architecture from GitHub
 uses:
   - GitHub: "fetches .seeforce/workspace.json through the Contents API"
     technology: HTTPS
-  - GitHub App Token Manager: "Requests the installation token before each Contents API call"
+  - GitHub App Token Manager: "requests the installation token before each Contents API call"
   - Database: "creates or updates the ProjectMap row for the imported, synced, or linked repo"
 """
 
