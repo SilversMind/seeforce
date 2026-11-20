@@ -1,3 +1,23 @@
+"""
+@c3:component
+name: Sharing API
+container: Backend
+technology: Python / Django REST Framework
+description: |
+  - Mints, reads and revokes a project's share token
+  - Redeems a token into a lasting access grant for the signed-in user
+  - Serves the shared map, its lexicon and its tags to a token holder, no account needed
+short_desc: Mints and redeems share tokens, and serves a shared map to a token holder
+uses:
+- Database/Database:
+  - "creates and revokes ShareToken rows"
+  - "records ProjectAccess grants"
+  - "reads the shared ProjectMap"
+  short_desc: "stores share tokens and access grants"
+- Graph transformer: "renders the shared project's workspace into the view a token holder receives"
+"""
+
+
 import secrets
 
 from rest_framework import status

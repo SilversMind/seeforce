@@ -8,7 +8,7 @@ description: |
   - Stores the API url and token in the user's config
 short_desc: Authenticates via GitHub OAuth and stores the API token locally
 uses:
-- Backend:
+- Backend/CLI Token Exchange:
   - "runs the OAuth exchange"
   - "returns the API token"
   short_desc: "exchanges OAuth code for the API token"

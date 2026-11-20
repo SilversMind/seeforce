@@ -29,8 +29,7 @@ description: |
   - Serves the guides behind annotate_codebase and catalogue_features
 short_desc: Implements the MCP tools assistants call to query architecture
 uses:
-    - Backend: "fetches workspace architecture data"
-      technology: REST
+    - Workspace API Client: "loads the project's workspace"
 """
 
 """
@@ -62,7 +61,7 @@ import httpx
 from c4parser.static_facts import extract_facts
 from mcp.server.mcpserver import MCPServer
 
-from seeforce_cli.mcp_client import fetch_workspace
+from seeforce_cli.backend_client import fetch_workspace
 from seeforce_cli.mcp_config import API_URL, resolve_project_root
 from seeforce_cli.mcp_ownership import infer_owner, render_owner
 from seeforce_cli.mcp_static_facts import collapse_to_components
@@ -282,14 +281,14 @@ name: Static Facts Query Handler
 container: MCP Server
 technology: Python
 description: |
-  - Implements the get_static_facts_for_files MCP tool
-  - Collapses import facts into component-level candidate edges
+  - Implements the get_static_facts_for_files MCP tool, the drift challenge
+  - Collapses their imports into component-level candidate edges
   - Drops edges between files of the same component
+  - Hands them to the assistant as a signal to confirm, never as truth
 short_desc: Answers get_static_facts_for_files with candidate edges
 uses:
-- Backend: "fetches the workspace to resolve candidate edges to known components"
-  technology: REST
-- Static Facts Extractor: "extracts imports, definitions, and docstrings for the requested files"
+- Workspace API Client: "loads the workspace to resolve candidate edges to known components"
+- Static Facts Extractor: "parses the requested files from the working tree on every call"
 - Ownership Inference: "resolves each candidate edge endpoint's owning component"
 """
 @server.tool()

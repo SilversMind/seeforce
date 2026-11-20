@@ -48,8 +48,20 @@
             "source_file": "backend/apps/graph/migrations/__init__.py",
             "tags": "Element,Container",
             "relationships": [],
-            "components": [],
-            "loc": 232
+            "components": [
+              {
+                "id": "seeforce-database-database",
+                "name": "Database",
+                "description": "- Holds everything a project owns once imported:\n  - Workspace snapshot\n  - Node and edge overlays\n  - Share tokens and access grants\n  - Lexicon entries\n  - GitHub App installations\n- Is the element a component names when it persists or reads project state",
+                "short_desc": "Stores project snapshots, overlays, sharing grants and lexicon entries",
+                "technology": "PostgreSQL",
+                "source_file": "backend/apps/graph/models.py",
+                "tags": "Element,Component",
+                "relationships": [],
+                "loc": 142
+              }
+            ],
+            "loc": 374
           },
           {
             "id": "seeforce-backend",
@@ -83,6 +95,12 @@
                 "short_desc": "",
                 "technology": "",
                 "tags": "Relationship"
+              },
+              {
+                "id": "rel-seeforce-backend-seeforce-seeforce-cli",
+                "destinationId": "seeforce-seeforce-cli",
+                "description": "redirects the browser to the short-lived local callback server the command runs, carrying the token",
+                "tags": "Relationship"
               }
             ],
             "components": [
@@ -112,7 +130,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 359
+                "loc": 317
               },
               {
                 "id": "seeforce-backend-github-app-token-manager",
@@ -132,7 +150,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 130
+                "loc": 88
               },
               {
                 "id": "seeforce-backend-graph-transformer",
@@ -152,7 +170,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 407
+                "loc": 365
               },
               {
                 "id": "seeforce-backend-local-scan-command",
@@ -180,8 +198,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-local-scan-command-seeforce-database",
-                    "destinationId": "seeforce-database",
+                    "id": "rel-seeforce-backend-local-scan-command-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "creates or updates the ProjectMap row for the scanned project",
                     "short_desc": "",
                     "technology": "",
@@ -208,15 +226,43 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-auth-api-seeforce-database",
-                    "destinationId": "seeforce-database",
+                    "id": "rel-seeforce-backend-auth-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "reads the user's GitHub SocialAccount and GitHubAppInstallation rows",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 105
+                "loc": 68
+              },
+              {
+                "id": "seeforce-backend-cli-token-exchange",
+                "name": "CLI Token Exchange",
+                "description": "- Sends an unauthenticated caller through the GitHub login first\n- Mints the signed-in user's API token\n- Redirects the browser to the port the local CLI listens on",
+                "short_desc": "Mints the API token and redirects it to the waiting local CLI",
+                "technology": "Python / Django",
+                "source_file": "backend/apps/graph/views/cli_auth.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-backend-cli-token-exchange-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
+                    "description": "gets or creates the DRF auth token row for the signed-in user",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-cli-token-exchange-seeforce-seeforce-cli-login-command",
+                    "destinationId": "seeforce-seeforce-cli-login-command",
+                    "description": "redirects the browser to the short-lived local callback server the command runs, carrying the token",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ],
+                "loc": 50
               },
               {
                 "id": "seeforce-backend-delta-view-api",
@@ -268,15 +314,15 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-delta-view-api-seeforce-database",
-                    "destinationId": "seeforce-database",
+                    "id": "rel-seeforce-backend-delta-view-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "reads the ProjectMap row the comparison is requested for",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 223
+                "loc": 186
               },
               {
                 "id": "seeforce-backend-github-app-setup-endpoint",
@@ -296,15 +342,15 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-database",
-                    "destinationId": "seeforce-database",
+                    "id": "rel-seeforce-backend-github-app-setup-endpoint-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "creates or updates the GitHubAppInstallation row for the logged-in user",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 112
+                "loc": 75
               },
               {
                 "id": "seeforce-backend-github-import",
@@ -332,15 +378,15 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-backend-github-import-seeforce-database",
-                    "destinationId": "seeforce-database",
+                    "id": "rel-seeforce-backend-github-import-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "creates or updates the ProjectMap row for the imported, synced, or linked repo",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 263
+                "loc": 226
               },
               {
                 "id": "seeforce-backend-edit-api",
@@ -352,8 +398,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-backend-edit-api-seeforce-database",
-                    "destinationId": "seeforce-database",
+                    "id": "rel-seeforce-backend-edit-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
                     "description": "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows",
                     "short_desc": "",
                     "technology": "",
@@ -368,10 +414,38 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 219
+                "loc": 182
+              },
+              {
+                "id": "seeforce-backend-sharing-api",
+                "name": "Sharing API",
+                "description": "- Mints, reads and revokes a project's share token\n- Redeems a token into a lasting access grant for the signed-in user\n- Serves the shared map, its lexicon and its tags to a token holder, no account needed",
+                "short_desc": "Mints and redeems share tokens, and serves a shared map to a token holder",
+                "technology": "Python / Django REST Framework",
+                "source_file": "backend/apps/graph/views/sharing.py",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-backend-sharing-api-seeforce-database-database",
+                    "destinationId": "seeforce-database-database",
+                    "description": "- creates and revokes ShareToken rows\n- records ProjectAccess grants\n- reads the shared ProjectMap",
+                    "short_desc": "stores share tokens and access grants",
+                    "technology": "",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-backend-sharing-api-seeforce-backend-graph-transformer",
+                    "destinationId": "seeforce-backend-graph-transformer",
+                    "description": "renders the shared project's workspace into the view a token holder receives",
+                    "short_desc": "",
+                    "technology": "",
+                    "tags": "Relationship"
+                  }
+                ],
+                "loc": 165
               }
             ],
-            "loc": 2258
+            "loc": 2163
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -397,6 +471,12 @@
                 "short_desc": "authenticates, fetches project id",
                 "technology": "REST",
                 "tags": "Relationship"
+              },
+              {
+                "id": "rel-seeforce-seeforce-cli-seeforce-mcp-server",
+                "destinationId": "seeforce-mcp-server",
+                "description": "names the server the assistant fetches the annotation guide from",
+                "tags": "Relationship"
               }
             ],
             "components": [
@@ -410,8 +490,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-seeforce-cli-annotate-command-seeforce-mcp-server",
-                    "destinationId": "seeforce-mcp-server",
+                    "id": "rel-seeforce-seeforce-cli-annotate-command-seeforce-mcp-server-tool-handlers",
+                    "destinationId": "seeforce-mcp-server-tool-handlers",
                     "description": "names the server the assistant fetches the annotation guide from",
                     "short_desc": "",
                     "technology": "",
@@ -478,8 +558,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-seeforce-cli-login-command-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-seeforce-cli-login-command-seeforce-backend-cli-token-exchange",
+                    "destinationId": "seeforce-backend-cli-token-exchange",
                     "description": "- runs the OAuth exchange\n- returns the API token",
                     "short_desc": "exchanges OAuth code for the API token",
                     "technology": "REST",
@@ -498,8 +578,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-seeforce-cli-mcp-install-command-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-seeforce-cli-mcp-install-command-seeforce-backend-edit-api",
+                    "destinationId": "seeforce-backend-edit-api",
                     "description": "- fetches the project id\n- validates the auth token",
                     "short_desc": "fetches project id, validates token",
                     "technology": "REST",
@@ -555,6 +635,12 @@
                 "short_desc": "",
                 "technology": "REST",
                 "tags": "Relationship"
+              },
+              {
+                "id": "rel-seeforce-mcp-server-seeforce-annotation-parser",
+                "destinationId": "seeforce-annotation-parser",
+                "description": "parses the requested files from the working tree on every call",
+                "tags": "Relationship"
               }
             ],
             "components": [
@@ -564,12 +650,12 @@
                 "description": "- Fetches the project's workspace.json from the Backend\n- Picks the project from the configured UUID, else the most recently updated one",
                 "short_desc": "Fetches the current project's workspace.json from the Backend",
                 "technology": "Python / httpx",
-                "source_file": "cli/seeforce_cli/mcp_client.py",
+                "source_file": "cli/seeforce_cli/backend_client.py",
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-workspace-api-client-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-mcp-server-workspace-api-client-seeforce-backend-edit-api",
+                    "destinationId": "seeforce-backend-edit-api",
                     "description": "fetches workspace architecture data",
                     "short_desc": "",
                     "technology": "REST",
@@ -599,11 +685,11 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-backend",
-                    "destinationId": "seeforce-backend",
-                    "description": "fetches workspace architecture data",
+                    "id": "rel-seeforce-mcp-server-tool-handlers-seeforce-mcp-server-workspace-api-client",
+                    "destinationId": "seeforce-mcp-server-workspace-api-client",
+                    "description": "loads the project's workspace",
                     "short_desc": "",
-                    "technology": "REST",
+                    "technology": "",
                     "tags": "Relationship"
                   }
                 ],
@@ -612,24 +698,24 @@
               {
                 "id": "seeforce-mcp-server-static-facts-query-handler",
                 "name": "Static Facts Query Handler",
-                "description": "- Implements the get_static_facts_for_files MCP tool\n- Collapses import facts into component-level candidate edges\n- Drops edges between files of the same component",
+                "description": "- Implements the get_static_facts_for_files MCP tool, the drift challenge\n- Collapses their imports into component-level candidate edges\n- Drops edges between files of the same component\n- Hands them to the assistant as a signal to confirm, never as truth",
                 "short_desc": "Answers get_static_facts_for_files with candidate edges",
                 "technology": "Python",
                 "source_file": "cli/seeforce_cli/mcp_server.py",
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-backend",
-                    "destinationId": "seeforce-backend",
-                    "description": "fetches the workspace to resolve candidate edges to known components",
+                    "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-mcp-server-workspace-api-client",
+                    "destinationId": "seeforce-mcp-server-workspace-api-client",
+                    "description": "loads the workspace to resolve candidate edges to known components",
                     "short_desc": "",
-                    "technology": "REST",
+                    "technology": "",
                     "tags": "Relationship"
                   },
                   {
                     "id": "rel-seeforce-mcp-server-static-facts-query-handler-seeforce-annotation-parser-static-facts-extractor",
                     "destinationId": "seeforce-annotation-parser-static-facts-extractor",
-                    "description": "extracts imports, definitions, and docstrings for the requested files",
+                    "description": "parses the requested files from the working tree on every call",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
@@ -646,7 +732,7 @@
                 "loc": 203
               }
             ],
-            "loc": 620
+            "loc": 619
           },
           {
             "id": "seeforce-frontend",
@@ -676,6 +762,14 @@
                 "source_file": "frontend/src/components/Graph/C4Graph.tsx",
                 "tags": "Element,Component",
                 "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
+                    "description": "loads the project's lexicon entries and tag list for the canvas",
+                    "short_desc": "",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
                   {
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-node-manager",
                     "destinationId": "seeforce-frontend-node-manager",
@@ -711,13 +805,13 @@
                   {
                     "id": "rel-seeforce-frontend-architecture-visualizer-seeforce-frontend-change-list",
                     "destinationId": "seeforce-frontend-change-list",
-                    "description": "mounts the comparison's change list and selects the node an item names",
-                    "short_desc": "",
+                    "description": "- mounts the comparison's change list\n- selects the node an item names",
+                    "short_desc": "mounts the change list, selects nodes",
                     "technology": "",
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 516
+                "loc": 521
               },
               {
                 "id": "seeforce-frontend-change-list",
@@ -740,8 +834,8 @@
                 "tags": "Element,Component",
                 "relationships": [
                   {
-                    "id": "rel-seeforce-frontend-comparison-selector-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-frontend-comparison-selector-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
                     "description": "lists the linked repository's open pull requests",
                     "short_desc": "",
                     "technology": "REST",
@@ -768,8 +862,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-frontend-overlay-editor-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
+                    "id": "rel-seeforce-frontend-overlay-editor-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
                     "description": "- saves node/edge overlay edits\n- saves lexicon entry changes",
                     "short_desc": "saves overlay and lexicon edits",
                     "technology": "REST",
@@ -841,20 +935,12 @@
               {
                 "id": "seeforce-frontend-lexicon",
                 "name": "Lexicon",
-                "description": "- Loads the project's glossary\n- Highlights glossary terms in node descriptions and edge labels\n- Shows a term's definition in a bottom panel on click",
+                "description": "- Shares the project's loaded glossary through React context\n- Highlights glossary terms in node descriptions and edge labels\n- Shows a term's definition in a bottom panel on click",
                 "short_desc": "Per-project glossary — highlights and defines terms in the graph",
                 "technology": "",
                 "source_file": "frontend/src/contexts/LexiconContext.ts",
                 "tags": "Element,Component",
                 "relationships": [
-                  {
-                    "id": "rel-seeforce-frontend-lexicon-seeforce-backend-edit-api",
-                    "destinationId": "seeforce-backend-edit-api",
-                    "description": "- fetches lexicon entries\n- saves lexicon entry changes",
-                    "short_desc": "reads and saves lexicon entries",
-                    "technology": "REST",
-                    "tags": "Relationship"
-                  },
                   {
                     "id": "rel-seeforce-frontend-lexicon-seeforce-frontend-architecture-visualizer",
                     "destinationId": "seeforce-frontend-architecture-visualizer",
@@ -864,7 +950,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 33
+                "loc": 28
               },
               {
                 "id": "seeforce-frontend-project-workspace",
@@ -884,8 +970,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-frontend-project-workspace-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-frontend-project-workspace-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
                     "description": "- reads the repo and branch for source links\n- mints, reads and revokes the share token",
                     "short_desc": "reads source links, manages share token",
                     "technology": "REST",
@@ -912,8 +998,8 @@
                     "tags": "Relationship"
                   },
                   {
-                    "id": "rel-seeforce-frontend-project-library-seeforce-backend",
-                    "destinationId": "seeforce-backend",
+                    "id": "rel-seeforce-frontend-project-library-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
                     "description": "- lists projects\n- creates projects from an upload or a GitHub import\n- renames and deletes projects\n- re-syncs and links projects to repos",
                     "short_desc": "lists, creates and manages projects",
                     "technology": "REST",
@@ -921,9 +1007,61 @@
                   }
                 ],
                 "loc": 804
+              },
+              {
+                "id": "seeforce-frontend-api-client",
+                "name": "API Client",
+                "description": "- Makes every HTTP call of the frontend:\n  - Projects, overlays, lexicon and tags\n  - Delta views\n  - GitHub import, sync and link\n  - Sharing\n- Builds the share and view URLs of the read-only pages",
+                "short_desc": "The frontend's only HTTP surface onto the backend",
+                "technology": "TypeScript",
+                "source_file": "frontend/src/services/api.ts",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-edit-api",
+                    "destinationId": "seeforce-backend-edit-api",
+                    "description": "- reads and writes projects\n- reads and writes overlays, lexicon entries and tags\n- fetches the rendered view for a level",
+                    "short_desc": "manages projects and edits, fetches views",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-auth-api",
+                    "destinationId": "seeforce-backend-auth-api",
+                    "description": "- reads the signed-in user\n- ends the session",
+                    "short_desc": "reads the user, signs out",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-delta-view-api",
+                    "destinationId": "seeforce-backend-delta-view-api",
+                    "description": "- lists the linked repository's open pull requests\n- fetches the decorated delta view",
+                    "short_desc": "lists pull requests, fetches the delta view",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-github-import",
+                    "destinationId": "seeforce-backend-github-import",
+                    "description": "- imports a repository\n- re-syncs a project\n- links an existing project to a repository",
+                    "short_desc": "imports, re-syncs and links repositories",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  },
+                  {
+                    "id": "rel-seeforce-frontend-api-client-seeforce-backend-sharing-api",
+                    "destinationId": "seeforce-backend-sharing-api",
+                    "description": "- mints, reads and revokes a share token\n- reads a shared project through a token",
+                    "short_desc": "manages share tokens, reads shared projects",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  }
+                ],
+                "loc": 365
               }
             ],
-            "loc": 3918
+            "loc": 3960
           },
           {
             "id": "seeforce-annotation-parser",
@@ -944,7 +1082,7 @@
                 "source_file": "packages/c4parser/c4parser/builder.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 542
+                "loc": 578
               },
               {
                 "id": "seeforce-annotation-parser-capabilities",
@@ -1031,10 +1169,10 @@
                 "loc": 295
               }
             ],
-            "loc": 1784
+            "loc": 1820
           }
         ],
-        "loc": 9429
+        "loc": 9553
       },
       {
         "id": "github",
@@ -1062,6 +1200,10 @@
       }
     ],
     "componentViews": [
+      {
+        "key": "Components-seeforce-database",
+        "containerId": "seeforce-database"
+      },
       {
         "key": "Components-seeforce-backend",
         "containerId": "seeforce-backend"

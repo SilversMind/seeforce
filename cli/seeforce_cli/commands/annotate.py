@@ -7,7 +7,7 @@ description: |
   - Prints how to start an annotation pass in the user's own coding assistant
 short_desc: Prints how to start an annotation pass in the user's AI assistant
 uses:
-- MCP Server: "names the server the assistant fetches the annotation guide from"
+- MCP Server/Tool Handlers: "names the server the assistant fetches the annotation guide from"
 """
 import click
 

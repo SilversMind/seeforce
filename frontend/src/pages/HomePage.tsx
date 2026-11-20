@@ -14,7 +14,7 @@ uses:
   - "reads the signed-in user"
   - "reads the GitHub App installation status"
   short_desc: "reads user and GitHub App status"
-- Backend:
+- API Client:
   - "lists projects"
   - "creates projects from an upload or a GitHub import"
   - "renames and deletes projects"

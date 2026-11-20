@@ -11,7 +11,7 @@ description: |
 short_desc: Per-project screen — hosts the graph, share modal, and current C4 level
 uses:
 - Architecture Visualizer: "embeds the graph canvas for the level currently selected in the view store"
-- Backend:
+- API Client:
   - "reads the repo and branch for source links"
   - "mints, reads and revokes the share token"
   short_desc: "reads source links, manages share token"

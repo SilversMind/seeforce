@@ -15,7 +15,7 @@ uses:
     - "resolves their GitHub identity"
     short_desc: "logs users in with OAuth"
     technology: HTTPS
-  - Database: "reads the user's GitHub SocialAccount and GitHubAppInstallation rows"
+  - Database/Database: "reads the user's GitHub SocialAccount and GitHubAppInstallation rows"
 """
 
 import os

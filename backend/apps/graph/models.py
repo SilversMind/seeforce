@@ -1,3 +1,18 @@
+"""
+@c3:component
+name: Database
+container: Database
+technology: PostgreSQL
+description: |
+  - Holds everything a project owns once imported:
+    - Workspace snapshot
+    - Node and edge overlays
+    - Share tokens and access grants
+    - Lexicon entries
+    - GitHub App installations
+  - Is the element a component names when it persists or reads project state
+short_desc: Stores project snapshots, overlays, sharing grants and lexicon entries
+"""
 from django.conf import settings
 from django.db import models
 

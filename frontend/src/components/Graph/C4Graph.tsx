@@ -9,11 +9,16 @@ description: |
   - Shows the selected pull request's changes on the canvas
 short_desc: Renders the graph and handles drill-down between C1/C2/C3 views
 uses:
+- API Client: "loads the project's lexicon entries and tag list for the canvas"
+  technology: REST
 - Node manager: "Renders C4 element nodes in the ReactFlow canvas"
 - Edge manager: "Renders directional relationship edges between nodes"
 - Overlay Editor: "opens the detail/edit panel for the clicked node or edge"
 - Comparison Selector: "mounts the control that picks which merge request the canvas is showing"
-- Change List: "mounts the comparison's change list and selects the node an item names"
+- Change List:
+  - "mounts the comparison's change list"
+  - "selects the node an item names"
+  short_desc: "mounts the change list, selects nodes"
 */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";

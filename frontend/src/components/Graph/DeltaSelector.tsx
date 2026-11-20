@@ -11,7 +11,7 @@ description: |
   - Says why no comparison is available when there is none
 short_desc: Picks the pull request to compare and explains the states
 uses:
-- Backend: "lists the linked repository's open pull requests"
+- API Client: "lists the linked repository's open pull requests"
   technology: REST
 */
 import useSWR from "swr";

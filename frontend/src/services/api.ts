@@ -1,3 +1,45 @@
+/*
+@c3:component
+name: API Client
+container: Frontend
+technology: TypeScript
+description: |
+  - Makes every HTTP call of the frontend:
+    - Projects, overlays, lexicon and tags
+    - Delta views
+    - GitHub import, sync and link
+    - Sharing
+  - Builds the share and view URLs of the read-only pages
+short_desc: The frontend's only HTTP surface onto the backend
+uses:
+- Edit API:
+  - "reads and writes projects"
+  - "reads and writes overlays, lexicon entries and tags"
+  - "fetches the rendered view for a level"
+  short_desc: "manages projects and edits, fetches views"
+  technology: REST
+- Auth API:
+  - "reads the signed-in user"
+  - "ends the session"
+  short_desc: "reads the user, signs out"
+  technology: REST
+- Delta View API:
+  - "lists the linked repository's open pull requests"
+  - "fetches the decorated delta view"
+  short_desc: "lists pull requests, fetches the delta view"
+  technology: REST
+- GitHub Import:
+  - "imports a repository"
+  - "re-syncs a project"
+  - "links an existing project to a repository"
+  short_desc: "imports, re-syncs and links repositories"
+  technology: REST
+- Sharing API:
+  - "mints, reads and revokes a share token"
+  - "reads a shared project through a token"
+  short_desc: "manages share tokens, reads shared projects"
+  technology: REST
+*/
 export interface AuthUser {
   id: number;
   username: string;

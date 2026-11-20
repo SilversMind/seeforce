@@ -1,3 +1,19 @@
+"""
+@c3:component
+name: CLI Token Exchange
+container: Backend
+technology: Python / Django
+description: |
+  - Sends an unauthenticated caller through the GitHub login first
+  - Mints the signed-in user's API token
+  - Redirects the browser to the port the local CLI listens on
+short_desc: Mints the API token and redirects it to the waiting local CLI
+uses:
+- Database/Database: "gets or creates the DRF auth token row for the signed-in user"
+- SeeForce CLI/Login Command: "redirects the browser to the short-lived local callback server the command runs, carrying the token"
+"""
+
+
 from urllib.parse import urlencode
 
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
