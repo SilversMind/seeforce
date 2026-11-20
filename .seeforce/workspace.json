@@ -221,7 +221,7 @@
               {
                 "id": "seeforce-backend-delta-view-api",
                 "name": "Delta View API",
-                "description": "- Lists the linked repository's open pull requests\n- Compares workspace.json at the two commits a pull request names\n- Returns the decorated C1/C2/C3 view of that comparison\n- Reads the repository with the requesting user's own installation token\n- Caches each commit's workspace.json in memory for a day, keyed by token",
+                "description": "- Lists the linked repository's open pull requests\n- Fetches workspace.json from GitHub at the pull request's base and head commits\n- Compares the two snapshots\n- Returns the decorated C1/C2/C3 view of that comparison\n- Reads the repository with the requesting user's own installation token\n- Caches each commit's workspace.json in memory for a day, keyed by token",
                 "short_desc": "Serves open pull requests and the decorated delta view",
                 "technology": "Django REST Framework",
                 "source_file": "backend/apps/graph/views/delta.py",
@@ -230,8 +230,8 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-github-import",
                     "destinationId": "seeforce-backend-github-import",
-                    "description": "- resolves the installation token\n- reads workspace.json at a commit",
-                    "short_desc": "reads workspace.json at a commit",
+                    "description": "- resolves the installation token\n- fetches workspace.json at the base and head commits",
+                    "short_desc": "fetches base and head workspace.json",
                     "technology": "",
                     "tags": "Relationship"
                   },
@@ -246,7 +246,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
-                    "description": "runs the comparison between the two commits' workspace snapshots",
+                    "description": "hands it the base and head workspace.json to compare",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
@@ -254,7 +254,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-delta-presenter",
                     "destinationId": "seeforce-backend-delta-presenter",
-                    "description": "projects that comparison onto the rendered view it returns",
+                    "description": "hands it the comparison to project onto the rendered view it returns",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
@@ -276,7 +276,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 222
+                "loc": 223
               },
               {
                 "id": "seeforce-backend-github-app-setup-endpoint",
@@ -371,7 +371,7 @@
                 "loc": 219
               }
             ],
-            "loc": 2254
+            "loc": 2255
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -423,7 +423,7 @@
               {
                 "id": "seeforce-seeforce-cli-delta-command",
                 "name": "Delta Command",
-                "description": "- Runs `seeforce delta` between two git revisions\n- Prints what changed in the architecture\n- Reports every catalogue feature that lost an element\n- Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise",
+                "description": "- Runs `seeforce delta` between two git revisions\n- Reads the base workspace.json from git at the base revision, the head one from the working tree\n- Prints what changed in the architecture\n- Reports every catalogue feature that lost an element\n- Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise",
                 "short_desc": "Compares two revisions' workspaces and fails CI on a broken feature",
                 "technology": "",
                 "source_file": "cli/seeforce_cli/commands/delta.py",
@@ -432,7 +432,7 @@
                   {
                     "id": "rel-seeforce-seeforce-cli-delta-command-seeforce-annotation-parser-delta-reporter",
                     "destinationId": "seeforce-annotation-parser-delta-reporter",
-                    "description": "- compares the two snapshots\n- finds the catalogue features that lost an element",
+                    "description": "- hands it the base and head workspace.json to compare\n- finds the catalogue features that lost an element",
                     "short_desc": "compares snapshots, finds broken features",
                     "technology": "",
                     "tags": "Relationship"
@@ -446,7 +446,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 95
+                "loc": 96
               },
               {
                 "id": "seeforce-seeforce-cli-features-command",
@@ -537,7 +537,7 @@
                 "loc": 86
               }
             ],
-            "loc": 616
+            "loc": 617
           },
           {
             "id": "seeforce-mcp-server",
@@ -949,18 +949,18 @@
               {
                 "id": "seeforce-annotation-parser-capabilities",
                 "name": "Capabilities",
-                "description": "- Parses a `- ` bullet description into a tree of capabilities\n- Counts the leaves, since a parent bullet only groups its children\n- Diffs two capability trees bullet by bullet:\n  - added and removed bullets\n  - reworded bullets, paired by text similarity at the same level",
+                "description": "- Reads no file itself: works on the description text its caller hands it\n- Parses a `- ` bullet description into a tree of capabilities\n- Counts the leaves, since a parent bullet only groups its children\n- Diffs two capability trees bullet by bullet:\n  - added and removed bullets\n  - reworded bullets, paired by text similarity at the same level",
                 "short_desc": "Turns bullet descriptions into capabilities and diffs them",
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/capabilities.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 108
+                "loc": 110
               },
               {
                 "id": "seeforce-annotation-parser-delta-reporter",
                 "name": "Delta Reporter",
-                "description": "- Compares two workspace.json snapshots at the architecture level\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Pairs the leftovers by kind and name, so a moved file reads as a move\n- Renders the delta as markdown, one row per changed capability or action\n- Reports catalogue features that lost an element",
+                "description": "- Compares the two workspace.json snapshots its caller hands it\n- Reads each element's description and each edge's actions from them\n- Pairs elements by kind and source file, so a rename reads as a rename\n- Pairs the leftovers by kind and name, so a moved file reads as a move\n- Renders the delta as markdown, one row per changed capability or action\n- Reports catalogue features that lost an element",
                 "short_desc": "Compares two workspace snapshots into an architecture delta",
                 "technology": "Python",
                 "source_file": "packages/c4parser/c4parser/delta.py",
@@ -969,13 +969,13 @@
                   {
                     "id": "rel-seeforce-annotation-parser-delta-reporter-seeforce-annotation-parser-capabilities",
                     "destinationId": "seeforce-annotation-parser-capabilities",
-                    "description": "diffs a changed description bullet by bullet into each change it reports",
+                    "description": "hands it each changed description's before and after text to diff",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 306
+                "loc": 308
               },
               {
                 "id": "seeforce-annotation-parser-entry-point-discovery",
@@ -1031,10 +1031,10 @@
                 "loc": 295
               }
             ],
-            "loc": 1782
+            "loc": 1784
           }
         ],
-        "loc": 9422
+        "loc": 9426
       },
       {
         "id": "github",

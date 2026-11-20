@@ -4,14 +4,15 @@ name: Delta Reporter
 container: Annotation Parser
 technology: Python
 description: |
-  - Compares two workspace.json snapshots at the architecture level
+  - Compares the two workspace.json snapshots its caller hands it
+  - Reads each element's description and each edge's actions from them
   - Pairs elements by kind and source file, so a rename reads as a rename
   - Pairs the leftovers by kind and name, so a moved file reads as a move
   - Renders the delta as markdown, one row per changed capability or action
   - Reports catalogue features that lost an element
 short_desc: Compares two workspace snapshots into an architecture delta
 uses:
-- Capabilities: "diffs a changed description bullet by bullet into each change it reports"
+- Capabilities: "hands it each changed description's before and after text to diff"
 """
 from dataclasses import dataclass, field
 

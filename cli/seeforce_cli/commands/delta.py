@@ -4,13 +4,14 @@ name: Delta Command
 container: SeeForce CLI
 description: |
   - Runs `seeforce delta` between two git revisions
+  - Reads the base workspace.json from git at the base revision, the head one from the working tree
   - Prints what changed in the architecture
   - Reports every catalogue feature that lost an element
   - Exits 1 on a broken feature, 2 on a bad revision or load, 0 otherwise
 short_desc: Compares two revisions' workspaces and fails CI on a broken feature
 uses:
 - Delta Reporter:
-  - "compares the two snapshots"
+  - "hands it the base and head workspace.json to compare"
   - "finds the catalogue features that lost an element"
   short_desc: "compares snapshots, finds broken features"
 - Feature Catalogue: "loads and validates the working tree's catalogue against the head snapshot"

@@ -4,6 +4,7 @@ name: Capabilities
 container: Annotation Parser
 technology: Python
 description: |
+  - Reads no file itself: works on the description text its caller hands it
   - Parses a `- ` bullet description into a tree of capabilities
   - Counts the leaves, since a parent bullet only groups its children
   - Diffs two capability trees bullet by bullet:
