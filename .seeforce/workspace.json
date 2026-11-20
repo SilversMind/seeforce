@@ -58,10 +58,10 @@
                 "source_file": "backend/apps/graph/models.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 150
+                "loc": 141
               }
             ],
-            "loc": 396
+            "loc": 386
           },
           {
             "id": "seeforce-backend",
@@ -112,7 +112,8 @@
                 "technology": "Python",
                 "source_file": "backend/apps/graph/catalogue.py",
                 "tags": "Element,Component",
-                "relationships": []
+                "relationships": [],
+                "loc": 48
               },
               {
                 "id": "seeforce-backend-delta-presenter",
@@ -140,7 +141,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 324
+                "loc": 314
               },
               {
                 "id": "seeforce-backend-github-app-token-manager",
@@ -160,7 +161,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 94
+                "loc": 85
               },
               {
                 "id": "seeforce-backend-graph-transformer",
@@ -180,7 +181,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 372
+                "loc": 362
               },
               {
                 "id": "seeforce-backend-local-scan-command",
@@ -244,7 +245,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 68
+                "loc": 58
               },
               {
                 "id": "seeforce-backend-cli-token-exchange",
@@ -272,7 +273,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 50
+                "loc": 40
               },
               {
                 "id": "seeforce-backend-delta-view-api",
@@ -332,7 +333,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 186
+                "loc": 176
               },
               {
                 "id": "seeforce-backend-github-app-setup-endpoint",
@@ -360,7 +361,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 75
+                "loc": 65
               },
               {
                 "id": "seeforce-backend-github-import",
@@ -396,7 +397,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 247
+                "loc": 237
               },
               {
                 "id": "seeforce-backend-overlay-editing",
@@ -415,7 +416,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 120
               },
               {
                 "id": "seeforce-backend-project-lifecycle",
@@ -442,7 +444,8 @@
                     "technology": "",
                     "tags": "Relationship"
                   }
-                ]
+                ],
+                "loc": 78
               },
               {
                 "id": "seeforce-backend-map-rendering",
@@ -470,7 +473,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 184
+                "loc": 65
               },
               {
                 "id": "seeforce-backend-sharing-api",
@@ -498,10 +501,10 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 165
+                "loc": 155
               }
             ],
-            "loc": 2206
+            "loc": 2250
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -1150,10 +1153,10 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 381
+                "loc": 390
               }
             ],
-            "loc": 4103
+            "loc": 4112
           },
           {
             "id": "seeforce-annotation-parser",
@@ -1264,7 +1267,7 @@
             "loc": 1820
           }
         ],
-        "loc": 9761
+        "loc": 9804
       },
       {
         "id": "github",
