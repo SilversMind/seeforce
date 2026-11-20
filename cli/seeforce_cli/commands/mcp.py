@@ -11,7 +11,7 @@ description: |
   - Refreshes both on `update`, without re-running onboarding
 short_desc: Registers and refreshes the MCP server plus the drift-sync hook/skill
 uses:
-    - Backend/Edit API:
+    - Backend/Project Lifecycle:
       - "fetches the project id"
       - "validates the auth token"
       short_desc: "fetches project id, validates token"

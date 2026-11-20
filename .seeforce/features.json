@@ -90,7 +90,7 @@
           "kind": "capability",
           "components": [
             "Lexicon (Frontend)",
-            "Edit API (Backend)"
+            "Overlay Editing (Backend)"
           ],
           "reviewed_at": null,
           "entry_points": ["http:api/graph/<int:project_map_id>/lexicon/"],
