@@ -89,8 +89,8 @@
               {
                 "id": "seeforce-backend-delta-presenter",
                 "name": "Delta Presenter",
-                "description": "- Marks each element and relation of a rendered view as added, removed, modified or unchanged\n- Rolls a component's change up to its container and system\n- Adds removed elements back as ghost nodes so they keep a position\n- Summarises every change of the comparison as one list",
-                "short_desc": "Decorates a rendered view with per-element comparison state",
+                "description": "- Takes the base and head workspace.json, their comparison, and the level to show\n- Returns that level's graph as React Flow nodes and edges, each with a `delta` field:\n  - its state: added, removed, modified or unchanged\n  - the fields that changed, a description with its capability diff\n- Marks a container or system modified when something inside it changed\n- Adds removed elements and relations back as ghost nodes and edges, so they keep a position\n- Returns a `summary`: the change counts and the full list of changes",
+                "short_desc": "Builds the compared graph of one level, with each node's and edge's change",
                 "technology": "Python",
                 "source_file": "backend/apps/graph/delta_presenter.py",
                 "tags": "Element,Component",
@@ -98,7 +98,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-presenter-seeforce-backend-graph-transformer",
                     "destinationId": "seeforce-backend-graph-transformer",
-                    "description": "- renders the head workspace view\n- builds the ghost nodes",
+                    "description": "- renders the level's nodes and edges from the head workspace\n- builds the ghost nodes",
                     "short_desc": "renders the view, builds ghost nodes",
                     "technology": "",
                     "tags": "Relationship"
@@ -112,7 +112,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 356
+                "loc": 359
               },
               {
                 "id": "seeforce-backend-github-app-token-manager",
@@ -254,7 +254,7 @@
                   {
                     "id": "rel-seeforce-backend-delta-view-api-seeforce-backend-delta-presenter",
                     "destinationId": "seeforce-backend-delta-presenter",
-                    "description": "hands it the comparison to project onto the rendered view it returns",
+                    "description": "hands it both workspaces and their comparison, gets back the level's graph with change states",
                     "short_desc": "",
                     "technology": "",
                     "tags": "Relationship"
@@ -371,7 +371,7 @@
                 "loc": 219
               }
             ],
-            "loc": 2255
+            "loc": 2258
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -1034,7 +1034,7 @@
             "loc": 1784
           }
         ],
-        "loc": 9426
+        "loc": 9429
       },
       {
         "id": "github",

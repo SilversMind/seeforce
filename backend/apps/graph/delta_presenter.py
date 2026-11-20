@@ -4,14 +4,17 @@ name: Delta Presenter
 container: Backend
 technology: Python
 description: |
-  - Marks each element and relation of a rendered view as added, removed, modified or unchanged
-  - Rolls a component's change up to its container and system
-  - Adds removed elements back as ghost nodes so they keep a position
-  - Summarises every change of the comparison as one list
-short_desc: Decorates a rendered view with per-element comparison state
+  - Takes the base and head workspace.json, their comparison, and the level to show
+  - Returns that level's graph as React Flow nodes and edges, each with a `delta` field:
+    - its state: added, removed, modified or unchanged
+    - the fields that changed, a description with its capability diff
+  - Marks a container or system modified when something inside it changed
+  - Adds removed elements and relations back as ghost nodes and edges, so they keep a position
+  - Returns a `summary`: the change counts and the full list of changes
+short_desc: Builds the compared graph of one level, with each node's and edge's change
 uses:
 - Graph transformer:
-  - "renders the head workspace view"
+  - "renders the level's nodes and edges from the head workspace"
   - "builds the ghost nodes"
   short_desc: "renders the view, builds ghost nodes"
 - Delta Reporter: "reads the added, removed and changed elements and relations, with each description's capability diff"

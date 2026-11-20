@@ -22,7 +22,7 @@ uses:
   short_desc: "lists and reads pull requests"
   technology: HTTPS
 - Delta Reporter: "hands it the base and head workspace.json to compare"
-- Delta Presenter: "hands it the comparison to project onto the rendered view it returns"
+- Delta Presenter: "hands it both workspaces and their comparison, gets back the level's graph with change states"
 - Graph transformer: "reads node and edge overlays so the compared view keeps authored labels"
 - Database: "reads the ProjectMap row the comparison is requested for"
 """
