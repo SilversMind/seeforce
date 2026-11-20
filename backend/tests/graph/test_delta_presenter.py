@@ -106,6 +106,17 @@ def test_a_modified_component_carries_its_field_rows():
     assert state["fields"][0]["after"] == "Now does more"
 
 
+def test_a_changed_description_carries_its_capability_diff():
+    head = _ws([_container("API Backend", "shop-api", [
+        _component("Order Service", "shop-api-order", "api/order.py", description="- Takes orders\n- Refunds orders",
+                   relationships=[{"id": "r1", "destinationId": "shop-api-payment", "description": "calls"}]),
+        _component("Payment Service", "shop-api-payment", "api/payment.py"),
+    ])])
+    state = _delta(_decorate(BASE, head, "C3", container="shop-api"), "shop-api-order")
+    tree = state["fields"][0]["capabilities"]
+    assert [(n["text"], n["status"]) for n in tree] == [("Takes orders", "added"), ("Refunds orders", "added")]
+
+
 def test_an_unchanged_element_says_so_explicitly():
     state = _delta(_decorate(BASE, BASE, "C3", container="shop-api"), "shop-api-order")
     assert state == {

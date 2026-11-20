@@ -34,7 +34,7 @@ def test_delta_compares_a_revision_to_the_working_tree(tmp_path):
     root = _repo(tmp_path, _ws("old"), _ws("new"))
     result = CliRunner().invoke(cli, ["delta", "HEAD", "--path", str(root)])
     assert result.exit_code == 0, result.output
-    assert "description: old → new" in result.output
+    assert "  + capability: new" in result.output
 
 
 def test_delta_reports_no_change(tmp_path):
@@ -96,7 +96,7 @@ def test_delta_path_reads_the_subdirectory_history_not_the_root(tmp_path):
     (sub / "workspace.json").write_text(json.dumps(_ws("s2")))
     result = CliRunner().invoke(cli, ["delta", "HEAD", "--path", str(root / "sub")])
     assert result.exit_code == 0
-    assert "s1 → s2" in result.output
+    assert "  + capability: s2" in result.output
 
 
 def test_delta_explains_a_revision_without_a_workspace_file(tmp_path):

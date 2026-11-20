@@ -4,19 +4,22 @@ name: Delta Presenter
 container: Backend
 technology: Python
 description: |
-  - Marks each element and relation of a rendered view as added, removed, modified or unchanged
-  - Rolls a component's change up to its container and system
-  - Adds removed elements back as ghost nodes so they keep a position
-  - Summarises every change of the comparison as one list
-short_desc: Decorates a rendered view with per-element comparison state
+  - Takes the base and head workspace.json, their comparison, and the level to show
+  - Returns that level's graph as React Flow nodes and edges, each with a `delta` field:
+    - its state: added, removed, modified or unchanged
+    - the fields that changed, a description with its capability diff
+  - Marks a container or system modified when something inside it changed
+  - Adds removed elements and relations back as ghost nodes and edges, so they keep a position
+  - Returns a `summary`: the change counts and the full list of changes
+short_desc: Builds the compared graph of one level, with each node's and edge's change
 uses:
 - Graph transformer:
-  - "renders the head workspace view"
+  - "renders the level's nodes and edges from the head workspace"
   - "builds the ghost nodes"
   short_desc: "renders the view, builds ghost nodes"
-- Delta Reporter: "reads the added, removed and changed elements and relations"
+- Delta Reporter: "reads the added, removed and changed elements and relations, with each description's capability diff"
 """
-from c4parser.delta import Delta, Element, FieldChange
+from c4parser.delta import Delta, Element, FieldChange, capability_summary
 from c4parser.delta import _render_field as _render_delta_field
 
 from .transformers import _element_index, _node, edge_canvas_fields, to_react_flow
@@ -52,7 +55,14 @@ def element_paths(model: dict) -> dict[str, dict]:
 
 
 def _fields(changes: list[FieldChange]) -> list[dict]:
-    return [{"field": c.field, "before": c.before, "after": c.after} for c in changes]
+    """Serialise field changes; a description also carries the Delta Reporter's capability diff."""
+    out = []
+    for c in changes:
+        row = {"field": c.field, "before": c.before, "after": c.after}
+        if c.capabilities is not None:
+            row["capabilities"] = c.capabilities
+        out.append(row)
+    return out
 
 
 def _possible_renames(delta: Delta) -> dict[str, str]:
@@ -202,7 +212,9 @@ def _ghost_edges(delta: Delta, node_paths: dict[str, str]) -> list[dict]:
 def _summarise(state: str, element_fields: list[dict], source_file: str) -> str:
     if state == "modified":
         return "; ".join(
-            _render_delta_field(FieldChange(f["field"], f["before"], f["after"])) for f in element_fields
+            capability_summary(f["capabilities"]) if "capabilities" in f
+            else _render_delta_field(FieldChange(f["field"], f["before"], f["after"]))
+            for f in element_fields
         )
     return f"{state} — {source_file}" if source_file else state
 

@@ -147,6 +147,22 @@ def test_a_simultaneous_rename_and_move_reports_remove_plus_add():
     assert [e.name for e in added] == ["Lexicon"]
 
 
+def test_a_moved_file_pairs_by_name():
+    base = [_el("component", "Workspace API Client", "mcp_client.py")]
+    head = [_el("component", "Workspace API Client", "backend_client.py")]
+    pairs, added, removed = pair(base, head)
+    assert [(b.source_file, h.source_file) for b, h in pairs] == [("mcp_client.py", "backend_client.py")]
+    assert (added, removed) == ([], [])
+
+
+def test_a_move_is_a_source_file_change():
+    base = _ws_component("Client")
+    head = _ws_component("Client", source_file="moved.py")
+    delta = diff(base, head)
+    assert (delta.added, delta.removed) == ([], [])
+    assert [[f.field for f in c.fields] for c in delta.changed] == [["source_file"]]
+
+
 # Review Focus 5
 def test_an_uneven_bucket_keeps_every_element():
     base = [_el("component", "One", "shared.py")]
@@ -302,12 +318,15 @@ def test_render_shows_a_short_field_before_and_after():
     assert "technology: REST → gRPC" in render_markdown(delta)
 
 
-def test_render_names_a_long_field_without_quoting_it():
-    long_before = "x" * 90
-    delta = diff(_ws_component("API", description=long_before), _ws_component("API", description="y" * 90))
-    out = render_markdown(delta)
-    assert "description" in out
-    assert long_before not in out
+def test_render_lists_each_changed_capability():
+    before = "- Draws edges between nodes\n- Attaches edges to borders\n- Shows a tooltip"
+    after = "- Draws edges between nodes\n- Attaches each edge to borders\n- Thickens an edge with its actions"
+    out = render_markdown(diff(_ws_component("API", description=before), _ws_component("API", description=after)))
+    assert "~ API (Backend) — capabilities" in out
+    assert '  ~ capability: Attaches each edge to borders (was "Attaches edges to borders")' in out
+    assert "  − capability: Shows a tooltip" in out
+    assert "  + capability: Thickens an edge with its actions" in out
+    assert "Draws edges between nodes" not in out
 
 
 def test_render_phrases_a_name_change_as_a_rename():

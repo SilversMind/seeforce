@@ -37,10 +37,18 @@ export interface NodeOverlayKey {
   node_name: string;
 }
 
+export interface CapabilityChange {
+  text: string;
+  status: "unchanged" | "added" | "removed" | "reworded";
+  before?: string;
+  children: CapabilityChange[];
+}
+
 export interface FieldChange {
   field: string;
   before: string;
   after: string;
+  capabilities?: CapabilityChange[];
 }
 
 export interface DeltaElementState {
