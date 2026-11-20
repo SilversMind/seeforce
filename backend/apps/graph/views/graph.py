@@ -9,7 +9,8 @@ description: |
     - Lexicon entries
   - Serves project CRUD
   - Serves the rendered graph for a given C4 level
-short_desc: Saves user edits and serves project CRUD and graph views
+  - Serves the stored feature catalogue on the project payload
+short_desc: Saves user edits and serves projects, graph views and features
 uses:
 - Database/Database: "reads and writes ProjectMap, NodeOverlay, EdgeOverlay, and LexiconEntry rows"
 - Graph transformer: "converts the requested project's workspace.json into ReactFlow nodes/edges for the view endpoint"
@@ -67,6 +68,7 @@ class ProjectMapViewSet(viewsets.ModelViewSet):
         pm = ProjectMap.objects.create(
             name=ser.validated_data["name"],
             source_json=ser.validated_data["workspace"],
+            features_json=ser.validated_data.get("features"),
             owner=request.user,
         )
         sync_lexicon_entries(pm, ser.validated_data["workspace"])

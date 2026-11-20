@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import { GraphView } from "./pages/GraphView";
 import { HomePage } from "./pages/HomePage";
+import { FeaturesPage } from "./pages/FeaturesPage";
 import { SharePage } from "./pages/SharePage";
 
 function AppRoutes() {
@@ -25,6 +26,7 @@ function AppRoutes() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/project/:id" element={<GraphView />} />
+            <Route path="/project/:id/features" element={<FeaturesPage />} />
           </Routes>
         )
       } />

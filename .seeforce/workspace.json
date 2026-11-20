@@ -52,16 +52,16 @@
               {
                 "id": "seeforce-database-database",
                 "name": "Database",
-                "description": "- Holds everything a project owns once imported:\n  - Workspace snapshot\n  - Node and edge overlays\n  - Share tokens and access grants\n  - Lexicon entries\n  - GitHub App installations\n- Is the element a component names when it persists or reads project state",
+                "description": "- Holds everything a project owns once imported:\n  - Workspace snapshot and its feature catalogue\n  - Node and edge overlays\n  - Share tokens and access grants\n  - Lexicon entries\n  - GitHub App installations\n- Is the element a component names when it persists or reads project state",
                 "short_desc": "Stores project snapshots, overlays, sharing grants and lexicon entries",
                 "technology": "PostgreSQL",
                 "source_file": "backend/apps/graph/models.py",
                 "tags": "Element,Component",
                 "relationships": [],
-                "loc": 142
+                "loc": 150
               }
             ],
-            "loc": 374
+            "loc": 396
           },
           {
             "id": "seeforce-backend",
@@ -130,7 +130,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 317
+                "loc": 324
               },
               {
                 "id": "seeforce-backend-github-app-token-manager",
@@ -150,7 +150,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 88
+                "loc": 94
               },
               {
                 "id": "seeforce-backend-graph-transformer",
@@ -170,7 +170,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 365
+                "loc": 372
               },
               {
                 "id": "seeforce-backend-local-scan-command",
@@ -355,7 +355,7 @@
               {
                 "id": "seeforce-backend-github-import",
                 "name": "GitHub Import",
-                "description": "- Imports, re-syncs and links a project to a GitHub repository\n- Picks the user's installation matching the repo owner, falling back to public access\n- Stores the fetched .seeforce/workspace.json as a ProjectMap\n- Caches reads pinned to a commit for a day, keyed by token",
+                "description": "- Imports, re-syncs and links a project to a GitHub repository\n- Picks the user's installation matching the repo owner, falling back to public access\n- Fetches .seeforce/workspace.json and the optional features.json from the same commit\n- Stores both as a ProjectMap\n- Caches reads pinned to a commit for a day, keyed by token",
                 "short_desc": "Imports, re-syncs, and links project architecture from GitHub",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/github_import.py",
@@ -386,13 +386,13 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 226
+                "loc": 247
               },
               {
                 "id": "seeforce-backend-edit-api",
                 "name": "Edit API",
-                "description": "- Saves user edits on a project map:\n  - Node description overlays\n  - Edge label overlays\n  - Lexicon entries\n- Serves project CRUD\n- Serves the rendered graph for a given C4 level",
-                "short_desc": "Saves user edits and serves project CRUD and graph views",
+                "description": "- Saves user edits on a project map:\n  - Node description overlays\n  - Edge label overlays\n  - Lexicon entries\n- Serves project CRUD\n- Serves the rendered graph for a given C4 level\n- Serves the stored feature catalogue on the project payload",
+                "short_desc": "Saves user edits and serves projects, graph views and features",
                 "technology": "",
                 "source_file": "backend/apps/graph/views/graph.py",
                 "tags": "Element,Component",
@@ -414,7 +414,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 182
+                "loc": 184
               },
               {
                 "id": "seeforce-backend-sharing-api",
@@ -445,7 +445,7 @@
                 "loc": 165
               }
             ],
-            "loc": 2163
+            "loc": 2206
           },
           {
             "id": "seeforce-seeforce-cli",
@@ -953,6 +953,26 @@
                 "loc": 28
               },
               {
+                "id": "seeforce-frontend-feature-list",
+                "name": "Feature List",
+                "description": "- Lists what the repo lets you do, grouped by category\n- Shows prerequisites apart from capabilities\n- Shows each feature's intent and the model elements it names\n- Marks whether a human reviewed it or an agent generated it",
+                "short_desc": "Lists the catalogue of intentions a repo serves, grouped by category",
+                "technology": "React",
+                "source_file": "frontend/src/pages/FeaturesPage.tsx",
+                "tags": "Element,Component",
+                "relationships": [
+                  {
+                    "id": "rel-seeforce-frontend-feature-list-seeforce-frontend-api-client",
+                    "destinationId": "seeforce-frontend-api-client",
+                    "description": "reads the feature catalogue from the project payload it already fetches to draw the map",
+                    "short_desc": "",
+                    "technology": "REST",
+                    "tags": "Relationship"
+                  }
+                ],
+                "loc": 188
+              },
+              {
                 "id": "seeforce-frontend-project-workspace",
                 "name": "Project Workspace",
                 "description": "- Hosts the graph canvas for one project\n- Keeps the current C4 level and drill-down target\n- Resolves the project's GitHub repo and branch for source links\n- Mints, copies and revokes share links",
@@ -978,7 +998,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 310
+                "loc": 287
               },
               {
                 "id": "seeforce-frontend-project-library",
@@ -1006,7 +1026,7 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 804
+                "loc": 765
               },
               {
                 "id": "seeforce-frontend-api-client",
@@ -1058,10 +1078,10 @@
                     "tags": "Relationship"
                   }
                 ],
-                "loc": 365
+                "loc": 381
               }
             ],
-            "loc": 3960
+            "loc": 4103
           },
           {
             "id": "seeforce-annotation-parser",
@@ -1172,7 +1192,7 @@
             "loc": 1820
           }
         ],
-        "loc": 9553
+        "loc": 9761
       },
       {
         "id": "github",

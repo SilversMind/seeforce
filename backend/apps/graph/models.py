@@ -5,7 +5,7 @@ container: Database
 technology: PostgreSQL
 description: |
   - Holds everything a project owns once imported:
-    - Workspace snapshot
+    - Workspace snapshot and its feature catalogue
     - Node and edge overlays
     - Share tokens and access grants
     - Lexicon entries
@@ -34,6 +34,8 @@ class ProjectMap(models.Model):
     github_repo = models.CharField(max_length=255, blank=True, default="")
     github_branch = models.CharField(max_length=255, blank=True, default="main")
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    # null means this project has no catalogue, which is a normal state and not an error.
+    features_json = models.JSONField(null=True, blank=True, default=None)
 
     class Meta:
         ordering = ["-updated_at"]
