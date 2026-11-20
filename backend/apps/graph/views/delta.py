@@ -5,7 +5,8 @@ container: Backend
 technology: Django REST Framework
 description: |
   - Lists the linked repository's open pull requests
-  - Compares workspace.json at the two commits a pull request names
+  - Fetches workspace.json from GitHub at the pull request's base and head commits
+  - Compares the two snapshots
   - Returns the decorated C1/C2/C3 view of that comparison
   - Reads the repository with the requesting user's own installation token
   - Caches each commit's workspace.json in memory for a day, keyed by token
@@ -13,15 +14,15 @@ short_desc: Serves open pull requests and the decorated delta view
 uses:
 - GitHub Import:
   - "resolves the installation token"
-  - "reads workspace.json at a commit"
-  short_desc: "reads workspace.json at a commit"
+  - "fetches workspace.json at the base and head commits"
+  short_desc: "fetches base and head workspace.json"
 - GitHub:
   - "lists the repository's open pull requests"
   - "reads one pull request by number"
   short_desc: "lists and reads pull requests"
   technology: HTTPS
-- Delta Reporter: "runs the comparison between the two commits' workspace snapshots"
-- Delta Presenter: "projects that comparison onto the rendered view it returns"
+- Delta Reporter: "hands it the base and head workspace.json to compare"
+- Delta Presenter: "hands it both workspaces and their comparison, gets back the level's graph with change states"
 - Graph transformer: "reads node and edge overlays so the compared view keeps authored labels"
 - Database/Database: "reads the ProjectMap row the comparison is requested for"
 """

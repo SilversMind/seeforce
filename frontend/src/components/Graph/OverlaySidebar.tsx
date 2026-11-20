@@ -21,7 +21,9 @@ import { mutate } from "swr";
 import { type RFNode, type RFEdge, type DeltaElementState, type DeltaRelationState, upsertNodeOverlay, upsertEdgeOverlay, upsertLexiconEntry, deleteLexiconEntry } from "../../services/api";
 import { useLexicon } from "../../contexts/LexiconContext";
 import { useViewStore } from "../../store/viewStore";
+import { CapabilityDiff } from "./CapabilityDiff";
 import { DescriptionList } from "./DescriptionList";
+import { countCapabilities } from "../../lib/description";
 
 type SidebarTarget =
   | { kind: "node"; node: RFNode }
@@ -158,6 +160,9 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
 
   const open = target !== null;
   const isNode = open && target!.kind === "node";
+  const nodeCapabilities = isNode ? (target!.node.data.overlay_description || target!.node.data.description || "") as string : "";
+  const nodeDiff = isNode ? descriptionDiff(target!.node.data.delta) : undefined;
+  const edgeDiff = open && !isNode ? descriptionDiff(target!.edge.data?.delta) : undefined;
   const nodeType = isNode ? target!.node.type : "";
   const typeColor = TYPE_COLORS[nodeType] ?? "var(--c4-external-border)";
   const typeLabel = TYPE_LABELS[nodeType] ?? "Relationship";
@@ -261,22 +266,22 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
               )}
             </Section>
             {!editing && (target!.node.data.short_desc as string) && (
-              <Section label="Summary">
+              <Section label="Overview">
                 <ReadValue>{target!.node.data.short_desc}</ReadValue>
               </Section>
             )}
-            <Section label="Description">
+            <Section label={editing ? "Capabilities" : withCount("Capabilities", nodeCapabilities)}>
               {editing ? (
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={target!.node.data.description || "Add a description…"}
+                  placeholder={target!.node.data.description || "- One capability per line"}
                   rows={8}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                 />
               ) : (
                 <ReadValue>
-                  <DescriptionList text={target!.node.data.overlay_description || target!.node.data.description || "—"} />
+                  {nodeDiff ? <CapabilityDiff items={nodeDiff} /> : <DescriptionList text={nodeCapabilities || "—"} />}
                 </ReadValue>
               )}
             </Section>
@@ -448,7 +453,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                 <ReadValue>{target!.edge.data?.overlay_label || target!.edge.data?.short_desc}</ReadValue>
               </Section>
             )}
-            <Section label={editing ? "Label on the graph" : (target!.edge.data?.action_count ?? 0) > 1 ? `Actions (${target!.edge.data?.action_count})` : "Relation"}>
+            <Section label={editing ? "Label on the graph" : withCount("Actions", target!.edge.label as string || "")}>
               {editing ? (
                 <input
                   value={edgeLabel}
@@ -459,7 +464,7 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
                 />
               ) : (
                 <ReadValue>
-                  <DescriptionList text={target!.edge.label || "—"} />
+                  {edgeDiff ? <CapabilityDiff items={edgeDiff} /> : <DescriptionList text={target!.edge.label || "—"} />}
                 </ReadValue>
               )}
             </Section>
@@ -527,6 +532,17 @@ export function OverlaySidebar({ target, projectMapId, onClose, onSaved, onLexic
  * What the comparison says about this element, as read-only fact.
  * NOTE: it is computed from two commits, never authored, so it is labelled apart from the overlay fields a person wrote below.
  */
+/** The bullet-by-bullet diff of a changed description, when the comparison has one. */
+function descriptionDiff(delta?: DeltaElementState | DeltaRelationState) {
+  return delta?.fields.find((f) => f.field === "description")?.capabilities;
+}
+
+/** "Capabilities (3)" for a bullet list; the bare label when there is nothing to count. */
+function withCount(label: string, text: string) {
+  const n = countCapabilities(text);
+  return n ? `${label} (${n})` : label;
+}
+
 function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState }) {
   if (!delta || delta.state === "unchanged") return null;
   const element = delta as DeltaElementState;
@@ -539,6 +555,8 @@ function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState
       : encloses ? "It did not change itself — something it contains did."
       : touched ? "It did not change itself — a relation it takes part in did."
       : null;
+  // The description diff is drawn in the Capabilities or Actions section itself.
+  const otherFields = delta.fields.filter((f) => f.field !== "description");
 
   return (
     <div
@@ -558,17 +576,9 @@ function DeltaDetail({ delta }: { delta?: DeltaElementState | DeltaRelationState
         </ReadValue>
       </Section>
 
-      {delta.fields.length > 0 && (
+      {otherFields.length > 0 && (
         <Section label="Fields">
-          {delta.fields.map((f) => f.field === "description" ? (
-            <div key={f.field} style={{ fontSize: 12, marginTop: 2, display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ color: "var(--c4-sidebar-muted)" }}>{f.field}:</span>
-              <div style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
-                <DescriptionList text={f.before || "—"} />
-              </div>
-              <DescriptionList text={f.after || "—"} />
-            </div>
-          ) : (
+          {otherFields.map((f) => (
             <div key={f.field} style={{ fontSize: 12, marginTop: 2 }}>
               <span style={{ color: "var(--c4-sidebar-muted)" }}>{f.field}: </span>
               <span style={{ textDecoration: "line-through", color: "var(--c4-sidebar-muted)" }}>
