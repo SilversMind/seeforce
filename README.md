@@ -77,7 +77,7 @@ uses:
 """
 ```
 
-Each leaf bullet of a `description` is a **capability**, and each item of a `uses:` list an **action**. `workspace.json` carries every node's capabilities as a tree, and the comparison view marks them one by one as added, removed or reworded.
+Each leaf bullet of a `description` is a **capability**, and each item of a `uses:` list an **action**. The comparison view and `seeforce delta` mark them one by one as added, removed or reworded.
 
 Supported languages: Python, TypeScript, JavaScript, Go, Rust, Java, C#, Ruby.
 

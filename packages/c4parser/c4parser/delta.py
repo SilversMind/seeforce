@@ -11,7 +11,7 @@ description: |
   - Reports catalogue features that lost an element
 short_desc: Compares two workspace snapshots into an architecture delta
 uses:
-- Capabilities: "diffs a changed description bullet by bullet"
+- Capabilities: "diffs a changed description bullet by bullet into each change it reports"
 """
 from dataclasses import dataclass, field
 
@@ -127,6 +127,12 @@ class FieldChange:
     field: str
     before: str
     after: str
+    # A description change also carries its bullet-by-bullet diff tree.
+    capabilities: list[dict] | None = None
+
+    def __post_init__(self) -> None:
+        if self.field == "description" and self.capabilities is None:
+            self.capabilities = diff_capabilities(self.before, self.after)
 
 
 @dataclass
@@ -262,7 +268,7 @@ _CAPABILITY_MARKS = {"added": "+", "removed": "−", "reworded": "~"}
 def _render_capabilities(change: FieldChange, noun: str) -> list[str]:
     """One indented row per bullet that was added, removed or reworded."""
     rows = []
-    for status, text, before in changed_capabilities(diff_capabilities(change.before, change.after)):
+    for status, text, before in changed_capabilities(change.capabilities or []):
         was = f' (was "{before}")' if before else ""
         rows.append(f"  {_CAPABILITY_MARKS[status]} {noun}: {text}{was}")
     return rows
@@ -277,6 +283,13 @@ def _change_rows(head: str, fields: list[FieldChange], noun: str) -> list[str]:
     desc = [f for f in fields if f.field == "description"]
     summary = "; ".join([_render_field(f) for f in others] + [_PLURALS[noun] for _ in desc])
     return [f"~ {head} — {summary}", *(row for f in desc for row in _render_capabilities(f, noun))]
+
+
+def capability_summary(tree: list[dict]) -> str:
+    """Count changed bullets per status, e.g. "capabilities: +1 −1 ~1"."""
+    rows = changed_capabilities(tree)
+    counts = [f"{mark}{n}" for status, mark in _CAPABILITY_MARKS.items() if (n := sum(r[0] == status for r in rows))]
+    return f"capabilities: {' '.join(counts)}" if counts else "capabilities"
 
 
 def _render_field(change: FieldChange) -> str:

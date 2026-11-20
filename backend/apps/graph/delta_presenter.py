@@ -14,11 +14,9 @@ uses:
   - "renders the head workspace view"
   - "builds the ghost nodes"
   short_desc: "renders the view, builds ghost nodes"
-- Delta Reporter: "reads the added, removed and changed elements and relations"
-- Capabilities: "diffs a changed description bullet by bullet for the sidebar"
+- Delta Reporter: "reads the added, removed and changed elements and relations, with each description's capability diff"
 """
-from c4parser import changed_capabilities, diff_capabilities
-from c4parser.delta import Delta, Element, FieldChange
+from c4parser.delta import Delta, Element, FieldChange, capability_summary
 from c4parser.delta import _render_field as _render_delta_field
 
 from .transformers import _element_index, _node, edge_canvas_fields, to_react_flow
@@ -54,22 +52,14 @@ def element_paths(model: dict) -> dict[str, dict]:
 
 
 def _fields(changes: list[FieldChange]) -> list[dict]:
-    """Serialise field changes; a description also carries its bullet-by-bullet diff tree."""
+    """Serialise field changes; a description also carries the Delta Reporter's capability diff."""
     out = []
     for c in changes:
         row = {"field": c.field, "before": c.before, "after": c.after}
-        if c.field == "description":
-            row["capabilities"] = diff_capabilities(c.before, c.after)
+        if c.capabilities is not None:
+            row["capabilities"] = c.capabilities
         out.append(row)
     return out
-
-
-def _capability_summary(tree: list[dict]) -> str:
-    """Count changed bullets per status, e.g. "capabilities: +1 −1 ~1"."""
-    rows = changed_capabilities(tree)
-    marks = (("added", "+"), ("removed", "−"), ("reworded", "~"))
-    counts = [f"{mark}{n}" for status, mark in marks if (n := sum(r[0] == status for r in rows))]
-    return f"capabilities: {' '.join(counts)}" if counts else "capabilities"
 
 
 def _possible_renames(delta: Delta) -> dict[str, str]:
@@ -219,7 +209,7 @@ def _ghost_edges(delta: Delta, node_paths: dict[str, str]) -> list[dict]:
 def _summarise(state: str, element_fields: list[dict], source_file: str) -> str:
     if state == "modified":
         return "; ".join(
-            _capability_summary(f["capabilities"]) if "capabilities" in f
+            capability_summary(f["capabilities"]) if "capabilities" in f
             else _render_delta_field(FieldChange(f["field"], f["before"], f["after"]))
             for f in element_fields
         )
